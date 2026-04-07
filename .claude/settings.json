@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'if echo \"$CLAUDE_TOOL_INPUT\" | grep -q \"git commit\"; then cd $(git rev-parse --show-toplevel 2>/dev/null || echo \".\") && pnpm typecheck 2>&1 || { echo \"Fix TypeScript errors before committing.\"; exit 2; }; fi'"
+            "command": "bash -c 'CMD=\"$CLAUDE_TOOL_INPUT\"; if echo \"$CMD\" | grep -q \"git commit\"; then if echo \"$CMD\" | grep -qiE \"claude|generated with|co-authored\"; then echo \"Commit message must not contain Claude signatures. Write a clean message.\"; exit 2; fi; cd $(git rev-parse --show-toplevel 2>/dev/null || echo \".\") && pnpm typecheck 2>&1 || { echo \"Fix TypeScript errors before committing.\"; exit 2; }; fi'"
           }
         ]
       }
