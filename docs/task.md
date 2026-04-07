@@ -1,9 +1,17 @@
 # Current Task
 
-## Task: Development Profiles + Dynamic Loader Refactor
+## Task: Game Config, World Generation, SQLite Layer, New Game + Load UI
 
 ### What To Build
-Two things in sequence. Do them in this order — loader first, development profiles second.
+The full new game flow end to end. Config → generate world → save to SQLite → load from SQLite. Multiple saves. React UI for main menu, new game config, load screen. No dead code, no future promises — everything grounded in existing data.
+
+Do in this order:
+1. Data files
+2. Types
+3. SQLite schema
+4. World generation engine
+5. IPC bridge
+6. UI screens
 
 ### Skill To Load
 `.claude/skills/engine/SKILL.md`
@@ -11,183 +19,385 @@ Two things in sequence. Do them in this order — loader first, development prof
 
 ---
 
-## Part 1 — Dynamic Loader Refactor
+## Part 1 — Data Files
 
-The current `loader.ts` has hardcoded nation blocks. Adding a new nation requires touching engine code. This must be fixed before the nation count grows.
+**`packages/engine/data/universal/game-config-defaults.json`**
 
-### Goal
-The loader dynamically scans `data/nations/` and loads every nation bundle it finds. Adding a nation bundle becomes: drop the folder in, restart. No engine code changes required. This is the foundation for Steam mod support.
-
-### How It Works
-Each nation folder must contain these standard files to be considered valid:
-- `nation.json`
-- `cities.json`
-- `names.json`
-- `economic-statuses.json`
-- `reasons-for-boxing.json`
-- `coach-voice/attributes.json`
-- `coach-voice/physical-stats.json`
-- `coach-voice/gifts-and-flaws.json`
-
-The loader scans `data/nations/`, finds every subfolder, attempts to load the standard files from each. If any standard file is missing from a nation folder — throw a descriptive error naming the nation and the missing file. Never silently skip a broken bundle.
-
-### Changes To `src/data/loader.ts`
-
-Replace the hardcoded `nations.latvia` block with a dynamic structure:
-
-```typescript
-// NationBundle holds all data for a single loaded nation.
-// The structure is identical regardless of which nation it is —
-// any nation folder with the standard files becomes a valid bundle.
-export interface NationBundle {
-  nation: NationData
-  cities: CitiesData
-  names: NamesData
-  economicStatuses: EconomicStatusesData
-  reasonsForBoxing: ReasonsForBoxingData
-  coachVoice: {
-    attributes: CoachVoiceAttributesData
-    physicalStats: CoachVoicePhysicalData
-    giftsAndFlaws: CoachVoiceGiftsFlawsData
-  }
-}
-
-// GameData.nations is now a record keyed by nation id (folder name).
-// Engine code accesses nations as: data.nations['latvia']
-// This works for any nation — no hardcoded keys anywhere.
-export interface GameData {
-  soulTraits: SoulTraitsData
-  attributes: AttributesData
-  weightClasses: WeightClassesData
-  physicalStats: PhysicalStatsData
-  health: HealthData
-  giftsAndFlaws: GiftsAndFlawsData
-  developmentProfiles: DevelopmentProfilesData  // new — added this task
-  nations: Record<string, NationBundle>
-}
-```
-
-Use `readdirSync` to scan the nations folder. Load each subfolder as a NationBundle. The nation id is the folder name — must match the `id` field in `nation.json`. Throw if they don't match.
-
-Comment why dynamic loading was chosen over hardcoded blocks, and why a mismatch between folder name and nation id is a hard error.
-
-### Update All Call Sites
-`generatePerson()` currently accesses `data.nations.latvia` directly — update it to `data.nations[nationId]`. This makes generation nation-agnostic. Add a check: if the nation bundle doesn't exist in the loaded data, throw a descriptive error.
-
-### Tests
-Update existing loader tests to work with the dynamic structure. Add a test that verifies: if a nation folder is missing a required file, loadGameData throws with a message naming the nation and the missing file.
-
----
-
-## Part 2 — Development Profiles
-
-### New Data File
-**`packages/engine/data/universal/development-profiles.json`**
-
-Meta must explain: development profile is assigned at generation and never changes. It defines the shape of a person's attribute curve over their career — when they peak, how fast they rise, how long they plateau, how fast they decline. The engine uses this profile alongside age to calculate the ageFactor at any point in time. The hardcoded ageFactor function in generation/person.ts is replaced by a curve lookup using this data.
-
-Three profiles:
+Meta must explain: default settings for a new game. All values here are the baseline a normal difficulty game uses. Difficulty presets in difficulties.json apply multipliers on top of these defaults.
 
 ```json
 {
-  "profiles": [
-    {
-      "id": "early_bloomer",
-      "label": "Early Bloomer",
-      "probability": 0.20,
-      "peakAgeRange": { "min": 22, "max": 25 },
-      "riseRate": 0.08,
-      "plateauDuration": 3,
-      "declineRate": 0.04,
-      "description": "Develops faster than peers, peaks younger, fades sooner. High output early career. Risk of early decline."
-    },
-    {
-      "id": "normal",
-      "label": "Normal",
-      "probability": 0.60,
-      "peakAgeRange": { "min": 26, "max": 30 },
-      "riseRate": 0.05,
-      "plateauDuration": 4,
-      "declineRate": 0.025,
-      "description": "Standard development curve. The majority of fighters."
-    },
-    {
-      "id": "late_bloomer",
-      "label": "Late Bloomer",
-      "probability": 0.20,
-      "peakAgeRange": { "min": 29, "max": 34 },
-      "riseRate": 0.03,
-      "plateauDuration": 5,
-      "declineRate": 0.015,
-      "description": "Slow to develop. Peaks later, plateaus longer, declines more gradually. Long career ceiling."
+  "seed": null,
+  "startYear": 2026,
+  "renderedNations": ["latvia"],
+  "leagues": {
+    "amateur": true,
+    "pro": true
+  },
+  "worldSettings": {
+    "populationPerCity": 200,
+    "gymsPerCity": {
+      "small_town": 1,
+      "mid_city": 3,
+      "capital": 6
     }
-  ]
+  }
 }
 ```
 
-`riseRate` — how much ageFactor increases per year before peak.
-`plateauDuration` — how many years the fighter stays near peak (ageFactor > 0.95) after reaching it.
-`declineRate` — how much ageFactor decreases per year after plateau ends.
-`peakAgeRange` — rolled at generation to get this person's specific peak age.
+Seed null means auto-generate a random seed at game start.
 
-### New Type File
-**`src/types/data/developmentProfiles.ts`**
+---
 
-Interface matching the JSON. Export `DevelopmentProfile` and `DevelopmentProfilesData`. Add to `src/types/data/index.ts`.
+**`packages/engine/data/universal/difficulties.json`**
 
-### Update `src/types/person.ts`
-Add two fields:
+Meta must explain: difficulty presets apply multipliers to city-level modifiers and generation probabilities. All values are multipliers against the base value — 1.0 means unchanged. Only fields that differ from baseline are listed per difficulty. Engine merges difficulty modifiers with defaults at world generation time.
+
+Four presets: `easy`, `normal`, `hard`, `extreme`.
+
+Modifiers available (all grounded in existing data — no new fields):
+- `rentModifier` — multiplier on city rentModifier values
+- `talentDensity` — multiplier on city talentDensity values  
+- `rivalGymDensity` — multiplier on city rivalGymDensity values
+- `giftProbabilityMultiplier` — multiplier on all gift probabilities in gifts-and-flaws.json
+- `flawProbabilityMultiplier` — multiplier on all flaw probabilities
+- `economicStatusWeightShift` — shifts population distribution toward struggling (>1.0) or comfortable (<1.0)
+- `developmentProfileShift` — shifts toward late_bloomer (harder, talent harder to spot) or early_bloomer (easier)
+
+Easy: more talent, cheaper rent, fewer rivals, more gifts, more comfortable backgrounds.
+Normal: all multipliers at 1.0.
+Hard: less talent, higher rent, more rivals, fewer gifts, more struggling backgrounds.
+Extreme: punishing on all axes.
+
+---
+
+## Part 2 — Types
+
+**`packages/engine/src/types/gameConfig.ts`**
+
 ```typescript
-developmentProfileId: string   // references development-profiles.json id
-peakAge: number                // rolled from profile's peakAgeRange at generation
+// GameConfig is passed to generateWorld() and drives all world generation decisions.
+// It is never assumed or defaulted inside the engine — the caller always provides it explicitly.
+// This keeps engine functions pure and testable without UI or default assumptions.
+
+export interface LeagueSettings {
+  amateur: boolean
+  pro: boolean
+}
+
+export interface WorldSettings {
+  populationPerCity: number
+  gymsPerCity: Record<string, number>  // keyed by population type
+}
+
+export interface DifficultyModifiers {
+  rentModifier: number
+  talentDensity: number
+  rivalGymDensity: number
+  giftProbabilityMultiplier: number
+  flawProbabilityMultiplier: number
+  economicStatusWeightShift: number
+  developmentProfileShift: number
+}
+
+export interface GameConfig {
+  seed: number
+  startYear: number
+  playerName: string
+  gymName: string
+  playerCityId: string
+  playerNationId: string
+  renderedNations: string[]
+  difficulty: 'easy' | 'normal' | 'hard' | 'extreme'
+  difficultyModifiers: DifficultyModifiers
+  leagues: LeagueSettings
+  worldSettings: WorldSettings
+}
 ```
 
-### Update `src/generation/person.ts`
+---
 
-**Replace the hardcoded `ageFactor()` function** with a data-driven calculation:
+**`packages/engine/src/types/worldState.ts`**
 
 ```typescript
-// calculateAgeFactor derives the current/potential ratio from the person's
-// development profile and their specific peak age.
-// Before peak: linear rise from a base of 0.55 at age 14, using profile riseRate.
-// At/near peak: plateau at 0.98 for plateauDuration years.
-// After plateau: linear decline using profile declineRate, floored at 0.40.
-// Using data-driven rates rather than hardcoded values means development curves
-// can be tuned in JSON without touching engine code.
-function calculateAgeFactor(age: number, peakAge: number, profile: DevelopmentProfile): number
+// WorldState is the complete generated world. It is serialised to SQLite after generation
+// and deserialised when loading a save. All simulation functions receive WorldState.
+
+export interface GymState {
+  id: string
+  name: string
+  cityId: string
+  nationId: string
+  isPlayerGym: boolean
+  reputation: number        // 0-100
+  personIds: string[]       // references persons in the save
+}
+
+export interface CityState {
+  cityId: string
+  nationId: string
+  gymIds: string[]
+}
+
+export interface NationState {
+  nationId: string
+  cityIds: string[]
+}
+
+export interface WorldState {
+  saveId: string
+  seed: number
+  currentYear: number
+  currentWeek: number
+  playerName: string
+  gymName: string
+  playerGymId: string
+  playerCityId: string
+  playerNationId: string
+  nations: Record<string, NationState>
+  cities: Record<string, CityState>
+  gyms: Record<string, GymState>
+  // persons stored separately in SQLite persons table — not embedded here
+}
 ```
 
-Add development profile roll to Step 1 (Identity):
-- Roll profile from weighted probabilities
-- Roll peak age from `peakAgeRange` using RNG
-- Store both on the person
+---
 
-### Update Tests
-- Add test: early bloomer at age 23 has higher ageFactor than late bloomer at same age
-- Add test: late bloomer at age 32 has higher ageFactor than early bloomer at same age
-- Add test: same profile + same seed = same peakAge every time
-- Add test: ageFactor never exceeds 1.0, never goes below 0.40
-- Update existing age factor tests to use the new function signature
+## Part 3 — SQLite Schema
+
+**Update `packages/desktop/src/db.ts`**
+
+Normalised tables. Never store WorldState as a blob.
+
+```sql
+-- saves: one row per save slot
+CREATE TABLE saves (
+  id TEXT PRIMARY KEY,
+  saveName TEXT NOT NULL,
+  playerName TEXT NOT NULL,
+  gymName TEXT NOT NULL,
+  cityId TEXT NOT NULL,
+  nationId TEXT NOT NULL,
+  currentYear INTEGER NOT NULL,
+  currentWeek INTEGER NOT NULL,
+  seed INTEGER NOT NULL,
+  difficulty TEXT NOT NULL,
+  createdAt TEXT NOT NULL,
+  lastPlayedAt TEXT NOT NULL
+);
+
+-- world_state: serialised WorldState json per save
+-- WorldState itself has no persons — persons are in their own table
+CREATE TABLE world_state (
+  saveId TEXT PRIMARY KEY,
+  data TEXT NOT NULL,   -- JSON serialised WorldState
+  FOREIGN KEY (saveId) REFERENCES saves(id)
+);
+
+-- persons: one row per generated person per save
+CREATE TABLE persons (
+  id TEXT NOT NULL,
+  saveId TEXT NOT NULL,
+  data TEXT NOT NULL,   -- JSON serialised Person
+  cityId TEXT NOT NULL,
+  gymId TEXT,           -- null if not in a gym
+  nationId TEXT NOT NULL,
+  age INTEGER NOT NULL,
+  PRIMARY KEY (id, saveId),
+  FOREIGN KEY (saveId) REFERENCES saves(id)
+);
+```
+
+Export typed functions:
+```typescript
+export function createSave(db: Database, worldState: WorldState, persons: Person[], config: GameConfig): string
+export function loadSave(db: Database, saveId: string): { worldState: WorldState; persons: Person[] }
+export function listSaves(db: Database): SaveSummary[]
+export function deleteSave(db: Database, saveId: string): void
+```
+
+`SaveSummary` matches the saves table columns — enough to display a load screen entry.
+
+Comment why persons are in their own table rather than embedded in world_state JSON — querying persons by cityId, gymId, age without deserialising the entire world state blob.
+
+---
+
+## Part 4 — World Generation
+
+**`packages/engine/src/generation/world.ts`**
+
+```typescript
+// generateWorld produces a complete WorldState from a GameConfig.
+// Generation order:
+// 1. Initialise RNG from config.seed
+// 2. For each rendered nation — generate cities
+// 3. For each city — generate population (Person[])
+// 4. For each city — generate gyms, distribute population across gyms
+// 5. Mark player gym based on config.playerCityId
+// 6. Return WorldState + all generated persons
+
+export function generateWorld(config: GameConfig, data: GameData): {
+  worldState: WorldState
+  persons: Person[]
+}
+```
+
+Difficulty modifiers apply at generation:
+- `talentDensity` multiplier scales `populationPerCity` for each city
+- `giftProbabilityMultiplier` passed into generatePerson as a config override
+- `economicStatusWeightShift` adjusts economic status weights before rolling
+- `rentModifier` and `rivalGymDensity` stored on GymState for later use
+
+Player gym gets `isPlayerGym: true`. Name comes from `config.gymName`.
+
+Comment every generation step explaining why that order.
+
+---
+
+## Part 5 — IPC Bridge
+
+**Update `packages/desktop/src/ipc.ts`**
+
+Three handlers:
+
+```typescript
+// ipc: generate-and-save
+// Receives GameConfig from UI, generates world, saves to SQLite, returns saveId.
+// Runs synchronously — UI shows spinner with progress messages during this call.
+ipcMain.handle('generate-and-save', async (_, config: GameConfig) => {
+  // 1. loadGameData()
+  // 2. generateWorld(config, data) — emit progress events during generation
+  // 3. createSave(db, worldState, persons, config)
+  // 4. return saveId
+})
+
+// ipc: load-save
+// Receives saveId, returns WorldState + persons from SQLite.
+ipcMain.handle('load-save', async (_, saveId: string) => {
+  return loadSave(db, saveId)
+})
+
+// ipc: list-saves
+// Returns all SaveSummary entries for the load screen.
+ipcMain.handle('list-saves', async () => {
+  return listSaves(db)
+})
+
+// ipc: delete-save
+ipcMain.handle('delete-save', async (_, saveId: string) => {
+  deleteSave(db, saveId)
+})
+```
+
+Progress events during generation — emit via `webContents.send`:
+- `generation-progress` with `{ step: string, detail: string, elapsedMs: number }`
+
+Steps to emit: "Loading game data", "Generating population for [city]", "Generating gyms", "Saving to database", "Done"
+
+---
+
+## Part 6 — UI Screens
+
+All screens use Tailwind only. Dark background throughout. No component libraries.
+
+---
+
+**`packages/ui/src/screens/MainMenu.tsx`**
+
+Three buttons: New Game, Load Game, Quit.
+Dark, clean, minimal. Gym name "Corner Gym" centred. No logo needed.
+
+---
+
+**`packages/ui/src/screens/NewGame.tsx`**
+
+Form fields:
+- Player name (text input)
+- Gym name (text input)
+- Nation (dropdown — rendered nations from config defaults, for now just Latvia)
+- City (dropdown — cities where `isStartingOption: true`, filtered by selected nation)
+- Difficulty (four buttons: Easy / Normal / Hard / Extreme — selected state highlighted)
+- Seed (text input, pre-filled with random number, editable)
+
+Start Game button — disabled until all fields filled.
+
+On submit: calls `generate-and-save` IPC with built GameConfig. Transitions to Loading screen.
+
+---
+
+**`packages/ui/src/screens/Loading.tsx`**
+
+Shows spinner. Listens for `generation-progress` IPC events. Displays current step and detail. Shows elapsed time. On completion transitions to Game screen.
+
+---
+
+**`packages/ui/src/screens/LoadGame.tsx`**
+
+Calls `list-saves` on mount. Shows list of saves — each card shows: save name, player name, gym name, city, difficulty, current year/week, last played date. Delete button per save with confirmation. Load button per save. Empty state if no saves exist.
+
+---
+
+**`packages/ui/src/screens/Game.tsx`**
+
+Placeholder only. Shows: "Welcome, [playerName]. [gymName] is yours." and current year/week. This proves the load flow works. No game logic yet.
+
+---
+
+**`packages/ui/src/store/gameStore.ts`**
+
+Zustand store. Holds current session state.
+
+```typescript
+interface GameStore {
+  worldState: WorldState | null
+  persons: Person[]
+  currentScreen: 'mainMenu' | 'newGame' | 'loadGame' | 'loading' | 'game'
+  setScreen: (screen: string) => void
+  loadWorld: (worldState: WorldState, persons: Person[]) => void
+  clearWorld: () => void
+}
+```
+
+---
+
+**`packages/ui/src/ipc/client.ts`**
+
+Typed wrappers around IPC calls:
+
+```typescript
+export async function generateAndSave(config: GameConfig): Promise<string>
+export async function loadSave(saveId: string): Promise<{ worldState: WorldState; persons: Person[] }>
+export async function listSaves(): Promise<SaveSummary[]>
+export async function deleteSave(saveId: string): Promise<void>
+export function onGenerationProgress(callback: (data: ProgressEvent) => void): () => void
+```
 
 ---
 
 ### Definition Of Done
-- [ ] `loader.ts` — dynamic nation scanning, no hardcoded nation keys
-- [ ] `generatePerson()` — accesses nations via `data.nations[nationId]`
-- [ ] `universal/development-profiles.json` — 3 profiles, probabilities sum to 1.0
-- [ ] `src/types/data/developmentProfiles.ts` — created, exported from index
-- [ ] `src/types/person.ts` — `developmentProfileId` and `peakAge` added
-- [ ] `src/generation/person.ts` — hardcoded `ageFactor()` replaced with data-driven version
-- [ ] All existing tests still passing
-- [ ] New tests written and passing
+- [ ] `game-config-defaults.json` and `difficulties.json` created
+- [ ] `GameConfig` and `WorldState` types created
+- [ ] SQLite schema created with normalised tables
+- [ ] `generateWorld()` produces valid WorldState + Person array
+- [ ] IPC handlers wired — generate-and-save, load-save, list-saves, delete-save
+- [ ] Progress events emitted during world generation
+- [ ] Main menu renders
+- [ ] New game form — all fields, validation, submits to IPC
+- [ ] Loading screen — shows progress events, elapsed time
+- [ ] Load game screen — lists saves, load and delete work
+- [ ] Game screen placeholder — shows player name, gym name, year/week
+- [ ] `pnpm dev` — full flow works: new game → config → loading → game screen
 - [ ] `pnpm typecheck` clean
+- [ ] `pnpm test` passing — world generation tests written
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — `development-profiles.json` marked `[x]`
+- [ ] `docs/data-registry.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: dynamic loader + development profiles`
+- [ ] Committed: `feat: game config, world gen, sqlite, new game + load UI`
 
 ### Notes
-- Loader refactor first — generation changes depend on the updated GameData structure
-- The hardcoded ageFactor function must be fully deleted — no dead code left behind
-- Nation id must equal folder name — enforce this with a thrown error, not a warning
-- riseRate, plateauDuration, declineRate are tuning values — they will change as the game is balanced. They must live in JSON, never in code.
+- No dead code — Game.tsx is a placeholder but it proves the flow, not a promise
+- Difficulty modifiers only touch fields that exist in current data — no future fields
+- Progress events make the spinner feel alive — emit one per city generated
+- SQLite persons table has cityId and gymId columns for future querying — comment why
+- Never store WorldState as a blob — normalised tables only
+- generateWorld tests: same seed + config = same world, person count matches config, player gym marked correctly
