@@ -1,403 +1,275 @@
 # Current Task
 
-## Task: Game Config, World Generation, SQLite Layer, New Game + Load UI
+## Task: Fix JSONs + Fonts + CSS Variables + Component Library + Nav + Restyle
 
 ### What To Build
-The full new game flow end to end. Config → generate world → save to SQLite → load from SQLite. Multiple saves. React UI for main menu, new game config, load screen. No dead code, no future promises — everything grounded in existing data.
-
-Do in this order:
-1. Data files
-2. Types
-3. SQLite schema
-4. World generation engine
-5. IPC bridge
-6. UI screens
+Fix two broken JSON files, wire fonts, establish the design system, build the component library, add navigation, restyle all existing screens. Do in order — JSON fixes first, then design system, then components, then screens.
 
 ### Skill To Load
-`.claude/skills/engine/SKILL.md`
 `.claude/skills/new-feature/SKILL.md`
+`.claude/skills/public/frontend-design/SKILL.md`
 
 ---
 
-## Part 1 — Data Files
+## Part 1 — Fix JSON Files
 
-**`packages/engine/data/universal/game-config-defaults.json`**
+**Fix `packages/engine/data/universal/game-config-defaults.json`**
 
-Meta must explain: default settings for a new game. All values here are the baseline a normal difficulty game uses. Difficulty presets in difficulties.json apply multipliers on top of these defaults.
+`populationPerCity` must be tier-based — a flat number ignores city size entirely. Replace:
+```json
+"populationPerCity": 200
+```
+With:
+```json
+"populationPerCity": {
+  "small_town": 150,
+  "mid_city": 400,
+  "capital": 1200
+}
+```
+
+Update the type in `src/types/gameConfig.ts` — `worldSettings.populationPerCity` changes from `number` to `Record<string, number>`.
+
+Update `generateWorld()` to look up population by city population type when generating persons per city.
+
+---
+
+**Fix `packages/engine/data/universal/difficulties.json`**
+
+Normal difficulty must not list modifiers at 1.0 — those are the defaults, listing them is noise. The engine applies 1.0 when a field is absent.
+
+Rule: only list modifiers that differ from 1.0. Normal difficulty has zero modifiers — empty object.
 
 ```json
 {
-  "seed": null,
-  "startYear": 2026,
-  "renderedNations": ["latvia"],
-  "leagues": {
-    "amateur": true,
-    "pro": true
-  },
-  "worldSettings": {
-    "populationPerCity": 200,
-    "gymsPerCity": {
-      "small_town": 1,
-      "mid_city": 3,
-      "capital": 6
-    }
-  }
+  "id": "normal",
+  "label": "Normal",
+  "modifiers": {}
 }
 ```
 
-Seed null means auto-generate a random seed at game start.
+Easy, hard, extreme keep their modifiers but review them — only fields that genuinely differ from baseline belong here.
+
+Update `DifficultyModifiers` type to make all fields optional: `Partial<DifficultyModifiers>`. Update the engine's difficulty merge function to use 1.0 as fallback for any absent field.
 
 ---
 
-**`packages/engine/data/universal/difficulties.json`**
+## Part 2 — Fonts
 
-Meta must explain: difficulty presets apply multipliers to city-level modifiers and generation probabilities. All values are multipliers against the base value — 1.0 means unchanged. Only fields that differ from baseline are listed per difficulty. Engine merges difficulty modifiers with defaults at world generation time.
+**Move fonts from root `/fonts` to `packages/ui/src/assets/fonts/`**
 
-Four presets: `easy`, `normal`, `hard`, `extreme`.
+Two fonts are in the root fonts folder. Move them to the correct location.
 
-Modifiers available (all grounded in existing data — no new fields):
-- `rentModifier` — multiplier on city rentModifier values
-- `talentDensity` — multiplier on city talentDensity values  
-- `rivalGymDensity` — multiplier on city rivalGymDensity values
-- `giftProbabilityMultiplier` — multiplier on all gift probabilities in gifts-and-flaws.json
-- `flawProbabilityMultiplier` — multiplier on all flaw probabilities
-- `economicStatusWeightShift` — shifts population distribution toward struggling (>1.0) or comfortable (<1.0)
-- `developmentProfileShift` — shifts toward late_bloomer (harder, talent harder to spot) or early_bloomer (easier)
+- Rock Bro — display font, used for the Corner Gym logotype only
+- Inconsolata — body font, used for all UI text
 
-Easy: more talent, cheaper rent, fewer rivals, more gifts, more comfortable backgrounds.
-Normal: all multipliers at 1.0.
-Hard: less talent, higher rent, more rivals, fewer gifts, more struggling backgrounds.
-Extreme: punishing on all axes.
+Wire both into the project:
+- Add `@font-face` declarations in `packages/ui/src/index.css`
+- Inconsolata also available via Google Fonts as fallback
 
 ---
 
-## Part 2 — Types
+## Part 3 — Design System
 
-**`packages/engine/src/types/gameConfig.ts`**
+**`packages/ui/src/styles/theme.css`**
 
-```typescript
-// GameConfig is passed to generateWorld() and drives all world generation decisions.
-// It is never assumed or defaulted inside the engine — the caller always provides it explicitly.
-// This keeps engine functions pure and testable without UI or default assumptions.
+CSS custom properties. Single source of truth. Every colour, spacing, and typography value in the UI comes from here. Never use raw hex values in components.
 
-export interface LeagueSettings {
-  amateur: boolean
-  pro: boolean
-}
+```css
+:root {
+  /* Palette — nostalgOS 12 */
+  --color-bg-dark:     #272a32;
+  --color-bg-mid:      #21525a;
+  --color-bg-light:    #dad4c9;
+  --color-text-primary: #dad4c9;
+  --color-text-muted:  #deada5;
+  --color-accent-red:  #dc6250;
+  --color-accent-gold: #ffd183;
+  --color-accent-amber:#eeb24a;
+  --color-accent-green:#55927f;
+  --color-accent-blue: #5a8bde;
+  --color-accent-blue-dark: #2152a5;
+  --color-accent-purple: #b89ce9;
+  --color-accent-purple-dark: #844790;
 
-export interface WorldSettings {
-  populationPerCity: number
-  gymsPerCity: Record<string, number>  // keyed by population type
-}
+  /* Typography */
+  --font-display: 'Rock Bro', serif;
+  --font-body: 'Inconsolata', monospace;
 
-export interface DifficultyModifiers {
-  rentModifier: number
-  talentDensity: number
-  rivalGymDensity: number
-  giftProbabilityMultiplier: number
-  flawProbabilityMultiplier: number
-  economicStatusWeightShift: number
-  developmentProfileShift: number
-}
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
 
-export interface GameConfig {
-  seed: number
-  startYear: number
-  playerName: string
-  gymName: string
-  playerCityId: string
-  playerNationId: string
-  renderedNations: string[]
-  difficulty: 'easy' | 'normal' | 'hard' | 'extreme'
-  difficultyModifiers: DifficultyModifiers
-  leagues: LeagueSettings
-  worldSettings: WorldSettings
+  /* Border radius */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Transitions */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
 }
 ```
 
----
-
-**`packages/engine/src/types/worldState.ts`**
-
-```typescript
-// WorldState is the complete generated world. It is serialised to SQLite after generation
-// and deserialised when loading a save. All simulation functions receive WorldState.
-
-export interface GymState {
-  id: string
-  name: string
-  cityId: string
-  nationId: string
-  isPlayerGym: boolean
-  reputation: number        // 0-100
-  personIds: string[]       // references persons in the save
-}
-
-export interface CityState {
-  cityId: string
-  nationId: string
-  gymIds: string[]
-}
-
-export interface NationState {
-  nationId: string
-  cityIds: string[]
-}
-
-export interface WorldState {
-  saveId: string
-  seed: number
-  currentYear: number
-  currentWeek: number
-  playerName: string
-  gymName: string
-  playerGymId: string
-  playerCityId: string
-  playerNationId: string
-  nations: Record<string, NationState>
-  cities: Record<string, CityState>
-  gyms: Record<string, GymState>
-  // persons stored separately in SQLite persons table — not embedded here
-}
-```
+Import `theme.css` in `main.tsx` before anything else.
 
 ---
 
-## Part 3 — SQLite Schema
+## Part 4 — Component Library
 
-**Update `packages/desktop/src/db.ts`**
+**`packages/ui/src/components/`**
 
-Normalised tables. Never store WorldState as a blob.
+Build these components. Every component uses CSS variables only — no raw hex values, no Tailwind colour classes that bypass the theme.
 
-```sql
--- saves: one row per save slot
-CREATE TABLE saves (
-  id TEXT PRIMARY KEY,
-  saveName TEXT NOT NULL,
-  playerName TEXT NOT NULL,
-  gymName TEXT NOT NULL,
-  cityId TEXT NOT NULL,
-  nationId TEXT NOT NULL,
-  currentYear INTEGER NOT NULL,
-  currentWeek INTEGER NOT NULL,
-  seed INTEGER NOT NULL,
-  difficulty TEXT NOT NULL,
-  createdAt TEXT NOT NULL,
-  lastPlayedAt TEXT NOT NULL
-);
-
--- world_state: serialised WorldState json per save
--- WorldState itself has no persons — persons are in their own table
-CREATE TABLE world_state (
-  saveId TEXT PRIMARY KEY,
-  data TEXT NOT NULL,   -- JSON serialised WorldState
-  FOREIGN KEY (saveId) REFERENCES saves(id)
-);
-
--- persons: one row per generated person per save
-CREATE TABLE persons (
-  id TEXT NOT NULL,
-  saveId TEXT NOT NULL,
-  data TEXT NOT NULL,   -- JSON serialised Person
-  cityId TEXT NOT NULL,
-  gymId TEXT,           -- null if not in a gym
-  nationId TEXT NOT NULL,
-  age INTEGER NOT NULL,
-  PRIMARY KEY (id, saveId),
-  FOREIGN KEY (saveId) REFERENCES saves(id)
-);
-```
-
-Export typed functions:
-```typescript
-export function createSave(db: Database, worldState: WorldState, persons: Person[], config: GameConfig): string
-export function loadSave(db: Database, saveId: string): { worldState: WorldState; persons: Person[] }
-export function listSaves(db: Database): SaveSummary[]
-export function deleteSave(db: Database, saveId: string): void
-```
-
-`SaveSummary` matches the saves table columns — enough to display a load screen entry.
-
-Comment why persons are in their own table rather than embedded in world_state JSON — querying persons by cityId, gymId, age without deserialising the entire world state blob.
+Each component must handle all relevant states. No half-built components.
 
 ---
 
-## Part 4 — World Generation
+**`Button.tsx`**
 
-**`packages/engine/src/generation/world.ts`**
+Variants: `primary`, `secondary`, `danger`, `ghost`
+Sizes: `sm`, `md`, `lg`
+States: default, hover, active, disabled, loading
 
-```typescript
-// generateWorld produces a complete WorldState from a GameConfig.
-// Generation order:
-// 1. Initialise RNG from config.seed
-// 2. For each rendered nation — generate cities
-// 3. For each city — generate population (Person[])
-// 4. For each city — generate gyms, distribute population across gyms
-// 5. Mark player gym based on config.playerCityId
-// 6. Return WorldState + all generated persons
+Primary uses `--color-accent-amber` background, dark text.
+Secondary uses `--color-bg-mid` background, `--color-text-primary` text.
+Danger uses `--color-accent-red`.
+Ghost is transparent with border.
 
-export function generateWorld(config: GameConfig, data: GameData): {
-  worldState: WorldState
-  persons: Person[]
-}
-```
-
-Difficulty modifiers apply at generation:
-- `talentDensity` multiplier scales `populationPerCity` for each city
-- `giftProbabilityMultiplier` passed into generatePerson as a config override
-- `economicStatusWeightShift` adjusts economic status weights before rolling
-- `rentModifier` and `rivalGymDensity` stored on GymState for later use
-
-Player gym gets `isPlayerGym: true`. Name comes from `config.gymName`.
-
-Comment every generation step explaining why that order.
+Loading state shows a subtle pulse animation — no spinner, just opacity pulse on the text.
 
 ---
 
-## Part 5 — IPC Bridge
+**`Input.tsx`**
 
-**Update `packages/desktop/src/ipc.ts`**
-
-Three handlers:
-
-```typescript
-// ipc: generate-and-save
-// Receives GameConfig from UI, generates world, saves to SQLite, returns saveId.
-// Runs synchronously — UI shows spinner with progress messages during this call.
-ipcMain.handle('generate-and-save', async (_, config: GameConfig) => {
-  // 1. loadGameData()
-  // 2. generateWorld(config, data) — emit progress events during generation
-  // 3. createSave(db, worldState, persons, config)
-  // 4. return saveId
-})
-
-// ipc: load-save
-// Receives saveId, returns WorldState + persons from SQLite.
-ipcMain.handle('load-save', async (_, saveId: string) => {
-  return loadSave(db, saveId)
-})
-
-// ipc: list-saves
-// Returns all SaveSummary entries for the load screen.
-ipcMain.handle('list-saves', async () => {
-  return listSaves(db)
-})
-
-// ipc: delete-save
-ipcMain.handle('delete-save', async (_, saveId: string) => {
-  deleteSave(db, saveId)
-})
-```
-
-Progress events during generation — emit via `webContents.send`:
-- `generation-progress` with `{ step: string, detail: string, elapsedMs: number }`
-
-Steps to emit: "Loading game data", "Generating population for [city]", "Generating gyms", "Saving to database", "Done"
+States: default, focused, error, disabled
+Background `--color-bg-dark`, border `--color-bg-mid`, focused border `--color-accent-amber`.
+Error border `--color-accent-red` with optional error message below.
+Label above input. Monospace font throughout.
 
 ---
 
-## Part 6 — UI Screens
+**`Card.tsx`**
 
-All screens use Tailwind only. Dark background throughout. No component libraries.
-
----
-
-**`packages/ui/src/screens/MainMenu.tsx`**
-
-Three buttons: New Game, Load Game, Quit.
-Dark, clean, minimal. Gym name "Corner Gym" centred. No logo needed.
+Variants: `default`, `active`, `muted`
+Background `--color-bg-mid`. Subtle border. Padding variants sm/md/lg.
+Active variant has left border accent in `--color-accent-amber`.
 
 ---
 
-**`packages/ui/src/screens/NewGame.tsx`**
+**`Dropdown.tsx`**
 
-Form fields:
-- Player name (text input)
-- Gym name (text input)
-- Nation (dropdown — rendered nations from config defaults, for now just Latvia)
-- City (dropdown — cities where `isStartingOption: true`, filtered by selected nation)
-- Difficulty (four buttons: Easy / Normal / Hard / Extreme — selected state highlighted)
-- Seed (text input, pre-filled with random number, editable)
-
-Start Game button — disabled until all fields filled.
-
-On submit: calls `generate-and-save` IPC with built GameConfig. Transitions to Loading screen.
+Controlled component. Open/closed state. Options list. Selected state highlighted in `--color-accent-amber`.
+Keyboard navigable. Closes on outside click.
 
 ---
 
-**`packages/ui/src/screens/Loading.tsx`**
+**`Badge.tsx`**
 
-Shows spinner. Listens for `generation-progress` IPC events. Displays current step and detail. Shows elapsed time. On completion transitions to Game screen.
-
----
-
-**`packages/ui/src/screens/LoadGame.tsx`**
-
-Calls `list-saves` on mount. Shows list of saves — each card shows: save name, player name, gym name, city, difficulty, current year/week, last played date. Delete button per save with confirmation. Load button per save. Empty state if no saves exist.
+For difficulty labels, status indicators, small tags.
+Variants map to semantic colours: `easy` → green, `normal` → blue, `hard` → amber, `extreme` → red, `gift` → purple, `flaw` → purple-dark.
 
 ---
 
-**`packages/ui/src/screens/Game.tsx`**
+**`ProgressBar.tsx`**
 
-Placeholder only. Shows: "Welcome, [playerName]. [gymName] is yours." and current year/week. This proves the load flow works. No game logic yet.
-
----
-
-**`packages/ui/src/store/gameStore.ts`**
-
-Zustand store. Holds current session state.
-
-```typescript
-interface GameStore {
-  worldState: WorldState | null
-  persons: Person[]
-  currentScreen: 'mainMenu' | 'newGame' | 'loadGame' | 'loading' | 'game'
-  setScreen: (screen: string) => void
-  loadWorld: (worldState: WorldState, persons: Person[]) => void
-  clearWorld: () => void
-}
-```
+Used on loading screen. Animated fill. Label and percentage optional.
+Fill colour `--color-accent-green`. Track `--color-bg-mid`.
 
 ---
 
-**`packages/ui/src/ipc/client.ts`**
+## Part 5 — Navigation
 
-Typed wrappers around IPC calls:
+**`packages/ui/src/components/layout/TopBar.tsx`**
 
-```typescript
-export async function generateAndSave(config: GameConfig): Promise<string>
-export async function loadSave(saveId: string): Promise<{ worldState: WorldState; persons: Person[] }>
-export async function listSaves(): Promise<SaveSummary[]>
-export async function deleteSave(saveId: string): Promise<void>
-export function onGenerationProgress(callback: (data: ProgressEvent) => void): () => void
-```
+Fixed top bar. Dark background `--color-bg-dark`. Subtle bottom border.
+
+Left side: Corner Gym logotype in Rock Bro font. Small, not dominant.
+Centre: current screen title.
+Right side: gym name + year/week display (once in game). Greyed out on menu screens.
+
+---
+
+**`packages/ui/src/components/layout/SideNav.tsx`**
+
+Visible only in-game. Left side, fixed.
+Navigation items: Gym, Fighters, Inbox, World, Finances.
+Active item has left accent bar in `--color-accent-amber`.
+Collapsed by default on smaller windows — icon only. Expanded shows label.
+Items use `--font-body`. Uppercase, tracked letter-spacing.
+
+---
+
+**`packages/ui/src/components/layout/GameShell.tsx`**
+
+Wraps in-game screens. Renders TopBar + SideNav + main content area.
+Main content area fills remaining space. Scrollable.
+
+---
+
+## Part 6 — Restyle Existing Screens
+
+Using the component library and design system, restyle all five existing screens. No new functionality — just apply the design system properly.
+
+**MainMenu.tsx**
+- Full screen, `--color-bg-dark` background
+- Corner Gym in Rock Bro, large, centred, `--color-accent-amber`
+- Subtitle in Inconsolata, muted
+- Three Button components stacked, variant `primary` for New Game, `secondary` for Load Game, `ghost` for Quit
+- Subtle grain texture or noise overlay for atmosphere — CSS only
+
+**NewGame.tsx**
+- Use Input components for player name, gym name, seed
+- Use Dropdown for nation and city
+- Use Badge components for difficulty selection — four in a row, clicking selects that difficulty
+- Start Game uses Button variant `primary`, large
+- Layout: two-column on wider screens, single column on narrow
+
+**Loading.tsx**
+- Dark screen, centred
+- ProgressBar component
+- Current step in `--color-text-primary`, detail in `--color-text-muted`
+- Elapsed time small, bottom right
+- Subtle animation — the progress bar fill should feel alive, not mechanical
+
+**LoadGame.tsx**
+- List of Card components — one per save
+- Each card: gym name bold, player name + city muted, difficulty Badge, year/week, last played
+- Delete button variant `danger`, small
+- Load button variant `primary`, small
+- Empty state: centred message in muted text
+
+**Game.tsx** (placeholder)
+- Wrapped in GameShell
+- Centred welcome message using design system typography
+- Year/week display
 
 ---
 
 ### Definition Of Done
-- [ ] `game-config-defaults.json` and `difficulties.json` created
-- [ ] `GameConfig` and `WorldState` types created
-- [ ] SQLite schema created with normalised tables
-- [ ] `generateWorld()` produces valid WorldState + Person array
-- [ ] IPC handlers wired — generate-and-save, load-save, list-saves, delete-save
-- [ ] Progress events emitted during world generation
-- [ ] Main menu renders
-- [ ] New game form — all fields, validation, submits to IPC
-- [ ] Loading screen — shows progress events, elapsed time
-- [ ] Load game screen — lists saves, load and delete work
-- [ ] Game screen placeholder — shows player name, gym name, year/week
-- [ ] `pnpm dev` — full flow works: new game → config → loading → game screen
+- [ ] `game-config-defaults.json` — populationPerCity is tier-based
+- [ ] `difficulties.json` — normal has empty modifiers, all types updated to Partial
+- [ ] `generateWorld()` uses tier-based population lookup
+- [ ] Fonts moved to `packages/ui/src/assets/fonts/`
+- [ ] `theme.css` created, imported in `main.tsx`
+- [ ] All 6 components built with all states
+- [ ] TopBar, SideNav, GameShell layout components built
+- [ ] All 5 screens restyled using component library
+- [ ] No raw hex values in any component — CSS variables only
+- [ ] `pnpm dev` — full flow looks correct, fonts load, palette applied
 - [ ] `pnpm typecheck` clean
-- [ ] `pnpm test` passing — world generation tests written
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: game config, world gen, sqlite, new game + load UI`
+- [ ] Committed: `feat: design system, component library, nav, restyle`
 
 ### Notes
-- No dead code — Game.tsx is a placeholder but it proves the flow, not a promise
-- Difficulty modifiers only touch fields that exist in current data — no future fields
-- Progress events make the spinner feel alive — emit one per city generated
-- SQLite persons table has cityId and gymId columns for future querying — comment why
-- Never store WorldState as a blob — normalised tables only
-- generateWorld tests: same seed + config = same world, person count matches config, player gym marked correctly
+- Read the frontend-design skill fully before writing a single component
+- The aesthetic direction: retro-utilitarian. Feels like old terminal software that was designed with care. Not flashy. Not modern SaaS. Something with character and weight.
+- Rock Bro is display only — logotype and major headings. Everything else is Inconsolata.
+- CSS variables only — never bypass the theme with raw values
+- Components come before screens — build all components first, then assemble screens from them
+- The grain/noise texture on MainMenu is CSS only — no image files
