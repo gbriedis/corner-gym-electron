@@ -9,5 +9,18 @@
   "boxingCulture": 3,
   "description": "A small Baltic nation that punches above its weight. Soviet-era sporting infrastructure left a legacy of discipline and structure. Amateur boxing is respected; professional boxing is growing. Fighters tend toward toughness over flash — hard conditions breed hard people.",
   "regionalTagsAvailable": ["rural", "urban", "coastal"],
-  "namePoolReference": "names.json"
+  "namePoolReference": "names.json",
+  "physicalProfile": {
+    "note": "Overrides universal physical-stats.json probabilities for fighters generated from Latvia. Only bands that differ from universal defaults are listed.",
+    "handSizeProfile": {
+      "abnormal": 0.03
+    },
+    "boneDensityProfile": {
+      "iron": 0.02,
+      "dense": 0.12
+    },
+    "neckThicknessProfile": {
+      "abnormal": 0.03
+    }
+  }
 }

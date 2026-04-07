@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "purpose": "The only weight classes in the game. Super Heavyweight is amateur competition only — no professional division exists at this weight. limitKg null means no upper boundary for that class."
+  },
+  "weightClasses": [
+    { "id": "flyweight",         "label": "Flyweight",         "limitKg": 50.8 },
+    { "id": "bantamweight",      "label": "Bantamweight",      "limitKg": 53.5 },
+    { "id": "featherweight",     "label": "Featherweight",     "limitKg": 57.2 },
+    { "id": "lightweight",       "label": "Lightweight",       "limitKg": 61.2 },
+    { "id": "welterweight",      "label": "Welterweight",      "limitKg": 66.7 },
+    { "id": "middleweight",      "label": "Middleweight",      "limitKg": 72.6 },
+    { "id": "light_heavyweight", "label": "Light Heavyweight", "limitKg": 79.4 },
+    { "id": "cruiserweight",     "label": "Cruiserweight",     "limitKg": 90.7 },
+    { "id": "heavyweight",       "label": "Heavyweight",       "limitKg": null },
+    { "id": "super_heavyweight", "label": "Super Heavyweight", "limitKg": null, "amateurOnly": true }
+  ]
+}

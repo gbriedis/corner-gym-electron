@@ -51,6 +51,9 @@
 |-------|------|
 | [x] | `packages/engine/data/universal/soul-traits.json` |
 | [x] | `packages/engine/data/universal/attributes.json` |
+| [x] | `packages/engine/data/universal/weight-classes.json` |
+| [x] | `packages/engine/data/universal/physical-stats.json` |
+| [x] | `packages/engine/data/universal/health.json` |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -60,7 +63,8 @@
 | [x] | `packages/engine/data/nations/latvia/names.json` |
 | [x] | `packages/engine/data/nations/latvia/economic-statuses.json` |
 | [x] | `packages/engine/data/nations/latvia/reasons-for-boxing.json` |
-| [x] | `packages/engine/data/nations/latvia/coach-voice.json` |
+| [x] | `packages/engine/data/nations/latvia/coach-voice/attributes.json` |
+| [x] | `packages/engine/data/nations/latvia/coach-voice/physical-stats.json` |
 
 ## Data — People
 | State | File |

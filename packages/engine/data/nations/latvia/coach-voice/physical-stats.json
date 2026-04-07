@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "purpose": "Coach observations triggered by notable physical profiles at fighter generation. Average profiles produce no coach observation — the coach only speaks when something is worth saying. Same replacement workflow as attributes.json: Ginter replaces PLACEHOLDER lines manually. Engine picks randomly from the lines array for a given profileId."
+  },
+  "physicalObservations": [
+    {
+      "profileId": "handSize_large",
+      "coachLine": [
+        "PLACEHOLDER — hand size large",
+        "PLACEHOLDER — hand size large"
+      ]
+    },
+    {
+      "profileId": "handSize_abnormal",
+      "coachLine": [
+        "PLACEHOLDER — hand size abnormal",
+        "PLACEHOLDER — hand size abnormal"
+      ]
+    },
+    {
+      "profileId": "neckThickness_thin",
+      "coachLine": [
+        "PLACEHOLDER — neck thickness thin",
+        "PLACEHOLDER — neck thickness thin"
+      ]
+    },
+    {
+      "profileId": "neckThickness_abnormal",
+      "coachLine": [
+        "PLACEHOLDER — neck thickness abnormal",
+        "PLACEHOLDER — neck thickness abnormal"
+      ]
+    },
+    {
+      "profileId": "boneDensity_dense",
+      "coachLine": [
+        "PLACEHOLDER — bone density dense",
+        "PLACEHOLDER — bone density dense"
+      ]
+    },
+    {
+      "profileId": "boneDensity_iron",
+      "coachLine": [
+        "PLACEHOLDER — bone density iron",
+        "PLACEHOLDER — bone density iron"
+      ]
+    },
+    {
+      "profileId": "reach_long",
+      "coachLine": [
+        "PLACEHOLDER — reach long",
+        "PLACEHOLDER — reach long"
+      ]
+    },
+    {
+      "profileId": "reach_freakish",
+      "coachLine": [
+        "PLACEHOLDER — reach freakish",
+        "PLACEHOLDER — reach freakish"
+      ]
+    },
+    {
+      "profileId": "bodyProportions_short_legs",
+      "coachLine": [
+        "PLACEHOLDER — body proportions short legs",
+        "PLACEHOLDER — body proportions short legs"
+      ]
+    },
+    {
+      "profileId": "bodyProportions_long_legs",
+      "coachLine": [
+        "PLACEHOLDER — body proportions long legs",
+        "PLACEHOLDER — body proportions long legs"
+      ]
+    }
+  ]
+}

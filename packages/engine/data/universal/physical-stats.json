@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "purpose": "Physical stat band definitions used at fighter generation. These values are never shown raw to the player — they feed silently into attribute modifiers. Notable physical traits surface only through coach voice. Nation files can override band probabilities via a physicalProfile block, listing only bands that differ from universal defaults."
+  },
+  "heightProfile": {
+    "note": "heightOffsetCm is applied to the base height for that weight class. Base heights are median values for competitive fighters at each weight.",
+    "bands": [
+      { "id": "short",   "probability": 0.25, "heightOffsetCm": -5 },
+      { "id": "average", "probability": 0.50, "heightOffsetCm":  0 },
+      { "id": "tall",    "probability": 0.25, "heightOffsetCm":  5 }
+    ],
+    "baseHeightByWeightClassCm": {
+      "flyweight":         163,
+      "bantamweight":      165,
+      "featherweight":     168,
+      "lightweight":       170,
+      "welterweight":      173,
+      "middleweight":      178,
+      "light_heavyweight": 181,
+      "cruiserweight":     183,
+      "heavyweight":       187,
+      "super_heavyweight": 188
+    }
+  },
+  "reachProfile": {
+    "note": "ratioToHeight is multiplied by the fighter's generated height to get reach in cm. Attribute modifiers apply to the named attributes at generation.",
+    "bands": [
+      {
+        "id": "short",
+        "probability": 0.20,
+        "ratioToHeight": 0.97,
+        "attributeModifiers": { "defensive_skill": -1, "footwork": 1 }
+      },
+      {
+        "id": "average",
+        "probability": 0.50,
+        "ratioToHeight": 1.00,
+        "attributeModifiers": {}
+      },
+      {
+        "id": "long",
+        "probability": 0.25,
+        "ratioToHeight": 1.03,
+        "attributeModifiers": { "defensive_skill": 1, "counter_punching": 1 }
+      },
+      {
+        "id": "freakish",
+        "probability": 0.05,
+        "ratioToHeight": 1.07,
+        "attributeModifiers": { "defensive_skill": 2, "counter_punching": 2, "footwork": -1 }
+      }
+    ]
+  },
+  "handSizeProfile": {
+    "note": "Large and abnormal hands concentrate force on impact. Abnormal hand size is rare and carries injury risk not modelled here — fragile hands in health.json handles that.",
+    "bands": [
+      {
+        "id": "small",
+        "probability": 0.20,
+        "attributeModifiers": { "power": -1, "combination_fluency": 1 }
+      },
+      {
+        "id": "average",
+        "probability": 0.55,
+        "attributeModifiers": {}
+      },
+      {
+        "id": "large",
+        "probability": 0.20,
+        "attributeModifiers": { "power": 1 }
+      },
+      {
+        "id": "abnormal",
+        "probability": 0.05,
+        "attributeModifiers": { "power": 2, "combination_fluency": -1 }
+      }
+    ]
+  },
+  "neckThicknessProfile": {
+    "note": "Neck musculature absorbs rotational force from punches. Thicker neck raises chin and durability; thin neck lowers both.",
+    "bands": [
+      {
+        "id": "thin",
+        "probability": 0.15,
+        "attributeModifiers": { "chin": -2, "durability": -1 }
+      },
+      {
+        "id": "average",
+        "probability": 0.60,
+        "attributeModifiers": {}
+      },
+      {
+        "id": "thick",
+        "probability": 0.20,
+        "attributeModifiers": { "chin": 1, "durability": 1 }
+      },
+      {
+        "id": "abnormal",
+        "probability": 0.05,
+        "attributeModifiers": { "chin": 3, "durability": 2 }
+      }
+    ]
+  },
+  "boneDensityProfile": {
+    "note": "Denser bone structure adds punch resistance and power but increases walk-around weight, compressing stamina at extreme ends.",
+    "bands": [
+      {
+        "id": "light",
+        "probability": 0.10,
+        "attributeModifiers": { "durability": -2, "stamina": 1 }
+      },
+      {
+        "id": "average",
+        "probability": 0.65,
+        "attributeModifiers": {}
+      },
+      {
+        "id": "dense",
+        "probability": 0.20,
+        "attributeModifiers": { "durability": 1, "power": 1, "stamina": -1 }
+      },
+      {
+        "id": "iron",
+        "probability": 0.05,
+        "attributeModifiers": { "durability": 2, "power": 2, "stamina": -2 }
+      }
+    ]
+  },
+  "bodyProportionsProfile": {
+    "note": "Leg length relative to torso. Long legs push the fighter's centre of gravity higher — better lateral range, slightly worse base stability.",
+    "bands": [
+      {
+        "id": "short_legs",
+        "probability": 0.20,
+        "attributeModifiers": { "footwork": -1, "lateral_movement": -1, "durability": 1 }
+      },
+      {
+        "id": "average",
+        "probability": 0.60,
+        "attributeModifiers": {}
+      },
+      {
+        "id": "long_legs",
+        "probability": 0.20,
+        "attributeModifiers": { "footwork": 1, "lateral_movement": 1, "durability": -1 }
+      }
+    ]
+  }
+}

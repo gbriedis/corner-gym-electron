@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "purpose": "Structural baseline integrity for each body part, on the 1-20 scale consistent with attributes. Generated at birth — this is what the fighter was born with, not what fights have done to them. Fight damage accumulates separately on top of this baseline. fragileThreshold is the value at or below which the engine treats that body part as a chronic risk factor during simulation."
+  },
+  "bodyParts": [
+    {
+      "id": "hands",
+      "description": "Metacarpal and phalangeal bone integrity. Fragile hands limit how hard a fighter can commit on punches.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.10 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.82 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.08 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "power": "fragile hands reduce power expression — fighter pulls back to protect them",
+        "combination_fluency": "fragile hands reduce willingness to commit to fast multi-punch sequences"
+      }
+    },
+    {
+      "id": "chin",
+      "description": "Jaw and brain stem resilience to impact. Structural, not learned — a weak chin cannot be trained away.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.12 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.76 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.12 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "chin": "maps directly — structural chin baseline sets the ceiling on the chin attribute"
+      }
+    },
+    {
+      "id": "jaw",
+      "description": "Mandible bone density and articulation. A weak jaw fractures under sustained pressure, compounding chin vulnerability.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.08 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.84 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.08 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "chin": "jaw integrity feeds chin — a solid jaw supports the chin attribute",
+        "durability": "jaw fragility reduces overall durability under sustained combinations"
+      }
+    },
+    {
+      "id": "knees",
+      "description": "Ligament and cartilage integrity. Knee health determines how long a fighter can sustain movement-intensive output.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.10 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.82 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.08 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "footwork": "knee health enables or restricts the range and sharpness of footwork",
+        "lateral_movement": "lateral cuts require load-bearing knee integrity"
+      }
+    },
+    {
+      "id": "shoulders",
+      "description": "Rotator cuff and socket integrity. Shoulders power the punch chain — damage here reduces output before the arms even feel it.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.10 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.82 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.08 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "output_volume": "shoulder integrity limits how many punches a fighter can throw before degradation",
+        "combination_fluency": "fluid combinations require pain-free shoulder rotation"
+      }
+    },
+    {
+      "id": "ribs",
+      "description": "Rib cage structural resilience. Fragile ribs make body punching a game-ending vulnerability.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.08 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.84 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.08 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "durability": "rib fragility reduces overall capacity to absorb body punishment",
+        "stamina": "cracked or bruised ribs compress breathing, accelerating gas-out"
+      }
+    },
+    {
+      "id": "elbows",
+      "description": "Elbow joint and tendon integrity. Elbow health determines the sharpness and speed of extension under repeated punching load.",
+      "generationBands": [
+        { "id": "fragile", "min": 1,  "max": 6,  "probability": 0.08 },
+        { "id": "typical", "min": 7,  "max": 16, "probability": 0.84 },
+        { "id": "iron",    "min": 17, "max": 20, "probability": 0.08 }
+      ],
+      "fragileThreshold": 6,
+      "attributeModifiers": {
+        "hand_speed": "elbow tendon integrity enables full-speed extension without pain-induced flinching",
+        "combination_fluency": "elbow integrity supports the rapid chain extension required for fluent combinations"
+      }
+    }
+  ]
+}
