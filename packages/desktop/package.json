@@ -7,14 +7,16 @@
   "scripts": {
     "dev": "tsc && concurrently -k \"pnpm --filter @corner-gym/ui dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron --no-sandbox dist/main.js\"",
     "build": "tsc && electron-builder",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {
     "@corner-gym/engine": "workspace:*",
-    "better-sqlite3": "^9.4.0",
+    "better-sqlite3": "^11.10.0",
     "electron": "^33.0.0"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@types/better-sqlite3": "^7.6.8",
     "@types/node": "^20.0.0",
     "concurrently": "^8.2.0",
