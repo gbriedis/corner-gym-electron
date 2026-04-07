@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "purpose": "Translation layer between engine attribute values and what the player sees. The player never sees a raw number — they see a coach observation. Each attribute has 5 bands covering the full 1-20 scale. The engine selects randomly from the lines array within the matching band. Adding more lines to any band requires only adding a string to that array — no code changes needed.",
+    "coach": "Latvian. Dry, blunt, understated. Not trying to be funny. Telling you what he sees.",
+    "bands": [
+      { "range": "1-4",   "label": "nonexistent" },
+      { "range": "5-8",   "label": "weak" },
+      { "range": "9-12",  "label": "functional" },
+      { "range": "13-16", "label": "notable" },
+      { "range": "17-20", "label": "elite" }
+    ]
+  },
+  "attributes": [
+    {
+      "attributeId": "power",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — power, nonexistent (1-4)", "PLACEHOLDER — power, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — power, weak (5-8)", "PLACEHOLDER — power, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — power, functional (9-12)", "PLACEHOLDER — power, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — power, notable (13-16)", "PLACEHOLDER — power, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — power, elite (17-20)", "PLACEHOLDER — power, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "hand_speed",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — hand_speed, nonexistent (1-4)", "PLACEHOLDER — hand_speed, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — hand_speed, weak (5-8)", "PLACEHOLDER — hand_speed, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — hand_speed, functional (9-12)", "PLACEHOLDER — hand_speed, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — hand_speed, notable (13-16)", "PLACEHOLDER — hand_speed, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — hand_speed, elite (17-20)", "PLACEHOLDER — hand_speed, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "punch_accuracy",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — punch_accuracy, nonexistent (1-4)", "PLACEHOLDER — punch_accuracy, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — punch_accuracy, weak (5-8)", "PLACEHOLDER — punch_accuracy, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — punch_accuracy, functional (9-12)", "PLACEHOLDER — punch_accuracy, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — punch_accuracy, notable (13-16)", "PLACEHOLDER — punch_accuracy, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — punch_accuracy, elite (17-20)", "PLACEHOLDER — punch_accuracy, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "punch_selection",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — punch_selection, nonexistent (1-4)", "PLACEHOLDER — punch_selection, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — punch_selection, weak (5-8)", "PLACEHOLDER — punch_selection, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — punch_selection, functional (9-12)", "PLACEHOLDER — punch_selection, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — punch_selection, notable (13-16)", "PLACEHOLDER — punch_selection, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — punch_selection, elite (17-20)", "PLACEHOLDER — punch_selection, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "combination_fluency",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — combination_fluency, nonexistent (1-4)", "PLACEHOLDER — combination_fluency, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — combination_fluency, weak (5-8)", "PLACEHOLDER — combination_fluency, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — combination_fluency, functional (9-12)", "PLACEHOLDER — combination_fluency, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — combination_fluency, notable (13-16)", "PLACEHOLDER — combination_fluency, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — combination_fluency, elite (17-20)", "PLACEHOLDER — combination_fluency, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "output_volume",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — output_volume, nonexistent (1-4)", "PLACEHOLDER — output_volume, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — output_volume, weak (5-8)", "PLACEHOLDER — output_volume, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — output_volume, functional (9-12)", "PLACEHOLDER — output_volume, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — output_volume, notable (13-16)", "PLACEHOLDER — output_volume, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — output_volume, elite (17-20)", "PLACEHOLDER — output_volume, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "finishing_instinct",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — finishing_instinct, nonexistent (1-4)", "PLACEHOLDER — finishing_instinct, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — finishing_instinct, weak (5-8)", "PLACEHOLDER — finishing_instinct, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — finishing_instinct, functional (9-12)", "PLACEHOLDER — finishing_instinct, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — finishing_instinct, notable (13-16)", "PLACEHOLDER — finishing_instinct, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — finishing_instinct, elite (17-20)", "PLACEHOLDER — finishing_instinct, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "body_punch_effectiveness",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — body_punch_effectiveness, nonexistent (1-4)", "PLACEHOLDER — body_punch_effectiveness, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — body_punch_effectiveness, weak (5-8)", "PLACEHOLDER — body_punch_effectiveness, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — body_punch_effectiveness, functional (9-12)", "PLACEHOLDER — body_punch_effectiveness, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — body_punch_effectiveness, notable (13-16)", "PLACEHOLDER — body_punch_effectiveness, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — body_punch_effectiveness, elite (17-20)", "PLACEHOLDER — body_punch_effectiveness, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "defensive_skill",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — defensive_skill, nonexistent (1-4)", "PLACEHOLDER — defensive_skill, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — defensive_skill, weak (5-8)", "PLACEHOLDER — defensive_skill, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — defensive_skill, functional (9-12)", "PLACEHOLDER — defensive_skill, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — defensive_skill, notable (13-16)", "PLACEHOLDER — defensive_skill, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — defensive_skill, elite (17-20)", "PLACEHOLDER — defensive_skill, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "counter_punching",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — counter_punching, nonexistent (1-4)", "PLACEHOLDER — counter_punching, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — counter_punching, weak (5-8)", "PLACEHOLDER — counter_punching, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — counter_punching, functional (9-12)", "PLACEHOLDER — counter_punching, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — counter_punching, notable (13-16)", "PLACEHOLDER — counter_punching, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — counter_punching, elite (17-20)", "PLACEHOLDER — counter_punching, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "footwork",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — footwork, nonexistent (1-4)", "PLACEHOLDER — footwork, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — footwork, weak (5-8)", "PLACEHOLDER — footwork, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — footwork, functional (9-12)", "PLACEHOLDER — footwork, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — footwork, notable (13-16)", "PLACEHOLDER — footwork, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — footwork, elite (17-20)", "PLACEHOLDER — footwork, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "lateral_movement",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — lateral_movement, nonexistent (1-4)", "PLACEHOLDER — lateral_movement, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — lateral_movement, weak (5-8)", "PLACEHOLDER — lateral_movement, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — lateral_movement, functional (9-12)", "PLACEHOLDER — lateral_movement, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — lateral_movement, notable (13-16)", "PLACEHOLDER — lateral_movement, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — lateral_movement, elite (17-20)", "PLACEHOLDER — lateral_movement, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "ring_generalship",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — ring_generalship, nonexistent (1-4)", "PLACEHOLDER — ring_generalship, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — ring_generalship, weak (5-8)", "PLACEHOLDER — ring_generalship, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — ring_generalship, functional (9-12)", "PLACEHOLDER — ring_generalship, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — ring_generalship, notable (13-16)", "PLACEHOLDER — ring_generalship, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — ring_generalship, elite (17-20)", "PLACEHOLDER — ring_generalship, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "stamina",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — stamina, nonexistent (1-4)", "PLACEHOLDER — stamina, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — stamina, weak (5-8)", "PLACEHOLDER — stamina, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — stamina, functional (9-12)", "PLACEHOLDER — stamina, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — stamina, notable (13-16)", "PLACEHOLDER — stamina, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — stamina, elite (17-20)", "PLACEHOLDER — stamina, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "chin",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — chin, nonexistent (1-4)", "PLACEHOLDER — chin, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — chin, weak (5-8)", "PLACEHOLDER — chin, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — chin, functional (9-12)", "PLACEHOLDER — chin, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — chin, notable (13-16)", "PLACEHOLDER — chin, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — chin, elite (17-20)", "PLACEHOLDER — chin, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "durability",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — durability, nonexistent (1-4)", "PLACEHOLDER — durability, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — durability, weak (5-8)", "PLACEHOLDER — durability, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — durability, functional (9-12)", "PLACEHOLDER — durability, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — durability, notable (13-16)", "PLACEHOLDER — durability, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — durability, elite (17-20)", "PLACEHOLDER — durability, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "recovery_rate",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — recovery_rate, nonexistent (1-4)", "PLACEHOLDER — recovery_rate, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — recovery_rate, weak (5-8)", "PLACEHOLDER — recovery_rate, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — recovery_rate, functional (9-12)", "PLACEHOLDER — recovery_rate, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — recovery_rate, notable (13-16)", "PLACEHOLDER — recovery_rate, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — recovery_rate, elite (17-20)", "PLACEHOLDER — recovery_rate, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "ring_iq",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — ring_iq, nonexistent (1-4)", "PLACEHOLDER — ring_iq, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — ring_iq, weak (5-8)", "PLACEHOLDER — ring_iq, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — ring_iq, functional (9-12)", "PLACEHOLDER — ring_iq, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — ring_iq, notable (13-16)", "PLACEHOLDER — ring_iq, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — ring_iq, elite (17-20)", "PLACEHOLDER — ring_iq, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "composure",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — composure, nonexistent (1-4)", "PLACEHOLDER — composure, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — composure, weak (5-8)", "PLACEHOLDER — composure, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — composure, functional (9-12)", "PLACEHOLDER — composure, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — composure, notable (13-16)", "PLACEHOLDER — composure, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — composure, elite (17-20)", "PLACEHOLDER — composure, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "adaptability",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — adaptability, nonexistent (1-4)", "PLACEHOLDER — adaptability, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — adaptability, weak (5-8)", "PLACEHOLDER — adaptability, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — adaptability, functional (9-12)", "PLACEHOLDER — adaptability, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — adaptability, notable (13-16)", "PLACEHOLDER — adaptability, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — adaptability, elite (17-20)", "PLACEHOLDER — adaptability, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "heart",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — heart, nonexistent (1-4)", "PLACEHOLDER — heart, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — heart, weak (5-8)", "PLACEHOLDER — heart, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — heart, functional (9-12)", "PLACEHOLDER — heart, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — heart, notable (13-16)", "PLACEHOLDER — heart, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — heart, elite (17-20)", "PLACEHOLDER — heart, elite (17-20)"] }
+      ]
+    },
+    {
+      "attributeId": "big_fight_experience",
+      "bands": [
+        { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER — big_fight_experience, nonexistent (1-4)", "PLACEHOLDER — big_fight_experience, nonexistent (1-4)"] },
+        { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER — big_fight_experience, weak (5-8)", "PLACEHOLDER — big_fight_experience, weak (5-8)"] },
+        { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER — big_fight_experience, functional (9-12)", "PLACEHOLDER — big_fight_experience, functional (9-12)"] },
+        { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER — big_fight_experience, notable (13-16)", "PLACEHOLDER — big_fight_experience, notable (13-16)"] },
+        { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER — big_fight_experience, elite (17-20)", "PLACEHOLDER — big_fight_experience, elite (17-20)"] }
+      ]
+    }
+  ]
+}

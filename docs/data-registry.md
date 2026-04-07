@@ -50,6 +50,7 @@
 | State | File |
 |-------|------|
 | [x] | `packages/engine/data/universal/soul-traits.json` |
+| [x] | `packages/engine/data/universal/attributes.json` |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -59,6 +60,7 @@
 | [x] | `packages/engine/data/nations/latvia/names.json` |
 | [x] | `packages/engine/data/nations/latvia/economic-statuses.json` |
 | [x] | `packages/engine/data/nations/latvia/reasons-for-boxing.json` |
+| [x] | `packages/engine/data/nations/latvia/coach-voice.json` |
 
 ## Data — People
 | State | File |

@@ -54,14 +54,16 @@ corner-gym/
     │   ├── vitest.config.ts
     │   ├── data/
     │   │   ├── universal/
-    │   │   │   └── soul-traits.json           # All 8 soul trait pairs — permanent, hidden, never shown as numbers
+    │   │   │   ├── soul-traits.json           # All 8 soul trait pairs — permanent, hidden, never shown as numbers
+    │   │   │   └── attributes.json            # All 22 universal attributes — categories, scale, behavioral descriptions
     │   │   └── nations/
     │   │       └── latvia/
     │   │           ├── nation.json            # Latvia nation definition — boxing culture, region tags
     │   │           ├── cities.json            # 8 playable Latvian cities with modifiers
     │   │           ├── names.json             # Male Latvian name pool (99 first, 139 surnames)
     │   │           ├── economic-statuses.json # 4 economic backgrounds, weighted generation
-    │   │           └── reasons-for-boxing.json# 7 origin reasons, weighted generation
+    │   │           ├── reasons-for-boxing.json# 7 origin reasons, weighted generation
+    │   │           └── coach-voice.json       # Latvia coach voice — attribute bands to observations, placeholder lines
     │   └── src/
     │       ├── index.ts               # Public API — exports types + advanceWeek
     │       ├── types/

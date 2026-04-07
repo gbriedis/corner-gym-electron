@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "purpose": "Defines all 22 universal attributes that exist on every fighter regardless of nation. These attributes use a 1-20 scale. Current value and potential ceiling are stored on the fighter record — not here. This file is the engine's reference for what to track on every fighter: what each attribute is, what it means in a fight, and which category it belongs to.",
+    "scale": "1-20 across all attributes. 1 is the floor — present but barely. 20 is generational — seen once in a career if you are lucky.",
+    "categories": ["striking", "defense", "physical", "mental"]
+  },
+  "attributes": [
+    {
+      "id": "power",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How much damage a clean punch delivers. A high-power fighter does not need to land often — opponents who survive a flush shot still feel it three rounds later. Low power means opponents reset and recover; high power means a single mistake ends the fight."
+    },
+    {
+      "id": "hand_speed",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How fast punches travel from guard to target. High hand speed closes the gap between intention and contact — it makes timing an opponent's counter nearly impossible. Slow hands give defenders time to read, slip, and punish."
+    },
+    {
+      "id": "punch_accuracy",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "The proportion of thrown punches that land on target. High accuracy means output translates into damage — nothing wasted, nothing telegraphed. Low accuracy means a busy fighter who does not actually hurt anyone."
+    },
+    {
+      "id": "punch_selection",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "Whether a fighter throws the right punch at the right moment. High selection means the jab opens the right hand, the body shot pulls the guard, the uppercut arrives when the head drops. Low selection means throwing into traffic — punches land but they were not the ones that should have."
+    },
+    {
+      "id": "combination_fluency",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How smoothly a fighter chains punches. High fluency means each punch sets up the next — the sequence has rhythm and the opponent cannot predict where the last shot comes from. Low fluency means a fighter who throws singles or stalls after two punches."
+    },
+    {
+      "id": "output_volume",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How many punches a fighter throws per round. High volume fighters force the pace and make opponents fight constantly. Low volume fighters pick their spots — which is a style choice until they are losing on the cards and cannot shift gears."
+    },
+    {
+      "id": "finishing_instinct",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "Whether a fighter recognises and converts hurt-opponent moments. High finishing instinct means a wobbled opponent does not survive the round. Low instinct means the fighter sees it, hesitates, throws the wrong shots, and gives the opponent twelve seconds to recover."
+    },
+    {
+      "id": "body_punch_effectiveness",
+      "category": "striking",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How well a fighter attacks and reads the body as a fight target. High effectiveness means opponents begin protecting their ribs by round four, opening the head. Low effectiveness means a fighter who only boxes from the chin up — predictable and one-dimensional over distance."
+    },
+    {
+      "id": "defensive_skill",
+      "category": "defense",
+      "scale": { "min": 1, "max": 20 },
+      "description": "The core ability to avoid being hit — slipping, rolling, parrying, and positioning. High defensive skill means opponents throw many punches and land few. Low skill means the chin takes unnecessary punishment every round because the fighter is standing in the line of fire."
+    },
+    {
+      "id": "counter_punching",
+      "category": "defense",
+      "scale": { "min": 1, "max": 20 },
+      "description": "The ability to make opponents pay for attacking. High counter punching means every miss creates an opening that is used. Low counter punching means the defense is passive — the fighter avoids shots but generates nothing from the exchange."
+    },
+    {
+      "id": "footwork",
+      "category": "defense",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How well a fighter moves in and out of range and controls distance with their legs. High footwork means the fighter is never where the opponent expects them to be. Low footwork means a fighter who stands flat-footed and survives on toughness — which stops working against the right opponent."
+    },
+    {
+      "id": "lateral_movement",
+      "category": "defense",
+      "scale": { "min": 1, "max": 20 },
+      "description": "The ability to move along angles rather than straight lines. High lateral movement makes a fighter hard to cut off and difficult to trap on the ropes. Low lateral movement means a fighter who retreats in straight lines — easy to follow, easy to corner."
+    },
+    {
+      "id": "ring_generalship",
+      "category": "defense",
+      "scale": { "min": 1, "max": 20 },
+      "description": "Control of position, tempo, and space during a fight. A general dictates where the fight happens, when punches are thrown, and which fighter is uncomfortable. Low generalship means a fighter who reacts — always behind, always answering, never setting the terms."
+    },
+    {
+      "id": "stamina",
+      "category": "physical",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How well a fighter maintains output across twelve rounds. High stamina means round eleven looks like round two. Low stamina means a fighter who is excellent for six minutes and survivable for the rest — opponents with patience know to wait."
+    },
+    {
+      "id": "chin",
+      "category": "physical",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How well a fighter absorbs clean shots to the head without being seriously hurt. High chin means a clean right hand brings no concern. Low chin means the fight can end any time the opponent finds the button — and every fighter eventually finds it."
+    },
+    {
+      "id": "durability",
+      "category": "physical",
+      "scale": { "min": 1, "max": 20 },
+      "description": "The body's ability to absorb punishment over the full course of a fight — cuts, body shots, accumulated damage. Chin handles the knockout threshold; durability handles everything else. A durable fighter does not break down, does not get stopped on cuts, and does not slow from accumulated body work."
+    },
+    {
+      "id": "recovery_rate",
+      "category": "physical",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How quickly a fighter recovers between exchanges, between rounds, and from being hurt. High recovery means a knockdown in round four does not mean a slow round five. Low recovery means punishment compounds — a fighter who gets stopped is not always stopped by one shot."
+    },
+    {
+      "id": "ring_iq",
+      "category": "mental",
+      "scale": { "min": 1, "max": 20 },
+      "description": "The ability to read a fight as it happens and adjust. High ring IQ means a fighter recognises what the opponent is doing and changes before it costs them. Low ring IQ means a fighter who does what they always do — effective until they meet someone who has seen it."
+    },
+    {
+      "id": "composure",
+      "category": "mental",
+      "scale": { "min": 1, "max": 20 },
+      "description": "Whether a fighter can execute their game plan under pressure. High composure means being behind on the cards does not change the shot selection. Low composure means a hurt fighter starts throwing everything, or a winning fighter freezes when the opponent stops playing along."
+    },
+    {
+      "id": "adaptability",
+      "category": "mental",
+      "scale": { "min": 1, "max": 20 },
+      "description": "How readily a fighter changes approach mid-fight when what they are doing is not working. High adaptability means a fighter who loses rounds one and two is a different fighter by round five. Low adaptability means a fighter who keeps going back to the same well even after it has been poisoned."
+    },
+    {
+      "id": "heart",
+      "category": "mental",
+      "scale": { "min": 1, "max": 20 },
+      "description": "Whether a fighter continues when hurting, tired, or losing. Heart is not stubbornness — it is refusing to accept that the situation is permanent. High heart means a fighter gets up, regroups, and competes. Low heart means the body is there but the intention is gone."
+    },
+    {
+      "id": "big_fight_experience",
+      "category": "mental",
+      "scale": { "min": 1, "max": 20 },
+      "description": "Whether a fighter has been in fights that actually mattered and knows how to behave in them. High experience means a full arena and television cameras are just background noise. Low experience means a fighter who trains perfectly, performs well in the gym, and then meets the occasion for the first time when it is least convenient."
+    }
+  ]
+}
