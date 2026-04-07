@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'echo \"\\nCORNER GYM — SESSION START\\n1. Read CLAUDE.md\\n2. Read docs/task.md — this is your work\\n3. Read docs/structure.md\\n4. Read .claude/lessons.md\\nThen begin.\\n\"'"
+            "command": "bash -c 'echo \"Pulling latest from remote...\" && git pull --rebase 2>&1 && echo \"\\nCORNER GYM — SESSION START\\n1. Read CLAUDE.md\\n2. Read docs/task.md — this is your work\\n3. Read docs/structure.md\\n4. Read .claude/lessons.md\\nThen begin.\\n\"'"
           }
         ]
       }
