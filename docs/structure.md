@@ -18,7 +18,7 @@ Rules:
 ```
 corner-gym/
 ├── CLAUDE.md                          # Project laws, stack, commands, how to find work
-├── package.json                       # Root — pnpm workspaces
+├── package.json                       # Root — pnpm workspaces + pnpm build allowlist
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json                 # Shared strict TypeScript config
 ├── .gitignore
@@ -48,10 +48,41 @@ corner-gym/
 │   └── data-registry.md              # Every planned/partial/done data file and engine module
 │
 └── packages/
-    └── engine/                        # Pure TypeScript simulation — no UI, no Electron dependencies
-        ├── package.json               # @corner-gym/engine
-        ├── tsconfig.json
-        ├── vitest.config.ts
+    ├── engine/                        # Pure TypeScript simulation — no UI, no Electron dependencies
+    │   ├── package.json               # @corner-gym/engine
+    │   ├── tsconfig.json
+    │   ├── vitest.config.ts
+    │   └── src/
+    │       ├── index.ts               # Public API — exports types + advanceWeek
+    │       ├── types/
+    │       │   ├── person.ts          # Person stub
+    │       │   ├── fighter.ts         # Fighter stub
+    │       │   ├── gym.ts             # Gym stub
+    │       │   ├── location.ts        # Location stub
+    │       │   ├── event.ts           # GameEvent stub
+    │       │   ├── bout.ts            # Bout stub
+    │       │   ├── moment.ts          # Moment stub
+    │       │   └── worldState.ts      # WorldState stub
+    │       └── engine/
+    │           └── advanceWeek.ts     # Week tick entry point stub
+    │
+    ├── desktop/                       # Electron main process
+    │   ├── package.json               # @corner-gym/desktop
+    │   ├── tsconfig.json              # Extends base, CommonJS output for Electron
+    │   ├── electron-builder.yml       # Builds to out/, app name Corner Gym
+    │   └── src/
+    │       ├── main.ts                # BrowserWindow creation, loads UI dev server or dist
+    │       ├── preload.ts             # Preload stub — contextIsolation enabled
+    │       └── ipc.ts                 # IPC handlers stub — wire engine calls here
+    │
+    └── ui/                            # React renderer
+        ├── package.json               # @corner-gym/ui
+        ├── tsconfig.json              # Extends base, bundler resolution, react-jsx
+        ├── vite.config.ts             # React plugin, outputs to dist/
+        ├── index.html                 # Vite entry — Tailwind CDN
         └── src/
-            └── index.ts               # Public API stub — exports types + advanceWeek
+            ├── main.tsx               # React entry — mounts App into #root
+            ├── App.tsx                # Full-screen dark div with "Corner Gym" centered
+            └── ipc/
+                └── client.ts          # IPC client stub — calls to main process go here
 ```

@@ -11,5 +11,8 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "prettier": "^3.2.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["electron", "esbuild"]
   }
 }

@@ -1,0 +1,7 @@
+appId: com.corner-gym.app
+productName: Corner Gym
+directories:
+  output: out/
+files:
+  - dist/**/*
+  - package.json

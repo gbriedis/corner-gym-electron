@@ -17,7 +17,7 @@ echo ""
 
 # 1. TypeScript
 echo "▶ TypeScript..."
-if pnpm typecheck --silent 2>/dev/null; then
+if pnpm typecheck > /dev/null 2>&1; then
   echo "  ✓ clean"
 else
   echo "  ✗ errors — run pnpm typecheck"
@@ -26,7 +26,7 @@ fi
 
 # 2. Tests
 echo "▶ Tests..."
-if pnpm test --silent 2>/dev/null; then
+if pnpm test > /dev/null 2>&1; then
   echo "  ✓ passing"
 else
   echo "  ✗ failing — run pnpm test"
