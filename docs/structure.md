@@ -97,6 +97,13 @@ corner-gym/
     │       │       ├── economicStatuses.ts # Matches nations/{nation}/economic-statuses.json
     │       │       ├── reasonsForBoxing.ts # Matches nations/{nation}/reasons-for-boxing.json
     │       │       └── coachVoice.ts  # Matches nations/{nation}/coach-voice/*.json
+    │       ├── data/
+    │       │   └── loader.ts          # Loads all JSON at startup — returns typed GameData object
+    │       ├── utils/
+    │       │   └── rng.ts             # Seeded deterministic RNG (mulberry32) — no Math.random()
+    │       ├── generation/
+    │       │   ├── person.ts          # generatePerson — full person from data + seed
+    │       │   └── person.test.ts     # 27 tests — fields, soul traits, attributes, health, determinism
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │

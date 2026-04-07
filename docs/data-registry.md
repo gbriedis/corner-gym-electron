@@ -13,7 +13,7 @@
 ## Engine — Types
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/src/types/person.ts` |
+| [x] | `packages/engine/src/types/person.ts` |
 | [ ] | `packages/engine/src/types/fighter.ts` |
 | [ ] | `packages/engine/src/types/gym.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
@@ -43,8 +43,13 @@
 ## Engine — Utilities
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/src/utils/rng.ts` |
-| [ ] | `packages/engine/src/data/loader.ts` |
+| [x] | `packages/engine/src/utils/rng.ts` |
+| [x] | `packages/engine/src/data/loader.ts` |
+
+## Engine — Generation
+| State | File |
+|-------|------|
+| [x] | `packages/engine/src/generation/person.ts` |
 
 ## Engine — Loop
 | State | File |
