@@ -4,7 +4,8 @@
 
 import { ipcMain } from 'electron'
 import { readFileSync } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
 import type { BrowserWindow } from 'electron'
 import type Database from 'better-sqlite3'
@@ -12,6 +13,9 @@ import type { GameConfig } from '@corner-gym/engine'
 
 import { loadGameData, generateWorld } from '@corner-gym/engine'
 import { createSave, loadSave, listSaves, deleteSave } from './db.js'
+
+// ESM does not have __dirname — derive it from import.meta.url.
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // DATA_ROOT resolves to packages/engine/data/ from the compiled desktop dist/.
 // We read game-config-defaults.json and difficulties.json directly here

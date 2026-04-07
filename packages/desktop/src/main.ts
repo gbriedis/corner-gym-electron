@@ -1,8 +1,12 @@
 import { app, BrowserWindow } from 'electron'
-import path from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
 import { openDb } from './db.js'
 import { setupIpc } from './ipc.js'
+
+// ESM does not have __dirname — derive it from import.meta.url instead.
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // /dev/shm has restrictive permissions on some Linux systems; /tmp is always writable.
 if (process.platform === 'linux') {
@@ -16,7 +20,7 @@ function createWindow(): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: join(__dirname, 'preload.js'),
     },
   })
 
@@ -29,7 +33,7 @@ function createWindow(): void {
   if (process.env['NODE_ENV'] === 'development') {
     void win.loadURL('http://localhost:5173')
   } else {
-    void win.loadFile(path.join(__dirname, '../ui/dist/index.html'))
+    void win.loadFile(join(__dirname, '../ui/dist/index.html'))
   }
 }
 

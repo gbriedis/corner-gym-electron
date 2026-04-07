@@ -2,6 +2,7 @@
   "name": "@corner-gym/desktop",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "dist/main.js",
   "scripts": {
     "dev": "tsc && concurrently -k \"pnpm --filter @corner-gym/ui dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron --no-sandbox dist/main.js\"",
