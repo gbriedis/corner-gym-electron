@@ -1,9 +1,9 @@
 # Current Task
 
-## Task: First Data Files — Universal Soul Traits + Latvia Nation Bundle
+## Task: Universal Attributes + Latvia Coach Voice Infrastructure
 
 ### What To Build
-Create the first six JSON data files. These are the foundation — person generation cannot run without them. No TypeScript types yet. No engine logic yet. Just the data, correctly structured, with meta blocks.
+Two JSON files. First defines all 22 universal attributes — the engine reference. Second is the Latvia coach voice file — infrastructure for translating attribute bands into coach observations. Placeholder lines throughout. Ginter will replace placeholders with real lines manually.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
@@ -11,65 +11,69 @@ Create the first six JSON data files. These are the foundation — person genera
 
 ### Files To Create
 
-**`packages/engine/data/universal/soul-traits.json`**
-All 8 soul trait pairs. Each trait has: `id`, `opposite`, `revealDifficulty`, `description`.
-Reveal difficulty values: `"easy"`, `"medium"`, `"hard"`.
-The 8 pairs: brave/craven, calm/panicky, humble/arrogant, patient/impatient, trusting/paranoid, disciplined/reckless, determined/fragile, hungry/content.
-Meta must explain: what soul traits are, that they are permanent, that they are never shown as numbers to the player, that reveal difficulty tells the moment system how many qualifying events must occur before a reveal can trigger.
+---
+
+**`packages/engine/data/universal/attributes.json`**
+
+Meta must explain: attributes exist on every fighter regardless of nation. All use 1-20 scale. Current value and potential ceiling are stored on the fighter record — not here. This file defines what attributes exist, what they mean, and which category they belong to. The engine uses this as its reference for what to track on every fighter.
+
+Each attribute has: `id`, `category`, `scale` (`{ "min": 1, "max": 20 }`), `description`.
+
+Categories and attributes:
+
+**striking:** `power`, `hand_speed`, `punch_accuracy`, `punch_selection`, `combination_fluency`, `output_volume`, `finishing_instinct`, `body_punch_effectiveness`
+
+**defense:** `defensive_skill`, `counter_punching`, `footwork`, `lateral_movement`, `ring_generalship`
+
+**physical:** `stamina`, `chin`, `durability`, `recovery_rate`
+
+**mental:** `ring_iq`, `composure`, `adaptability`, `heart`, `big_fight_experience`
+
+Descriptions must be behavioral — what this attribute looks like in a fight, not a dictionary definition. Example: power is not "how hard a fighter hits" — it is "how much damage a clean punch delivers. Wilder's power means opponents who survive still feel it three rounds later."
 
 ---
 
-**`packages/engine/data/nations/latvia/nation.json`**
-Who Latvia is as a nation. What shaped its people. What the nation produces in fighters.
-Fields: `id`, `label`, `region`, `boxingCulture` (1-5 scale defined in meta), `description`, `regionalTagsAvailable` (array: `"rural"`, `"urban"`, `"coastal"`), `namePoolReference` (points to `names.json` in same folder).
-Meta must explain: what boxing_culture scale means 1-5, that national modifiers come later once the attribute system is built.
-No attribute modifiers yet.
+**`packages/engine/data/nations/latvia/coach-voice.json`**
 
----
+Meta must explain: this file is the translation layer between engine numbers and what the player sees. The player never sees a raw attribute value. They see a coach observation. The coach is Latvian — dry, blunt, understated, deadpan. Humour comes from specific visual observations delivered without drama. Each attribute has 5 bands. Each band has an array of lines. The engine picks randomly from the array. More lines can be added to any array at any time without code changes — just add a string to the array.
 
-**`packages/engine/data/nations/latvia/cities.json`**
-All playable cities in Latvia for V1.
-Each city: `id`, `label`, `regionTag`, `population` (`"small_town"`, `"mid_city"`, `"capital"`), `isStartingOption` (bool), `rentModifier` (float, 1.0 = average), `talentDensity` (float, 1.0 = average), `rivalGymDensity` (float, 1.0 = average), `description`.
-Cities: Valmiera, Riga, Daugavpils, Liepāja, Jelgava, Jūrmala, Rēzekne, Jēkabpils.
-Meta must explain: all modifiers relative to baseline 1.0, regionTag links to nation.json regionalTagsAvailable.
+Structure per attribute:
+```json
+{
+  "attributeId": "power",
+  "bands": [
+    { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
+    { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
+    { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
+    { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
+    { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER", "PLACEHOLDER"] }
+  ]
+}
+```
 
----
+All 22 attributes must be present. Every band must have exactly 2 placeholder lines minimum. Placeholder text must include the attribute name and band label so Ginter knows exactly what he is replacing — example: `"PLACEHOLDER — power, nonexistent (1-4)"`.
 
-**`packages/engine/data/nations/latvia/names.json`**
-Male first names and surnames. Flat pools. No regional splits.
-Fields: `nation`, `male.firstNames` (array), `male.surnames` (array).
-Minimum 60 first names, minimum 80 surnames. Real Latvian names with correct diacritics.
-Meta must explain: male only for V1, engine picks randomly from each array at generation.
-
----
-
-**`packages/engine/data/nations/latvia/economic-statuses.json`**
-Fields per status: `id`, `label`, `weight`, `description`. Weights sum to 1.0.
-Statuses: `struggling`, `working_class`, `stable`, `comfortable`.
-Meta must explain: weights sum to 1.0, rolled at generation, affects starting context not raw attributes.
-
----
-
-**`packages/engine/data/nations/latvia/reasons-for-boxing.json`**
-Fields per reason: `id`, `label`, `weight`, `description`. Weights sum to 1.0.
-Reasons: `outlet`, `prove_something`, `way_out`, `passion`, `fell_into_it`, `family_tradition`, `friend_brought_me`.
-Meta must explain: weights sum to 1.0, this is surface-level info the player learns early (ocean rule), it will influence soul trait reveal patterns once that system is built — do not implement that link now, note it in meta only.
+The `label` values are consistent across all attributes:
+- 1-4: `"nonexistent"`
+- 5-8: `"weak"`
+- 9-12: `"functional"`
+- 13-16: `"notable"`
+- 17-20: `"elite"`
 
 ---
 
 ### Definition Of Done
-- [ ] All 6 files valid JSON — no trailing commas, no comments inside JSON blocks
-- [ ] Every file has `meta` block with minimum `version` and `description`
-- [ ] All weights sum to 1.0 where applicable
-- [ ] `regionTag` values in cities.json match `regionalTagsAvailable` in nation.json
-- [ ] Latvian names use correct diacritics (ā, č, ē, ģ, ī, ķ, ļ, ņ, š, ū, ž)
+- [ ] `universal/attributes.json` — 22 attributes, all categories present, descriptions behavioral not dictionary
+- [ ] `nations/latvia/coach-voice.json` — all 22 attributes, all 5 bands, minimum 2 placeholder lines per band, placeholder text identifies attribute and band
+- [ ] Both files valid JSON — no trailing commas, no comments inside JSON
+- [ ] Both files have meta blocks
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — mark all 6 as `[x]`
+- [ ] `docs/data-registry.md` — mark both files `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: first data files — soul traits + latvia nation bundle`
+- [ ] Committed: `feat: universal attributes + latvia coach voice infrastructure`
 
 ### Notes
-- Data only this session — no TypeScript types, no engine logic
-- No attribute modifiers anywhere — attributes not defined yet
-- Do not reference simulation systems that do not exist yet
-- Meta descriptions are for Claude Code and future developers — make them useful
+- Do not write witty lines — placeholders only, Ginter writes the real lines
+- Do not create TypeScript types this session — data only
+- Coach voice tone reference: dry, blunt, Latvian, understated. The coach is not trying to be funny. He is just telling you what he sees.
+- Infrastructure must support adding more lines to any band by simply adding a string to the array — no other changes needed
