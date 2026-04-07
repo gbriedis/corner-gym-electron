@@ -14,13 +14,14 @@
 | State | File |
 |-------|------|
 | [x] | `packages/engine/src/types/person.ts` |
+| [x] | `packages/engine/src/types/gameConfig.ts` |
+| [x] | `packages/engine/src/types/worldState.ts` |
 | [ ] | `packages/engine/src/types/fighter.ts` |
 | [ ] | `packages/engine/src/types/gym.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
 | [ ] | `packages/engine/src/types/event.ts` |
 | [ ] | `packages/engine/src/types/bout.ts` |
 | [ ] | `packages/engine/src/types/moment.ts` |
-| [ ] | `packages/engine/src/types/worldState.ts` |
 
 ## Engine — Data Types
 | State | File |
@@ -51,6 +52,7 @@
 | State | File |
 |-------|------|
 | [x] | `packages/engine/src/generation/person.ts` |
+| [x] | `packages/engine/src/generation/world.ts` |
 
 ## Engine — Loop
 | State | File |
@@ -80,6 +82,8 @@
 | [x] | `packages/engine/data/universal/health.json` |
 | [x] | `packages/engine/data/universal/gifts-and-flaws.json` |
 | [x] | `packages/engine/data/universal/development-profiles.json` |
+| [x] | `packages/engine/data/universal/game-config-defaults.json` |
+| [x] | `packages/engine/data/universal/difficulties.json` |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -129,17 +133,24 @@
 ## Desktop
 | State | File |
 |-------|------|
-| [ ] | `packages/desktop/src/main.ts` |
-| [ ] | `packages/desktop/src/ipc.ts` |
-| [ ] | `packages/desktop/src/db.ts` |
+| [x] | `packages/desktop/src/main.ts` |
+| [x] | `packages/desktop/src/preload.ts` |
+| [x] | `packages/desktop/src/ipc.ts` |
+| [x] | `packages/desktop/src/db.ts` |
 
 ## UI
 | State | File |
 |-------|------|
-| [ ] | `packages/ui/src/store/gameStore.ts` |
+| [x] | `packages/ui/src/electron.d.ts` |
+| [x] | `packages/ui/src/store/gameStore.ts` |
+| [x] | `packages/ui/src/ipc/client.ts` |
+| [x] | `packages/ui/src/screens/MainMenu.tsx` |
+| [x] | `packages/ui/src/screens/NewGame.tsx` |
+| [x] | `packages/ui/src/screens/Loading.tsx` |
+| [x] | `packages/ui/src/screens/LoadGame.tsx` |
+| [x] | `packages/ui/src/screens/Game.tsx` |
 | [ ] | `packages/ui/src/screens/Gym.tsx` |
 | [ ] | `packages/ui/src/screens/Inbox.tsx` |
 | [ ] | `packages/ui/src/screens/Fighters.tsx` |
 | [ ] | `packages/ui/src/screens/World.tsx` |
 | [ ] | `packages/ui/src/screens/Finances.tsx` |
-| [ ] | `packages/ui/src/ipc/client.ts` |

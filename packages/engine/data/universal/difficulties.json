@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Difficulty presets apply multipliers to city-level modifiers and generation probabilities. All values are multipliers against the base value — 1.0 means unchanged. Only fields that differ from baseline are listed per difficulty. Engine merges difficulty modifiers with defaults at world generation time."
+  },
+  "difficulties": [
+    {
+      "id": "easy",
+      "label": "Easy",
+      "modifiers": {
+        "rentModifier": 0.7,
+        "talentDensity": 1.4,
+        "rivalGymDensity": 0.6,
+        "giftProbabilityMultiplier": 1.5,
+        "flawProbabilityMultiplier": 0.5,
+        "economicStatusWeightShift": 0.7,
+        "developmentProfileShift": 0.7
+      }
+    },
+    {
+      "id": "normal",
+      "label": "Normal",
+      "modifiers": {
+        "rentModifier": 1.0,
+        "talentDensity": 1.0,
+        "rivalGymDensity": 1.0,
+        "giftProbabilityMultiplier": 1.0,
+        "flawProbabilityMultiplier": 1.0,
+        "economicStatusWeightShift": 1.0,
+        "developmentProfileShift": 1.0
+      }
+    },
+    {
+      "id": "hard",
+      "label": "Hard",
+      "modifiers": {
+        "rentModifier": 1.4,
+        "talentDensity": 0.7,
+        "rivalGymDensity": 1.5,
+        "giftProbabilityMultiplier": 0.7,
+        "flawProbabilityMultiplier": 1.4,
+        "economicStatusWeightShift": 1.4,
+        "developmentProfileShift": 1.4
+      }
+    },
+    {
+      "id": "extreme",
+      "label": "Extreme",
+      "modifiers": {
+        "rentModifier": 2.0,
+        "talentDensity": 0.5,
+        "rivalGymDensity": 2.0,
+        "giftProbabilityMultiplier": 0.4,
+        "flawProbabilityMultiplier": 2.0,
+        "economicStatusWeightShift": 2.0,
+        "developmentProfileShift": 2.0
+      }
+    }
+  ]
+}

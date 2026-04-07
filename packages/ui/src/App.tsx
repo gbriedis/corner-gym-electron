@@ -1,9 +1,24 @@
-import type { JSX } from 'react';
+import type { JSX } from 'react'
+import { useGameStore } from './store/gameStore'
+import MainMenu from './screens/MainMenu'
+import NewGame from './screens/NewGame'
+import LoadGame from './screens/LoadGame'
+import Loading from './screens/Loading'
+import Game from './screens/Game'
 
 export default function App(): JSX.Element {
-  return (
-    <div className="w-screen h-screen bg-gray-900 flex items-center justify-center">
-      <span className="text-white text-2xl font-medium tracking-wide">Corner Gym</span>
-    </div>
-  );
+  const screen = useGameStore((s) => s.currentScreen)
+
+  switch (screen) {
+    case 'mainMenu':
+      return <MainMenu />
+    case 'newGame':
+      return <NewGame />
+    case 'loadGame':
+      return <LoadGame />
+    case 'loading':
+      return <Loading />
+    case 'game':
+      return <Game />
+  }
 }

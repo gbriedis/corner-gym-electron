@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Default settings for a new game. All values here are the baseline a normal difficulty game uses. Difficulty presets in difficulties.json apply multipliers on top of these defaults. Seed null means auto-generate a random seed at game start."
+  },
+  "seed": null,
+  "startYear": 2026,
+  "renderedNations": ["latvia"],
+  "leagues": {
+    "amateur": true,
+    "pro": true
+  },
+  "worldSettings": {
+    "populationPerCity": 200,
+    "gymsPerCity": {
+      "small_town": 1,
+      "mid_city": 3,
+      "capital": 6
+    }
+  }
+}

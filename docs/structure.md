@@ -54,78 +54,93 @@ corner-gym/
     │   ├── vitest.config.ts
     │   ├── data/
     │   │   ├── universal/
-    │   │   │   ├── soul-traits.json           # All 8 soul trait pairs — permanent, hidden, never shown as numbers
-    │   │   │   ├── attributes.json            # All 22 universal attributes — categories, scale, behavioral descriptions
-    │   │   │   ├── weight-classes.json        # 10 weight classes — limits in kg, Super Heavyweight amateur only
-    │   │   │   ├── physical-stats.json        # Physical stat band definitions — height, reach, hands, neck, bone, proportions
-    │   │   │   ├── health.json                # Body part baseline integrity — 7 parts, fragile thresholds, attribute links
-    │   │   │   ├── gifts-and-flaws.json       # Gift/flaw definitions for 8 attributes — ceiling boost, probabilities, discovery conditions, health nudges
-    │   │   │   └── development-profiles.json  # 3 profiles (early/normal/late bloomer) — peak age range, rise/plateau/decline rates
+    │   │   │   ├── soul-traits.json           # All 8 soul trait pairs
+    │   │   │   ├── attributes.json            # All 22 universal attributes
+    │   │   │   ├── weight-classes.json        # 10 weight classes
+    │   │   │   ├── physical-stats.json        # Physical stat band definitions
+    │   │   │   ├── health.json                # Body part baseline integrity
+    │   │   │   ├── gifts-and-flaws.json       # Gift/flaw definitions for 8 attributes
+    │   │   │   ├── development-profiles.json  # 3 profiles — peak age, rise/plateau/decline rates
+    │   │   │   ├── game-config-defaults.json  # Default settings for a new game (seed, year, nations, world settings)
+    │   │   │   └── difficulties.json          # 4 difficulty presets — multipliers on city modifiers and probabilities
     │   │   └── nations/
     │   │       └── latvia/
-    │   │           ├── nation.json            # Latvia nation definition — boxing culture, region tags, physicalProfile overrides
-    │   │           ├── cities.json            # 8 playable Latvian cities with modifiers
-    │   │           ├── names.json             # Male Latvian name pool (99 first, 139 surnames)
-    │   │           ├── economic-statuses.json # 4 economic backgrounds, weighted generation
-    │   │           ├── reasons-for-boxing.json# 7 origin reasons, weighted generation
+    │   │           ├── nation.json
+    │   │           ├── cities.json            # 8 Latvian cities with modifiers
+    │   │           ├── names.json
+    │   │           ├── economic-statuses.json
+    │   │           ├── reasons-for-boxing.json
     │   │           └── coach-voice/
-    │   │               ├── attributes.json    # Latvia coach voice — attribute bands to observations, placeholder lines
-    │   │               ├── physical-stats.json# Latvia coach voice — notable physical profiles, placeholder lines
-    │   │               └── gifts-and-flaws.json# Latvia coach voice — 16 entries, fires on gift/flaw discovery conditions
+    │   │               ├── attributes.json
+    │   │               ├── physical-stats.json
+    │   │               └── gifts-and-flaws.json
     │   └── src/
-    │       ├── index.ts               # Public API — exports types + advanceWeek
+    │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + advanceWeek
     │       ├── types/
-    │       │   ├── person.ts          # Person stub
+    │       │   ├── person.ts          # Person, PhysicalProfile, AttributeValue, HealthValue, GiftFlawAssignment
     │       │   ├── fighter.ts         # Fighter stub
     │       │   ├── gym.ts             # Gym stub
     │       │   ├── location.ts        # Location stub
     │       │   ├── event.ts           # GameEvent stub
     │       │   ├── bout.ts            # Bout stub
     │       │   ├── moment.ts          # Moment stub
-    │       │   ├── worldState.ts      # WorldState stub
+    │       │   ├── worldState.ts      # WorldState, GymState, CityState, NationState
+    │       │   ├── gameConfig.ts      # GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings
     │       │   └── data/              # TypeScript interfaces for every data file
     │       │       ├── index.ts       # Barrel — re-exports everything
-    │       │       ├── meta.ts        # Shared Meta interface
-    │       │       ├── soulTraits.ts  # Matches universal/soul-traits.json
-    │       │       ├── attributes.ts  # Matches universal/attributes.json
-    │       │       ├── weightClasses.ts # Matches universal/weight-classes.json
-    │       │       ├── physicalStats.ts # Matches universal/physical-stats.json
-    │       │       ├── health.ts      # Matches universal/health.json
-    │       │       ├── giftsAndFlaws.ts # Matches universal/gifts-and-flaws.json
-    │       │       ├── nation.ts      # Matches nations/{nation}/nation.json
-    │       │       ├── cities.ts      # Matches nations/{nation}/cities.json
-    │       │       ├── names.ts       # Matches nations/{nation}/names.json
-    │       │       ├── economicStatuses.ts # Matches nations/{nation}/economic-statuses.json
-    │       │       ├── reasonsForBoxing.ts # Matches nations/{nation}/reasons-for-boxing.json
-    │       │       ├── coachVoice.ts  # Matches nations/{nation}/coach-voice/*.json
-    │       │       └── developmentProfiles.ts # Matches universal/development-profiles.json
+    │       │       ├── meta.ts
+    │       │       ├── soulTraits.ts
+    │       │       ├── attributes.ts
+    │       │       ├── weightClasses.ts
+    │       │       ├── physicalStats.ts
+    │       │       ├── health.ts
+    │       │       ├── giftsAndFlaws.ts
+    │       │       ├── nation.ts
+    │       │       ├── cities.ts
+    │       │       ├── names.ts
+    │       │       ├── economicStatuses.ts
+    │       │       ├── reasonsForBoxing.ts
+    │       │       ├── coachVoice.ts
+    │       │       └── developmentProfiles.ts
     │       ├── data/
-    │       │   └── loader.ts          # Loads all JSON at startup — returns typed GameData object
+    │       │   └── loader.ts          # loadGameData() — loads all JSON at startup into typed GameData
     │       ├── utils/
-    │       │   └── rng.ts             # Seeded deterministic RNG (mulberry32) — no Math.random()
+    │       │   └── rng.ts             # Seeded deterministic RNG (mulberry32)
     │       ├── generation/
-    │       │   ├── person.ts          # generatePerson — full person from data + seed
-    │       │   └── person.test.ts     # 27 tests — fields, soul traits, attributes, health, determinism
+    │       │   ├── person.ts          # generatePerson — full Person from data + seed
+    │       │   ├── person.test.ts     # 37 tests
+    │       │   ├── world.ts           # generateWorld — WorldState + Person[] from GameConfig + GameData
+    │       │   └── world.test.ts      # 14 tests — determinism, person count, player gym, structure
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │
     ├── desktop/                       # Electron main process
-    │   ├── package.json               # @corner-gym/desktop
-    │   ├── tsconfig.json              # Extends base, CommonJS output for Electron
-    │   ├── electron-builder.yml       # Builds to out/, app name Corner Gym
+    │   ├── package.json               # @corner-gym/desktop — depends on engine + better-sqlite3
+    │   ├── tsconfig.json
+    │   ├── electron-builder.yml
     │   └── src/
-    │       ├── main.ts                # BrowserWindow creation, loads UI dev server or dist
-    │       ├── preload.ts             # Preload stub — contextIsolation enabled
-    │       └── ipc.ts                 # IPC handlers stub — wire engine calls here
+    │       ├── main.ts                # BrowserWindow creation, opens DB, wires IPC
+    │       ├── preload.ts             # contextBridge — exposes electronAPI to renderer
+    │       ├── ipc.ts                 # IPC handlers: get-new-game-options, generate-and-save, load-save, list-saves, delete-save
+    │       └── db.ts                  # SQLite layer — openDb, createSave, loadSave, listSaves, deleteSave
     │
     └── ui/                            # React renderer
-        ├── package.json               # @corner-gym/ui
-        ├── tsconfig.json              # Extends base, bundler resolution, react-jsx
-        ├── vite.config.ts             # React plugin, outputs to dist/
-        ├── index.html                 # Vite entry — Tailwind CDN
+        ├── package.json               # @corner-gym/ui — depends on engine + zustand
+        ├── tsconfig.json
+        ├── vite.config.ts
+        ├── index.html
         └── src/
-            ├── main.tsx               # React entry — mounts App into #root
-            ├── App.tsx                # Full-screen dark div with "Corner Gym" centered
-            └── ipc/
-                └── client.ts          # IPC client stub — calls to main process go here
+            ├── main.tsx               # React entry
+            ├── App.tsx                # Screen router — delegates to current screen component
+            ├── electron.d.ts          # Global type declaration for window.electronAPI
+            ├── ipc/
+            │   └── client.ts          # Typed wrappers — generateAndSave, loadSave, listSaves, deleteSave, getNewGameOptions
+            ├── store/
+            │   └── gameStore.ts       # Zustand store — worldState, persons, currentScreen, pendingSaveId
+            └── screens/
+                ├── MainMenu.tsx       # New Game / Load Game / Quit
+                ├── NewGame.tsx        # Player name, gym name, nation, city, difficulty, seed form
+                ├── Loading.tsx        # Spinner + live progress events during world generation
+                ├── LoadGame.tsx       # Save list with load and delete actions
+                └── Game.tsx           # Placeholder — proves load flow; shows player name, gym, year/week
 ```
