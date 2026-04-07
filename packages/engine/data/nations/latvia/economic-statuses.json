@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Economic background statuses assigned at person generation. Weights sum to 1.0 and are rolled once at generation — the result is permanent background context, not a live variable. Economic status shapes a person's starting situation and the story the player learns about them early; it does not directly modify raw attributes. Attribute modifiers are not implemented here."
+  },
+  "statuses": [
+    {
+      "id": "struggling",
+      "label": "Struggling",
+      "weight": 0.2,
+      "description": "Grew up with real scarcity. Money was a constant stress. Boxing may be a way out, or simply a way to feel something that isn't fear."
+    },
+    {
+      "id": "working_class",
+      "label": "Working Class",
+      "weight": 0.45,
+      "description": "Solid working household. Things were tight but stable. Parents worked. Discipline came from necessity. The most common background in Latvian boxing."
+    },
+    {
+      "id": "stable",
+      "label": "Stable",
+      "weight": 0.25,
+      "description": "Comfortable enough that money was rarely the problem. Some opportunities others didn't have. Boxing is a choice, not a lifeline."
+    },
+    {
+      "id": "comfortable",
+      "label": "Comfortable",
+      "weight": 0.1,
+      "description": "Well-off by Latvian standards. Nothing was withheld. Boxing is a passion or an affectation — the engine does not judge which."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Name pool for male Latvian fighters. Male only for V1. The engine picks one first name and one surname at random from each flat array at person generation — no regional splits, no weighting. Names use correct Latvian diacritics (ā, č, ē, ģ, ī, ķ, ļ, ņ, š, ū, ž). Female names will be added in a future update when the athlete system is expanded."
+  },
+  "nation": "latvia",
+  "male": {
+    "firstNames": [
+      "Aigars", "Aivis", "Aleksis", "Andis", "Andris", "Arnis", "Artis", "Artūrs",
+      "Arvīds", "Atis", "Dāvis", "Edgars", "Edvards", "Egils", "Elmārs", "Emīls",
+      "Eriks", "Ernests", "Filips", "Gatis", "Gints", "Gunārs", "Gustavs", "Harijs",
+      "Helmuts", "Ilmārs", "Indulis", "Ivars", "Jānis", "Jēkabs", "Juris", "Kārlis",
+      "Kaspars", "Krišjānis", "Kristaps", "Kristiāns", "Latvijs", "Lauris", "Leonīds",
+      "Leons", "Linards", "Ludis", "Mārcis", "Mārtiņš", "Māris", "Matīss", "Modris",
+      "Nauris", "Nils", "Normunds", "Ojārs", "Oskars", "Pēteris", "Raimonds", "Raitis",
+      "Rihards", "Ringolds", "Roberts", "Rolands", "Sandis", "Sanits", "Sergejs",
+      "Sigurds", "Tālis", "Toms", "Uldis", "Uģis", "Valdis", "Valters", "Ventis",
+      "Viesturs", "Vilnis", "Vilis", "Vitālijs", "Vladimirs", "Zigmārs", "Zigurds",
+      "Ēriks", "Ģirts", "Ģederts", "Inārs", "Ķirsts", "Mārsils", "Pāvils", "Rūdolfs",
+      "Staņislavs", "Teodors", "Uģis", "Vents", "Visvaldis", "Žanis", "Ādolfs",
+      "Imants", "Aivars", "Haralds", "Aloizs", "Benjamiņš", "Klāvs", "Mārcis"
+    ],
+    "surnames": [
+      "Bērziņš", "Kalniņš", "Ozols", "Liepiņš", "Jaundžeivārs", "Krūmiņš", "Dāboliņš",
+      "Birģelis", "Ozoliņš", "Baumanis", "Celmiņš", "Grīnbergs", "Jansons", "Karlsons",
+      "Kļaviņš", "Lācis", "Mūrnieks", "Niedra", "Pētersons", "Puķe", "Rūsis",
+      "Siliņš", "Skuja", "Smilkts", "Sproģis", "Upīts", "Vītoliņš", "Zaļkāns",
+      "Zariņš", "Zelčs", "Ziediņš", "Ābols", "Ādamson", "Ābelīte", "Āboliņš",
+      "Ādamsons", "Bāliņš", "Bērmanis", "Bērziņš", "Blodnieks", "Briedis", "Cimdiņš",
+      "Čakars", "Dambis", "Daugavietis", "Dimants", "Dreimanis", "Dundurs", "Dzenis",
+      "Eglītis", "Eimanis", "Feldmanis", "Freimanis", "Gailis", "Graudiņš", "Grīnblats",
+      "Ģēģeris", "Ģērmanis", "Ikaunieks", "Ilvess", "Indriksons", "Jankovskis",
+      "Jēgers", "Justs", "Kalvāns", "Kārkliņš", "Kārkls", "Kivlenieks", "Knēts",
+      "Krēsliņš", "Krons", "Ķesters", "Ķīlis", "Laizāns", "Lapsa", "Latvietis",
+      "Lazdiņš", "Lejnieks", "Lembergs", "Liepa", "Lilienfelds", "Linkaits", "Lipke",
+      "Ločmelis", "Luriņš", "Macs", "Mednis", "Meija", "Meļķis", "Milgravis",
+      "Millere", "Mūsiņš", "Naglis", "Neimanis", "Nitavskis", "Norviļis", "Noviks",
+      "Ozoliņš", "Paeglis", "Palkavnieks", "Pavlovs", "Pelēcis", "Plūksna", "Priede",
+      "Putniņš", "Rācenis", "Reidzāns", "Rezgale", "Ribickis", "Rinkis", "Ritums",
+      "Rozenbergs", "Rožlapa", "Rudzītis", "Runce", "Rutks", "Šiliņš", "Šķēle",
+      "Šķiņķis", "Šmits", "Šnē", "Stalažs", "Straume", "Strautmanis", "Strods",
+      "Sūna", "Svilāns", "Tabors", "Tillaks", "Tirzmalis", "Turks", "Upmalis",
+      "Uzkliņģis", "Vaivars", "Valainis", "Vanags", "Vasariņš", "Vētra", "Vīksna"
+    ]
+  }
+}

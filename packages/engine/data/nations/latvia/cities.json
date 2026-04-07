@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "All playable cities in Latvia for V1. All numeric modifiers are relative to a baseline of 1.0 — values above 1.0 mean more of that quality than average, below 1.0 means less. rentModifier affects gym operating costs. talentDensity affects how often new promising fighters appear. rivalGymDensity affects how many competing gyms the player must contend with. regionTag must match one of the values in nation.json regionalTagsAvailable."
+  },
+  "cities": [
+    {
+      "id": "latvia-valmiera",
+      "label": "Valmiera",
+      "regionTag": "rural",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "rentModifier": 0.75,
+      "talentDensity": 1.1,
+      "rivalGymDensity": 0.7,
+      "description": "A regional hub in Vidzeme. Strong amateur boxing tradition, modest cost of living, not much competition. A sensible place to build something from scratch."
+    },
+    {
+      "id": "latvia-riga",
+      "label": "Riga",
+      "regionTag": "urban",
+      "population": "capital",
+      "isStartingOption": true,
+      "rentModifier": 1.6,
+      "talentDensity": 1.4,
+      "rivalGymDensity": 1.8,
+      "description": "The capital and the only real city in Latvia. Everything happens here — talent, money, rivals. High ceiling, brutal competition, expensive to operate."
+    },
+    {
+      "id": "latvia-daugavpils",
+      "label": "Daugavpils",
+      "regionTag": "urban",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "rentModifier": 0.7,
+      "talentDensity": 1.0,
+      "rivalGymDensity": 0.9,
+      "description": "Latvia's second city, heavily Russian-speaking, industrially scarred. Tough fighters come out of Daugavpils. Low costs, low glamour."
+    },
+    {
+      "id": "latvia-liepaja",
+      "label": "Liepāja",
+      "regionTag": "coastal",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "rentModifier": 0.85,
+      "talentDensity": 1.05,
+      "rivalGymDensity": 0.8,
+      "description": "A port city on the Baltic coast with a proud independent streak. Music and boxing share an audience here. Decent talent, manageable costs, light competition."
+    },
+    {
+      "id": "latvia-jelgava",
+      "label": "Jelgava",
+      "regionTag": "urban",
+      "population": "mid_city",
+      "isStartingOption": false,
+      "rentModifier": 0.8,
+      "talentDensity": 0.9,
+      "rivalGymDensity": 0.75,
+      "description": "Flat, agricultural, close to Riga. Not a boxing city, but the proximity to the capital means fighters sometimes train here and compete there."
+    },
+    {
+      "id": "latvia-jurmala",
+      "label": "Jūrmala",
+      "regionTag": "coastal",
+      "population": "small_town",
+      "isStartingOption": false,
+      "rentModifier": 1.2,
+      "talentDensity": 0.7,
+      "rivalGymDensity": 0.5,
+      "description": "A resort town that attracts money, not fighters. Rents run high for the size. Very few rivals but very few prospects either."
+    },
+    {
+      "id": "latvia-rezekne",
+      "label": "Rēzekne",
+      "regionTag": "rural",
+      "population": "small_town",
+      "isStartingOption": false,
+      "rentModifier": 0.6,
+      "talentDensity": 0.95,
+      "rivalGymDensity": 0.55,
+      "description": "Latgale's capital in all but name. Post-industrial, quietly proud. Cheap to operate, limited reach. A good hiding spot to develop a prospect away from scrutiny."
+    },
+    {
+      "id": "latvia-jekabpils",
+      "label": "Jēkabpils",
+      "regionTag": "rural",
+      "population": "small_town",
+      "isStartingOption": false,
+      "rentModifier": 0.6,
+      "talentDensity": 0.85,
+      "rivalGymDensity": 0.45,
+      "description": "A small town on the Daugava river. Quiet, cheap, off the radar. Not much happens here — which is both the problem and the point."
+    }
+  ]
+}

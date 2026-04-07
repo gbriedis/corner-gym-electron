@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Soul traits are the permanent, hidden psychological core of every person in the game. They are never shown to the player as numbers or labels — the player discovers them only through observed behaviour over time. Each trait exists as one half of a pair; a person holds one side of each pair at generation. Reveal difficulty controls how many qualifying events the moment system requires before a reveal can trigger. These traits do not change — they are who a person is, not how they feel this week."
+  },
+  "traits": [
+    {
+      "id": "brave",
+      "opposite": "craven",
+      "revealDifficulty": "medium",
+      "description": "Steps toward danger rather than away. Does not freeze under pressure or in unfamiliar situations."
+    },
+    {
+      "id": "craven",
+      "opposite": "brave",
+      "revealDifficulty": "medium",
+      "description": "Pulls back when the stakes rise. Will find reasons to avoid confrontation, risk, or exposure."
+    },
+    {
+      "id": "calm",
+      "opposite": "panicky",
+      "revealDifficulty": "easy",
+      "description": "Stays level in chaos. Crisis does not distort their thinking or their body."
+    },
+    {
+      "id": "panicky",
+      "opposite": "calm",
+      "revealDifficulty": "easy",
+      "description": "Pressure scrambles them. Small crises become large ones when they are involved."
+    },
+    {
+      "id": "humble",
+      "opposite": "arrogant",
+      "revealDifficulty": "medium",
+      "description": "Sees themselves accurately. Takes correction without ego. Credits others freely."
+    },
+    {
+      "id": "arrogant",
+      "opposite": "humble",
+      "revealDifficulty": "medium",
+      "description": "Overestimates themselves, underestimates others. Resists feedback. Needs to be the story."
+    },
+    {
+      "id": "patient",
+      "opposite": "impatient",
+      "revealDifficulty": "hard",
+      "description": "Willing to wait for the right moment. Does not force outcomes. Trusts process over shortcuts."
+    },
+    {
+      "id": "impatient",
+      "opposite": "patient",
+      "revealDifficulty": "hard",
+      "description": "Needs to see results now. Cuts corners when progress feels slow. Frustrates coaches and sparring partners."
+    },
+    {
+      "id": "trusting",
+      "opposite": "paranoid",
+      "revealDifficulty": "hard",
+      "description": "Extends good faith. Believes people are working with them, not against them, until shown otherwise."
+    },
+    {
+      "id": "paranoid",
+      "opposite": "trusting",
+      "revealDifficulty": "hard",
+      "description": "Reads threat into neutral events. Assumes ulterior motives. Hard to build a team around."
+    },
+    {
+      "id": "disciplined",
+      "opposite": "reckless",
+      "revealDifficulty": "easy",
+      "description": "Keeps to the plan. Shows up, does the work, respects the structure. Reliable under accumulation."
+    },
+    {
+      "id": "reckless",
+      "opposite": "disciplined",
+      "revealDifficulty": "easy",
+      "description": "Acts before thinking. Takes shortcuts that cost them later. Exciting to watch, expensive to manage."
+    },
+    {
+      "id": "determined",
+      "opposite": "fragile",
+      "revealDifficulty": "medium",
+      "description": "Keeps going after setbacks. Treats failure as information. Does not quit in the dark."
+    },
+    {
+      "id": "fragile",
+      "opposite": "determined",
+      "revealDifficulty": "medium",
+      "description": "Loses shape when things go wrong. A bad loss, a harsh word, or a cold streak can break their momentum for weeks."
+    },
+    {
+      "id": "hungry",
+      "opposite": "content",
+      "revealDifficulty": "easy",
+      "description": "Always wants more. Never fully satisfied with where they are. Drives themselves past comfort."
+    },
+    {
+      "id": "content",
+      "opposite": "hungry",
+      "revealDifficulty": "easy",
+      "description": "Settles at good enough. Does not burn for more. Hard to push past a comfortable plateau."
+    }
+  ]
+}

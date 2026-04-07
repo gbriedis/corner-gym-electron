@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Why a person started boxing. Rolled once at generation; weights sum to 1.0. This is surface-level information — it is part of what the player learns early about a fighter (ocean rule: the visible layer). The reason for boxing will eventually influence soul trait reveal patterns — for example, a fighter who boxes as an outlet may reveal emotional traits sooner under pressure. That link is not implemented here; it is noted for the moment system to wire up once soul reveals are built."
+  },
+  "reasons": [
+    {
+      "id": "outlet",
+      "label": "Needed an outlet",
+      "weight": 0.2,
+      "description": "Had too much anger, energy, or pain and needed somewhere to put it. Boxing absorbed it. Still does."
+    },
+    {
+      "id": "prove_something",
+      "label": "Had something to prove",
+      "weight": 0.15,
+      "description": "Someone doubted them, dismissed them, or made them feel small. Boxing is the answer they're still writing."
+    },
+    {
+      "id": "way_out",
+      "label": "Saw it as a way out",
+      "weight": 0.15,
+      "description": "The neighbourhood, the job, the future that was already written. Boxing was the door that wasn't supposed to be there."
+    },
+    {
+      "id": "passion",
+      "label": "Pure passion for the sport",
+      "weight": 0.15,
+      "description": "Loved it from the first time they saw it. No trauma, no angle — just the sport itself."
+    },
+    {
+      "id": "fell_into_it",
+      "label": "Fell into it",
+      "weight": 0.2,
+      "description": "Didn't plan it. A gym was nearby, a friend dragged them along, someone said they had natural hands. One thing led to another."
+    },
+    {
+      "id": "family_tradition",
+      "label": "Family tradition",
+      "weight": 0.1,
+      "description": "Father boxed. Or an uncle. Or a grandfather. The gym was just where the family went."
+    },
+    {
+      "id": "friend_brought_me",
+      "label": "A friend brought me",
+      "weight": 0.05,
+      "description": "The simplest origin. A friend was going and brought them along. The friend may have quit. They didn't."
+    }
+  ]
+}

@@ -46,28 +46,24 @@
 | [ ] | `packages/engine/src/simulation/development.ts` |
 | [ ] | `packages/engine/src/simulation/injuries.ts` |
 
-## Data — World
+## Data — Universal
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/data/world/nations/latvia.json` |
-| [ ] | `packages/engine/data/world/regions/latvia-vidzeme.json` |
-| [ ] | `packages/engine/data/world/regions/latvia-riga.json` |
-| [ ] | `packages/engine/data/world/regions/latvia-latgale.json` |
-| [ ] | `packages/engine/data/world/regions/latvia-kurzeme.json` |
-| [ ] | `packages/engine/data/world/regions/latvia-zemgale.json` |
-| [ ] | `packages/engine/data/world/cities/latvia-valmiera.json` |
-| [ ] | `packages/engine/data/world/cities/latvia-riga.json` |
-| [ ] | `packages/engine/data/world/cities/latvia-daugavpils.json` |
-| [ ] | `packages/engine/data/world/cities/latvia-liepaja.json` |
-| [ ] | `packages/engine/data/world/cities/latvia-jelgava.json` |
+| [x] | `packages/engine/data/universal/soul-traits.json` |
+
+## Data — Nations: Latvia
+| State | File |
+|-------|------|
+| [x] | `packages/engine/data/nations/latvia/nation.json` |
+| [x] | `packages/engine/data/nations/latvia/cities.json` |
+| [x] | `packages/engine/data/nations/latvia/names.json` |
+| [x] | `packages/engine/data/nations/latvia/economic-statuses.json` |
+| [x] | `packages/engine/data/nations/latvia/reasons-for-boxing.json` |
 
 ## Data — People
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/data/people/names/latvian.json` |
-| [ ] | `packages/engine/data/people/soul-traits/definitions.json` |
 | [ ] | `packages/engine/data/people/physical-gifts/definitions.json` |
-| [ ] | `packages/engine/data/people/backgrounds/latvian.json` |
 
 ## Data — Gym
 | State | File |

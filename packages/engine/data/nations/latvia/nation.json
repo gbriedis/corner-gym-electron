@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Defines Latvia as a nation — its boxing culture, regional geography tags, and where to find its name pool. The boxingCulture scale (1-5) reflects how embedded boxing is in the national consciousness: 1 is a fringe sport, 3 is respected but not dominant, 5 is a national obsession. Latvia sits at 3 — boxing has genuine roots and produces real fighters, but it competes with other sports for attention. National attribute modifiers are not implemented here; they will be added once the attribute system is built."
+  },
+  "id": "latvia",
+  "label": "Latvia",
+  "region": "Baltic",
+  "boxingCulture": 3,
+  "description": "A small Baltic nation that punches above its weight. Soviet-era sporting infrastructure left a legacy of discipline and structure. Amateur boxing is respected; professional boxing is growing. Fighters tend toward toughness over flash — hard conditions breed hard people.",
+  "regionalTagsAvailable": ["rural", "urban", "coastal"],
+  "namePoolReference": "names.json"
+}
