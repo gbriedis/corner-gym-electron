@@ -1,6 +1,10 @@
 // Preload runs in the renderer process with Node access before the page loads.
 // contextBridge exposes a typed API surface to the renderer — the renderer never
 // calls ipcRenderer directly, keeping a clear boundary between trusted and untrusted code.
+//
+// This file uses .cts extension (CommonJS TypeScript) so TypeScript compiles it to
+// preload.cjs regardless of the package "type": "module" setting. Electron's preload
+// context does not reliably support ESM imports; CJS is the safe choice here.
 
 import { contextBridge, ipcRenderer } from 'electron'
 
