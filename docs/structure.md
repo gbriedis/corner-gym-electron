@@ -81,7 +81,22 @@ corner-gym/
     │       │   ├── event.ts           # GameEvent stub
     │       │   ├── bout.ts            # Bout stub
     │       │   ├── moment.ts          # Moment stub
-    │       │   └── worldState.ts      # WorldState stub
+    │       │   ├── worldState.ts      # WorldState stub
+    │       │   └── data/              # TypeScript interfaces for every data file
+    │       │       ├── index.ts       # Barrel — re-exports everything
+    │       │       ├── meta.ts        # Shared Meta interface
+    │       │       ├── soulTraits.ts  # Matches universal/soul-traits.json
+    │       │       ├── attributes.ts  # Matches universal/attributes.json
+    │       │       ├── weightClasses.ts # Matches universal/weight-classes.json
+    │       │       ├── physicalStats.ts # Matches universal/physical-stats.json
+    │       │       ├── health.ts      # Matches universal/health.json
+    │       │       ├── giftsAndFlaws.ts # Matches universal/gifts-and-flaws.json
+    │       │       ├── nation.ts      # Matches nations/{nation}/nation.json
+    │       │       ├── cities.ts      # Matches nations/{nation}/cities.json
+    │       │       ├── names.ts       # Matches nations/{nation}/names.json
+    │       │       ├── economicStatuses.ts # Matches nations/{nation}/economic-statuses.json
+    │       │       ├── reasonsForBoxing.ts # Matches nations/{nation}/reasons-for-boxing.json
+    │       │       └── coachVoice.ts  # Matches nations/{nation}/coach-voice/*.json
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │

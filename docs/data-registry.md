@@ -22,6 +22,24 @@
 | [ ] | `packages/engine/src/types/moment.ts` |
 | [ ] | `packages/engine/src/types/worldState.ts` |
 
+## Engine — Data Types
+| State | File |
+|-------|------|
+| [x] | `packages/engine/src/types/data/index.ts` |
+| [x] | `packages/engine/src/types/data/meta.ts` |
+| [x] | `packages/engine/src/types/data/soulTraits.ts` |
+| [x] | `packages/engine/src/types/data/attributes.ts` |
+| [x] | `packages/engine/src/types/data/weightClasses.ts` |
+| [x] | `packages/engine/src/types/data/physicalStats.ts` |
+| [x] | `packages/engine/src/types/data/health.ts` |
+| [x] | `packages/engine/src/types/data/giftsAndFlaws.ts` |
+| [x] | `packages/engine/src/types/data/nation.ts` |
+| [x] | `packages/engine/src/types/data/cities.ts` |
+| [x] | `packages/engine/src/types/data/names.ts` |
+| [x] | `packages/engine/src/types/data/economicStatuses.ts` |
+| [x] | `packages/engine/src/types/data/reasonsForBoxing.ts` |
+| [x] | `packages/engine/src/types/data/coachVoice.ts` |
+
 ## Engine — Utilities
 | State | File |
 |-------|------|
