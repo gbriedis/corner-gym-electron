@@ -1,9 +1,9 @@
 # Current Task
 
-## Task: Housekeeping + Physical Stats, Health, Weight Classes + Nation Physical Profile
+## Task: Universal Gifts and Flaws + Coach Voice
 
 ### What To Build
-Housekeeping first, then four data files. Do housekeeping before touching any new files.
+Two files. The gifts and flaws data file with discovery conditions, and the Latvia coach voice file for gifts and flaws. This completes the fighter data layer.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
@@ -11,132 +11,111 @@ Housekeeping first, then four data files. Do housekeeping before touching any ne
 
 ---
 
-## Part 1 — Housekeeping
+### Files To Create
 
-**Move and rename coach voice file:**
-- Move `packages/engine/data/nations/latvia/coach-voice.json` → `packages/engine/data/nations/latvia/coach-voice/attributes.json`
-- Create the `coach-voice/` subfolder in the process
-- Delete the old file at the old path
-- Update `docs/structure.md` and `docs/data-registry.md` to reflect the new path
+**`packages/engine/data/universal/gifts-and-flaws.json`**
 
-Do not touch the contents of the file — move only.
+Meta must explain:
+- Gifts push attribute ceiling from 18 to 20. Without a gift no attribute can exceed 18 at generation.
+- Flaws weight generation toward low rolls. Floor stays at 1 but probability of rolling low increases significantly.
+- Gifts and flaws apply to attributes only — health is a separate system.
+- Some entries have a healthNudge — when rolled, shifts the corresponding health body part probability toward iron (gift) or fragile (flaw). Probabilistic influence only, not a direct override.
+- Most fighters generate zero gifts and zero flaws. One is uncommon. Two is rare. Three is almost never.
+- discoveryConditions define what events must occur before the player can see this gift or flaw. The moment system evaluates these conditions. When met, it fires the corresponding coach voice line from coach-voice/gifts-and-flaws.json.
+- Gift and flaw probabilities are independent rolls per attribute.
 
----
+**Gift-eligible attributes:**
+`power`, `hand_speed`, `chin`, `durability`, `stamina`, `recovery_rate`, `lateral_movement`, `footwork`
 
-## Part 2 — New Data Files
-
-**`packages/engine/data/universal/weight-classes.json`**
-
-10 weight classes only. No super flyweight, no super bantam, no light flyweight etc.
-
-Classes: Flyweight, Bantamweight, Featherweight, Lightweight, Welterweight, Middleweight, Light Heavyweight, Cruiserweight, Heavyweight, Super Heavyweight.
-
-Each class: `id`, `label`, `limitKg` (null for Heavyweight and Super Heavyweight), `amateurOnly` (true only for Super Heavyweight, omit field entirely for all others).
-
-Meta must explain: these are the only weight classes in the game, Super Heavyweight is amateur competition only, limitKg null means no upper boundary.
-
----
-
-**`packages/engine/data/universal/physical-stats.json`**
-
-No stance distribution — deferred to when style matchups are built.
-
-Sections:
-- `heightProfile` — bands (short/average/tall), probability per band, heightOffsetCm from base, base height by weight class id
-- `reachProfile` — bands (short/average/long/freakish), probability, ratio to height, attribute modifiers
-- `handSizeProfile` — bands (small/average/large/abnormal), probability, attribute modifiers
-- `neckThicknessProfile` — bands (thin/average/thick/abnormal), probability, attribute modifiers on chin and durability
-- `boneDensityProfile` — bands (light/average/dense/iron), probability, attribute modifiers
-- `bodyProportionsProfile` — bands (short_legs/average/long_legs), probability, attribute modifiers
-
-All attribute modifier values are integers on the 1-20 scale — small adjustments, nothing exceeding +3 or -3 at the extreme end.
-
-Meta must explain: physical stats are never shown raw to the player, they feed silently into attribute modifiers at generation, notable physical traits surface through coach voice, nation files can override band probabilities via physicalProfile block.
-
----
-
-**`packages/engine/data/universal/health.json`**
-
-Body parts with baseline integrity on 1-20 scale. Generated at birth. This is structural — not fight damage. Fight damage accumulates on top of this baseline separately.
-
-Body parts: `hands`, `chin`, `jaw`, `knees`, `shoulders`, `ribs`, `elbows`
-
-Each body part: `id`, `description`, `generationBands` (typical/fragile/iron with min-max ranges and probabilities), `fragileThreshold` (value at or below which the engine treats this as a chronic risk factor), `attributeModifiers` (which attributes this body part feeds into when generated).
-
-Examples of attribute links:
-- hands → power (fragile hands limit power expression), combination_fluency
-- chin → chin attribute directly
-- knees → footwork, lateral_movement
-- shoulders → output_volume, combination_fluency
-
-Meta must explain: 1-20 scale consistent with attributes, fragileThreshold is the line below which a body part creates real simulation risk, fight damage accumulates separately on top of this baseline — this file defines what you were born with.
-
----
-
-**Update `packages/engine/data/nations/latvia/nation.json`**
-
-Add a `physicalProfile` block. This overrides universal physical-stats.json band probabilities for fighters generated from this nation. Only include bands that differ from universal defaults — omit bands that stay at default.
-
-Latvia is a northern European nation — not physically exceptional in any direction. Modest overrides only. Example: slightly lower probability of abnormal hand size or iron bone density compared to West African nations.
-
+**Structure per entry:**
 ```json
-"physicalProfile": {
-  "note": "Overrides universal physical-stats.json probabilities for fighters generated from Latvia. Only bands that differ from universal defaults are listed.",
-  "handSizeProfile": {
-    "abnormal": 0.03
-  },
-  "boneDensityProfile": {
-    "iron": 0.02,
-    "dense": 0.12
-  },
-  "neckThicknessProfile": {
-    "abnormal": 0.03
-  }
+{
+  "id": "power_gift",
+  "type": "gift",
+  "appliesTo": "power",
+  "attributeCeilingBoost": 2,
+  "giftProbability": 0.04,
+  "flawProbability": 0.06,
+  "discoveryConditions": ["first_fight", "heavy_sparring"],
+  "healthNudge": null,
+  "description": "Disproportionate hitting force relative to size and technical output. Wilder. Hearns. Foreman."
 }
 ```
 
-Meta in nation.json does not need updating — just add the block.
+**Entries with health nudge:**
+```json
+{
+  "id": "chin_gift",
+  "type": "gift",
+  "appliesTo": "chin",
+  "attributeCeilingBoost": 2,
+  "giftProbability": 0.05,
+  "flawProbability": 0.05,
+  "discoveryConditions": ["first_fight", "dropped_in_sparring"],
+  "healthNudge": {
+    "bodyPart": "chin",
+    "giftShift": "toward_iron",
+    "flawShift": "toward_fragile"
+  },
+  "description": "Structural ability to absorb punishment. Fury getting up twice from Wilder. Not courage — architecture."
+}
+```
+
+Health nudge attributes:
+- `chin` → body parts `chin` and `jaw`
+- `durability` → body parts `ribs` and `shoulders`
+- `recovery_rate` → body part `hands`
+- `stamina` → no health nudge (cardiovascular, not structural)
+
+discoveryConditions values to use across entries:
+`"first_fight"`, `"heavy_sparring"`, `"dropped_in_sparring"`, `"sustained_body_work"`, `"championship_rounds"`, `"back_to_back_fights"`
+
+Use judgment — power gift reveals in first fight or heavy sparring. Stamina flaw reveals in championship rounds or back to back fights. Chin flaw reveals when dropped in sparring or first fight.
+
+All 8 eligible attributes must be present. attributeCeilingBoost is always 2.
 
 ---
 
-**`packages/engine/data/nations/latvia/coach-voice/physical-stats.json`**
+**`packages/engine/data/nations/latvia/coach-voice/gifts-and-flaws.json`**
 
-Same infrastructure as `coach-voice/attributes.json`. Placeholder lines only — Ginter replaces them manually.
+Same infrastructure as other coach voice files. Placeholder lines only — Ginter replaces manually.
 
-Cover the notable physical profiles that are worth a coach observation. Not every band needs a line — only the ones that are notable enough for a coach to mention.
+Coach voice fires when the discovery condition for a gift or flaw is met. The moment system pulls a random line from this file and surfaces it to the player as a coach observation.
 
-Cover: hand size (large and abnormal only), neck thickness (thin and abnormal), bone density (dense and iron), reach (long and freakish), body proportions (short_legs and long_legs).
+Cover all 8 gifts and all 8 flaws — 16 entries total.
 
 Structure per entry:
 ```json
 {
-  "profileId": "handSize_abnormal",
-  "coachLine": ["PLACEHOLDER — hand size abnormal", "PLACEHOLDER — hand size abnormal"]
+  "id": "power_gift",
+  "type": "gift",
+  "lines": [
+    "PLACEHOLDER — power gift discovery",
+    "PLACEHOLDER — power gift discovery"
+  ]
 }
 ```
 
-Array of lines per entry. Minimum 2 placeholders per entry. Engine picks randomly.
+Minimum 2 placeholder lines per entry. Placeholder text must identify what it is so Ginter knows what to replace it with.
 
-Meta must explain: coach only comments on physically notable traits, average profiles produce no coach observation, same replacement workflow as attributes coach voice.
+Tone reminder: dry, blunt, Latvian coach. Deadpan understatement. The coach is not excited. He is just telling you what he saw.
+
+Meta must explain: these lines fire when a gift or flaw discovery condition is met, engine picks randomly from the lines array, add more lines to any array without code changes.
 
 ---
 
 ### Definition Of Done
-- [ ] Old `coach-voice.json` deleted, new path `coach-voice/attributes.json` exists with identical contents
-- [ ] `universal/weight-classes.json` — 10 classes, valid JSON
-- [ ] `universal/physical-stats.json` — all 6 profiles, no stance, valid JSON
-- [ ] `universal/health.json` — 7 body parts, fragile thresholds, attribute links, valid JSON
-- [ ] `nations/latvia/nation.json` — physicalProfile block added
-- [ ] `nations/latvia/coach-voice/physical-stats.json` — notable profiles only, 2 placeholder lines each
-- [ ] All new files have meta blocks
+- [ ] `universal/gifts-and-flaws.json` — all 8 eligible attributes, discoveryConditions on every entry, healthNudge on chin/durability/recovery_rate
+- [ ] `nations/latvia/coach-voice/gifts-and-flaws.json` — 16 entries, minimum 2 placeholder lines each
+- [ ] Both files valid JSON
+- [ ] Both files have meta blocks
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — all new files marked `[x]`, old coach-voice.json path removed, new path added
+- [ ] `docs/data-registry.md` — both files marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: physical stats, health, weight classes + nation physical profile`
+- [ ] Committed: `feat: universal gifts and flaws + coach voice`
 
 ### Notes
-- Housekeeping first — move the file before creating anything new
-- No stance distribution anywhere in this task
-- No TypeScript types this session — data only
-- Modifier values are integers, max +3 or -3 at extreme ends
-- Nation physicalProfile only lists overrides — do not duplicate universal defaults
+- Data only — no TypeScript, no engine logic
+- discoveryConditions are consumed by the moment system — do not implement that logic now, just define the conditions in the data
+- Coach voice fires on discovery — that wiring happens in the moment system, not here
+- Placeholder text must be descriptive enough that Ginter knows exactly what line to write
