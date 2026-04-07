@@ -58,7 +58,8 @@ corner-gym/
     │   │   │   ├── attributes.json            # All 22 universal attributes — categories, scale, behavioral descriptions
     │   │   │   ├── weight-classes.json        # 10 weight classes — limits in kg, Super Heavyweight amateur only
     │   │   │   ├── physical-stats.json        # Physical stat band definitions — height, reach, hands, neck, bone, proportions
-    │   │   │   └── health.json                # Body part baseline integrity — 7 parts, fragile thresholds, attribute links
+    │   │   │   ├── health.json                # Body part baseline integrity — 7 parts, fragile thresholds, attribute links
+    │   │   │   └── gifts-and-flaws.json       # Gift/flaw definitions for 8 attributes — ceiling boost, probabilities, discovery conditions, health nudges
     │   │   └── nations/
     │   │       └── latvia/
     │   │           ├── nation.json            # Latvia nation definition — boxing culture, region tags, physicalProfile overrides
@@ -68,7 +69,8 @@ corner-gym/
     │   │           ├── reasons-for-boxing.json# 7 origin reasons, weighted generation
     │   │           └── coach-voice/
     │   │               ├── attributes.json    # Latvia coach voice — attribute bands to observations, placeholder lines
-    │   │               └── physical-stats.json# Latvia coach voice — notable physical profiles, placeholder lines
+    │   │               ├── physical-stats.json# Latvia coach voice — notable physical profiles, placeholder lines
+    │   │               └── gifts-and-flaws.json# Latvia coach voice — 16 entries, fires on gift/flaw discovery conditions
     │   └── src/
     │       ├── index.ts               # Public API — exports types + advanceWeek
     │       ├── types/

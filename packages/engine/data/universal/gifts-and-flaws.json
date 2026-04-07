@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "purpose": "Defines gifts and flaws for the 8 gift-eligible attributes. Gifts push the attribute ceiling from 18 to 20 — no attribute can exceed 18 at generation without a gift. Flaws weight generation toward low rolls — the floor stays at 1 but probability of rolling low increases significantly. Gifts and flaws apply to attributes only; health is a separate system.",
+    "healthNudge": "Some entries carry a healthNudge. When a gift or flaw is rolled, the nudge shifts the probability of the corresponding health body part toward iron (gift) or fragile (flaw). Probabilistic influence only — not a direct override.",
+    "rarity": "Most fighters generate zero gifts and zero flaws. One is uncommon. Two is rare. Three is almost never. Probabilities are independent rolls per attribute.",
+    "discovery": "discoveryConditions define what events must occur before the player can see this gift or flaw. The moment system evaluates these conditions. When met, it fires the corresponding coach voice line from coach-voice/gifts-and-flaws.json.",
+    "ceiling": "attributeCeilingBoost is always 2, raising the maximum from 18 to 20 for that attribute."
+  },
+  "giftsAndFlaws": [
+    {
+      "id": "power_gift",
+      "type": "gift",
+      "appliesTo": "power",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.06,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Disproportionate hitting force relative to size and technical output. Wilder. Hearns. Foreman."
+    },
+    {
+      "id": "power_flaw",
+      "type": "flaw",
+      "appliesTo": "power",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.06,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Output never matches the physical frame. Punches land but don't register. Something missing in the transfer."
+    },
+    {
+      "id": "hand_speed_gift",
+      "type": "gift",
+      "appliesTo": "hand_speed",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Hand speed that doesn't come from training. Wrists and fast-twitch response beyond what technique accounts for. Ali. Whitaker."
+    },
+    {
+      "id": "hand_speed_flaw",
+      "type": "flaw",
+      "appliesTo": "hand_speed",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Mechanically slow hands regardless of technical polish. Combinations arrive late. The timing gap is structural."
+    },
+    {
+      "id": "chin_gift",
+      "type": "gift",
+      "appliesTo": "chin",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.05,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "dropped_in_sparring"],
+      "healthNudge": {
+        "bodyParts": ["chin", "jaw"],
+        "giftShift": "toward_iron",
+        "flawShift": "toward_fragile"
+      },
+      "description": "Structural ability to absorb punishment. Fury getting up twice from Wilder. Not courage — architecture."
+    },
+    {
+      "id": "chin_flaw",
+      "type": "flaw",
+      "appliesTo": "chin",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.05,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["dropped_in_sparring", "first_fight"],
+      "healthNudge": {
+        "bodyParts": ["chin", "jaw"],
+        "giftShift": "toward_iron",
+        "flawShift": "toward_fragile"
+      },
+      "description": "Structurally fragile under concussive force. Not about heart. The wiring doesn't hold. A clean shot turns off the lights."
+    },
+    {
+      "id": "durability_gift",
+      "type": "gift",
+      "appliesTo": "durability",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["sustained_body_work", "back_to_back_fights"],
+      "healthNudge": {
+        "bodyParts": ["ribs", "shoulders"],
+        "giftShift": "toward_iron",
+        "flawShift": "toward_fragile"
+      },
+      "description": "Body absorbs sustained punishment without structural breakdown. The ribs hold. The shoulders hold. Built to last rounds."
+    },
+    {
+      "id": "durability_flaw",
+      "type": "flaw",
+      "appliesTo": "durability",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["sustained_body_work", "back_to_back_fights"],
+      "healthNudge": {
+        "bodyParts": ["ribs", "shoulders"],
+        "giftShift": "toward_iron",
+        "flawShift": "toward_fragile"
+      },
+      "description": "Frame doesn't absorb body work well. Ribs or shoulders break down under pressure campaigns. Can't take a full fight of punishment."
+    },
+    {
+      "id": "stamina_gift",
+      "type": "gift",
+      "appliesTo": "stamina",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["championship_rounds", "back_to_back_fights"],
+      "healthNudge": null,
+      "description": "Cardiovascular output that doesn't fade in late rounds. Pace stays. Work rate stays. Not conditioning — engine size."
+    },
+    {
+      "id": "stamina_flaw",
+      "type": "flaw",
+      "appliesTo": "stamina",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["championship_rounds", "back_to_back_fights"],
+      "healthNudge": null,
+      "description": "Gas tank drains faster than conditioning explains. Late rounds reveal a ceiling no training camp moves. Small engine."
+    },
+    {
+      "id": "recovery_rate_gift",
+      "type": "gift",
+      "appliesTo": "recovery_rate",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["back_to_back_fights", "heavy_sparring"],
+      "healthNudge": {
+        "bodyParts": ["hands"],
+        "giftShift": "toward_iron",
+        "flawShift": "toward_fragile"
+      },
+      "description": "Body repairs faster between fights and between rounds. Hands heal clean. Between-fight turnaround tighter than normal without cost."
+    },
+    {
+      "id": "recovery_rate_flaw",
+      "type": "flaw",
+      "appliesTo": "recovery_rate",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["back_to_back_fights", "heavy_sparring"],
+      "healthNudge": {
+        "bodyParts": ["hands"],
+        "giftShift": "toward_iron",
+        "flawShift": "toward_fragile"
+      },
+      "description": "Slow tissue repair. Hands stay sore. Needs more time between fights than the schedule allows. Camp quality degrades."
+    },
+    {
+      "id": "lateral_movement_gift",
+      "type": "gift",
+      "appliesTo": "lateral_movement",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Natural hip and ankle fluidity that produces angle exits beyond what footwork training creates. Slippery before it's skillful."
+    },
+    {
+      "id": "lateral_movement_flaw",
+      "type": "flaw",
+      "appliesTo": "lateral_movement",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Hip stiffness that limits lateral range. Can be coached around but never fixed. The angles are always a step too slow."
+    },
+    {
+      "id": "footwork_gift",
+      "type": "gift",
+      "appliesTo": "footwork",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "heavy_sparring"],
+      "healthNudge": null,
+      "description": "Balance and base positioning that resists disruption under pressure. Hard to move off the spot. Fundamentally grounded."
+    },
+    {
+      "id": "footwork_flaw",
+      "type": "flaw",
+      "appliesTo": "footwork",
+      "attributeCeilingBoost": 2,
+      "giftProbability": 0.04,
+      "flawProbability": 0.05,
+      "discoveryConditions": ["first_fight", "sustained_body_work"],
+      "healthNudge": null,
+      "description": "Base is easy to disrupt. Gets walked down or repositioned by pressure. Floor is raised by coaching but the ceiling is lower."
+    }
+  ]
+}

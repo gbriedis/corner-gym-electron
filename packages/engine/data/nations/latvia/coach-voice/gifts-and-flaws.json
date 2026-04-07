@@ -1,0 +1,137 @@
+{
+  "meta": {
+    "purpose": "Coach voice lines that fire when a gift or flaw discovery condition is met. The moment system evaluates discovery conditions defined in universal/gifts-and-flaws.json and fires the corresponding entry here. Engine picks randomly from the lines array — add more lines to any array without code changes.",
+    "coach": "Latvian. Dry, blunt, deadpan understatement. Not excited. Not alarmed. Just telling you what he saw.",
+    "usage": "One entry per gift and per flaw. 16 entries total — 8 gifts, 8 flaws. The id must match the id in universal/gifts-and-flaws.json."
+  },
+  "giftsAndFlaws": [
+    {
+      "id": "power_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — power gift discovery (coach observes fighter hits much harder than expected for their size or technique)",
+        "PLACEHOLDER — power gift discovery (coach notes something unusual in the force of punches, not from training)"
+      ]
+    },
+    {
+      "id": "power_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — power flaw discovery (coach observes punches land clean but don't register the way they should)",
+        "PLACEHOLDER — power flaw discovery (coach notes output is low relative to size, something structural missing)"
+      ]
+    },
+    {
+      "id": "hand_speed_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — hand_speed gift discovery (coach observes hands move faster than explained by training or technique)",
+        "PLACEHOLDER — hand_speed gift discovery (coach notes combinations arrive before the opponent can react, not from timing alone)"
+      ]
+    },
+    {
+      "id": "hand_speed_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — hand_speed flaw discovery (coach observes hands are consistently late despite technical work)",
+        "PLACEHOLDER — hand_speed flaw discovery (coach notes combinations land slow regardless of polish, structural ceiling)"
+      ]
+    },
+    {
+      "id": "chin_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — chin gift discovery (coach observes fighter absorbs a clean shot and stays clear-headed, structural quality)",
+        "PLACEHOLDER — chin gift discovery (coach notes fighter gets hit properly and doesn't go down, something in the architecture)"
+      ]
+    },
+    {
+      "id": "chin_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — chin flaw discovery (coach observes fighter goes down or wobbles from a shot that should not have done that damage)",
+        "PLACEHOLDER — chin flaw discovery (coach notes fighter's lights go uncertain on clean punches, structural fragility not courage)"
+      ]
+    },
+    {
+      "id": "durability_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — durability gift discovery (coach observes fighter absorbs sustained body work and keeps working, ribs and shoulders holding)",
+        "PLACEHOLDER — durability gift discovery (coach notes fighter takes a body punishment campaign without breaking down structurally)"
+      ]
+    },
+    {
+      "id": "durability_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — durability flaw discovery (coach observes ribs or shoulders breaking down under body work faster than expected)",
+        "PLACEHOLDER — durability flaw discovery (coach notes frame is not built to absorb a full fight of sustained pressure)"
+      ]
+    },
+    {
+      "id": "stamina_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — stamina gift discovery (coach observes work rate and pace unchanged in championship rounds, not conditioning, engine size)",
+        "PLACEHOLDER — stamina gift discovery (coach notes fighter still working at full pace in rounds where other fighters slow, structural)"
+      ]
+    },
+    {
+      "id": "stamina_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — stamina flaw discovery (coach observes fighter's output drops in late rounds beyond what conditioning explains)",
+        "PLACEHOLDER — stamina flaw discovery (coach notes gas tank ceiling that training camps haven't moved, small engine)"
+      ]
+    },
+    {
+      "id": "recovery_rate_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — recovery_rate gift discovery (coach observes fighter comes back from heavy sparring or fights without usual wear, heals fast)",
+        "PLACEHOLDER — recovery_rate gift discovery (coach notes hands and body recover quicker than normal camp schedule allows)"
+      ]
+    },
+    {
+      "id": "recovery_rate_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — recovery_rate flaw discovery (coach observes hands staying sore longer than they should, camp quality starting to slip)",
+        "PLACEHOLDER — recovery_rate flaw discovery (coach notes fighter needs more time between fights than the schedule gives, slow tissue repair)"
+      ]
+    },
+    {
+      "id": "lateral_movement_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — lateral_movement gift discovery (coach observes fighter creating angles and exits that footwork training doesn't account for, natural hip fluidity)",
+        "PLACEHOLDER — lateral_movement gift discovery (coach notes fighter slipping out of positions before the skill exists to explain it)"
+      ]
+    },
+    {
+      "id": "lateral_movement_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — lateral_movement flaw discovery (coach observes hip stiffness limiting lateral range, angles always a step late)",
+        "PLACEHOLDER — lateral_movement flaw discovery (coach notes fighter can be coached around the limitation but structural ceiling is lower than it looks)"
+      ]
+    },
+    {
+      "id": "footwork_gift",
+      "type": "gift",
+      "lines": [
+        "PLACEHOLDER — footwork gift discovery (coach observes fighter is hard to move off balance or reposition under pressure, fundamentally grounded)",
+        "PLACEHOLDER — footwork gift discovery (coach notes base holds under pressure campaigns where other fighters get walked down)"
+      ]
+    },
+    {
+      "id": "footwork_flaw",
+      "type": "flaw",
+      "lines": [
+        "PLACEHOLDER — footwork flaw discovery (coach observes fighter getting repositioned easily under pressure, base disrupts faster than it should)",
+        "PLACEHOLDER — footwork flaw discovery (coach notes fighter walks into pressure without anchor, balance disrupted by sustained forward work)"
+      ]
+    }
+  ]
+}
