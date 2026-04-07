@@ -1,79 +1,142 @@
 # Current Task
 
-## Task: Universal Attributes + Latvia Coach Voice Infrastructure
+## Task: Housekeeping + Physical Stats, Health, Weight Classes + Nation Physical Profile
 
 ### What To Build
-Two JSON files. First defines all 22 universal attributes — the engine reference. Second is the Latvia coach voice file — infrastructure for translating attribute bands into coach observations. Placeholder lines throughout. Ginter will replace placeholders with real lines manually.
+Housekeeping first, then four data files. Do housekeeping before touching any new files.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
 `.claude/rules/data.md`
 
-### Files To Create
+---
+
+## Part 1 — Housekeeping
+
+**Move and rename coach voice file:**
+- Move `packages/engine/data/nations/latvia/coach-voice.json` → `packages/engine/data/nations/latvia/coach-voice/attributes.json`
+- Create the `coach-voice/` subfolder in the process
+- Delete the old file at the old path
+- Update `docs/structure.md` and `docs/data-registry.md` to reflect the new path
+
+Do not touch the contents of the file — move only.
 
 ---
 
-**`packages/engine/data/universal/attributes.json`**
+## Part 2 — New Data Files
 
-Meta must explain: attributes exist on every fighter regardless of nation. All use 1-20 scale. Current value and potential ceiling are stored on the fighter record — not here. This file defines what attributes exist, what they mean, and which category they belong to. The engine uses this as its reference for what to track on every fighter.
+**`packages/engine/data/universal/weight-classes.json`**
 
-Each attribute has: `id`, `category`, `scale` (`{ "min": 1, "max": 20 }`), `description`.
+10 weight classes only. No super flyweight, no super bantam, no light flyweight etc.
 
-Categories and attributes:
+Classes: Flyweight, Bantamweight, Featherweight, Lightweight, Welterweight, Middleweight, Light Heavyweight, Cruiserweight, Heavyweight, Super Heavyweight.
 
-**striking:** `power`, `hand_speed`, `punch_accuracy`, `punch_selection`, `combination_fluency`, `output_volume`, `finishing_instinct`, `body_punch_effectiveness`
+Each class: `id`, `label`, `limitKg` (null for Heavyweight and Super Heavyweight), `amateurOnly` (true only for Super Heavyweight, omit field entirely for all others).
 
-**defense:** `defensive_skill`, `counter_punching`, `footwork`, `lateral_movement`, `ring_generalship`
-
-**physical:** `stamina`, `chin`, `durability`, `recovery_rate`
-
-**mental:** `ring_iq`, `composure`, `adaptability`, `heart`, `big_fight_experience`
-
-Descriptions must be behavioral — what this attribute looks like in a fight, not a dictionary definition. Example: power is not "how hard a fighter hits" — it is "how much damage a clean punch delivers. Wilder's power means opponents who survive still feel it three rounds later."
+Meta must explain: these are the only weight classes in the game, Super Heavyweight is amateur competition only, limitKg null means no upper boundary.
 
 ---
 
-**`packages/engine/data/nations/latvia/coach-voice.json`**
+**`packages/engine/data/universal/physical-stats.json`**
 
-Meta must explain: this file is the translation layer between engine numbers and what the player sees. The player never sees a raw attribute value. They see a coach observation. The coach is Latvian — dry, blunt, understated, deadpan. Humour comes from specific visual observations delivered without drama. Each attribute has 5 bands. Each band has an array of lines. The engine picks randomly from the array. More lines can be added to any array at any time without code changes — just add a string to the array.
+No stance distribution — deferred to when style matchups are built.
 
-Structure per attribute:
+Sections:
+- `heightProfile` — bands (short/average/tall), probability per band, heightOffsetCm from base, base height by weight class id
+- `reachProfile` — bands (short/average/long/freakish), probability, ratio to height, attribute modifiers
+- `handSizeProfile` — bands (small/average/large/abnormal), probability, attribute modifiers
+- `neckThicknessProfile` — bands (thin/average/thick/abnormal), probability, attribute modifiers on chin and durability
+- `boneDensityProfile` — bands (light/average/dense/iron), probability, attribute modifiers
+- `bodyProportionsProfile` — bands (short_legs/average/long_legs), probability, attribute modifiers
+
+All attribute modifier values are integers on the 1-20 scale — small adjustments, nothing exceeding +3 or -3 at the extreme end.
+
+Meta must explain: physical stats are never shown raw to the player, they feed silently into attribute modifiers at generation, notable physical traits surface through coach voice, nation files can override band probabilities via physicalProfile block.
+
+---
+
+**`packages/engine/data/universal/health.json`**
+
+Body parts with baseline integrity on 1-20 scale. Generated at birth. This is structural — not fight damage. Fight damage accumulates on top of this baseline separately.
+
+Body parts: `hands`, `chin`, `jaw`, `knees`, `shoulders`, `ribs`, `elbows`
+
+Each body part: `id`, `description`, `generationBands` (typical/fragile/iron with min-max ranges and probabilities), `fragileThreshold` (value at or below which the engine treats this as a chronic risk factor), `attributeModifiers` (which attributes this body part feeds into when generated).
+
+Examples of attribute links:
+- hands → power (fragile hands limit power expression), combination_fluency
+- chin → chin attribute directly
+- knees → footwork, lateral_movement
+- shoulders → output_volume, combination_fluency
+
+Meta must explain: 1-20 scale consistent with attributes, fragileThreshold is the line below which a body part creates real simulation risk, fight damage accumulates separately on top of this baseline — this file defines what you were born with.
+
+---
+
+**Update `packages/engine/data/nations/latvia/nation.json`**
+
+Add a `physicalProfile` block. This overrides universal physical-stats.json band probabilities for fighters generated from this nation. Only include bands that differ from universal defaults — omit bands that stay at default.
+
+Latvia is a northern European nation — not physically exceptional in any direction. Modest overrides only. Example: slightly lower probability of abnormal hand size or iron bone density compared to West African nations.
+
 ```json
-{
-  "attributeId": "power",
-  "bands": [
-    { "range": "1-4",   "label": "nonexistent",  "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
-    { "range": "5-8",   "label": "weak",         "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
-    { "range": "9-12",  "label": "functional",   "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
-    { "range": "13-16", "label": "notable",      "lines": ["PLACEHOLDER", "PLACEHOLDER"] },
-    { "range": "17-20", "label": "elite",        "lines": ["PLACEHOLDER", "PLACEHOLDER"] }
-  ]
+"physicalProfile": {
+  "note": "Overrides universal physical-stats.json probabilities for fighters generated from Latvia. Only bands that differ from universal defaults are listed.",
+  "handSizeProfile": {
+    "abnormal": 0.03
+  },
+  "boneDensityProfile": {
+    "iron": 0.02,
+    "dense": 0.12
+  },
+  "neckThicknessProfile": {
+    "abnormal": 0.03
+  }
 }
 ```
 
-All 22 attributes must be present. Every band must have exactly 2 placeholder lines minimum. Placeholder text must include the attribute name and band label so Ginter knows exactly what he is replacing — example: `"PLACEHOLDER — power, nonexistent (1-4)"`.
+Meta in nation.json does not need updating — just add the block.
 
-The `label` values are consistent across all attributes:
-- 1-4: `"nonexistent"`
-- 5-8: `"weak"`
-- 9-12: `"functional"`
-- 13-16: `"notable"`
-- 17-20: `"elite"`
+---
+
+**`packages/engine/data/nations/latvia/coach-voice/physical-stats.json`**
+
+Same infrastructure as `coach-voice/attributes.json`. Placeholder lines only — Ginter replaces them manually.
+
+Cover the notable physical profiles that are worth a coach observation. Not every band needs a line — only the ones that are notable enough for a coach to mention.
+
+Cover: hand size (large and abnormal only), neck thickness (thin and abnormal), bone density (dense and iron), reach (long and freakish), body proportions (short_legs and long_legs).
+
+Structure per entry:
+```json
+{
+  "profileId": "handSize_abnormal",
+  "coachLine": ["PLACEHOLDER — hand size abnormal", "PLACEHOLDER — hand size abnormal"]
+}
+```
+
+Array of lines per entry. Minimum 2 placeholders per entry. Engine picks randomly.
+
+Meta must explain: coach only comments on physically notable traits, average profiles produce no coach observation, same replacement workflow as attributes coach voice.
 
 ---
 
 ### Definition Of Done
-- [ ] `universal/attributes.json` — 22 attributes, all categories present, descriptions behavioral not dictionary
-- [ ] `nations/latvia/coach-voice.json` — all 22 attributes, all 5 bands, minimum 2 placeholder lines per band, placeholder text identifies attribute and band
-- [ ] Both files valid JSON — no trailing commas, no comments inside JSON
-- [ ] Both files have meta blocks
+- [ ] Old `coach-voice.json` deleted, new path `coach-voice/attributes.json` exists with identical contents
+- [ ] `universal/weight-classes.json` — 10 classes, valid JSON
+- [ ] `universal/physical-stats.json` — all 6 profiles, no stance, valid JSON
+- [ ] `universal/health.json` — 7 body parts, fragile thresholds, attribute links, valid JSON
+- [ ] `nations/latvia/nation.json` — physicalProfile block added
+- [ ] `nations/latvia/coach-voice/physical-stats.json` — notable profiles only, 2 placeholder lines each
+- [ ] All new files have meta blocks
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — mark both files `[x]`
+- [ ] `docs/data-registry.md` — all new files marked `[x]`, old coach-voice.json path removed, new path added
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: universal attributes + latvia coach voice infrastructure`
+- [ ] Committed: `feat: physical stats, health, weight classes + nation physical profile`
 
 ### Notes
-- Do not write witty lines — placeholders only, Ginter writes the real lines
-- Do not create TypeScript types this session — data only
-- Coach voice tone reference: dry, blunt, Latvian, understated. The coach is not trying to be funny. He is just telling you what he sees.
-- Infrastructure must support adding more lines to any band by simply adding a string to the array — no other changes needed
+- Housekeeping first — move the file before creating anything new
+- No stance distribution anywhere in this task
+- No TypeScript types this session — data only
+- Modifier values are integers, max +3 or -3 at extreme ends
+- Nation physicalProfile only lists overrides — do not duplicate universal defaults
