@@ -1,9 +1,9 @@
 # Current Task
 
-## Task: Universal Gifts and Flaws + Coach Voice
+## Task: TypeScript Types for All Data Files
 
 ### What To Build
-Two files. The gifts and flaws data file with discovery conditions, and the Latvia coach voice file for gifts and flaws. This completes the fighter data layer.
+TypeScript interfaces for every data file built so far. No engine logic. No generation functions. Just types that exactly match the JSON schemas. The engine cannot read the data without these.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
@@ -13,109 +13,193 @@ Two files. The gifts and flaws data file with discovery conditions, and the Latv
 
 ### Files To Create
 
-**`packages/engine/data/universal/gifts-and-flaws.json`**
-
-Meta must explain:
-- Gifts push attribute ceiling from 18 to 20. Without a gift no attribute can exceed 18 at generation.
-- Flaws weight generation toward low rolls. Floor stays at 1 but probability of rolling low increases significantly.
-- Gifts and flaws apply to attributes only — health is a separate system.
-- Some entries have a healthNudge — when rolled, shifts the corresponding health body part probability toward iron (gift) or fragile (flaw). Probabilistic influence only, not a direct override.
-- Most fighters generate zero gifts and zero flaws. One is uncommon. Two is rare. Three is almost never.
-- discoveryConditions define what events must occur before the player can see this gift or flaw. The moment system evaluates these conditions. When met, it fires the corresponding coach voice line from coach-voice/gifts-and-flaws.json.
-- Gift and flaw probabilities are independent rolls per attribute.
-
-**Gift-eligible attributes:**
-`power`, `hand_speed`, `chin`, `durability`, `stamina`, `recovery_rate`, `lateral_movement`, `footwork`
-
-**Structure per entry:**
-```json
-{
-  "id": "power_gift",
-  "type": "gift",
-  "appliesTo": "power",
-  "attributeCeilingBoost": 2,
-  "giftProbability": 0.04,
-  "flawProbability": 0.06,
-  "discoveryConditions": ["first_fight", "heavy_sparring"],
-  "healthNudge": null,
-  "description": "Disproportionate hitting force relative to size and technical output. Wilder. Hearns. Foreman."
-}
-```
-
-**Entries with health nudge:**
-```json
-{
-  "id": "chin_gift",
-  "type": "gift",
-  "appliesTo": "chin",
-  "attributeCeilingBoost": 2,
-  "giftProbability": 0.05,
-  "flawProbability": 0.05,
-  "discoveryConditions": ["first_fight", "dropped_in_sparring"],
-  "healthNudge": {
-    "bodyPart": "chin",
-    "giftShift": "toward_iron",
-    "flawShift": "toward_fragile"
-  },
-  "description": "Structural ability to absorb punishment. Fury getting up twice from Wilder. Not courage — architecture."
-}
-```
-
-Health nudge attributes:
-- `chin` → body parts `chin` and `jaw`
-- `durability` → body parts `ribs` and `shoulders`
-- `recovery_rate` → body part `hands`
-- `stamina` → no health nudge (cardiovascular, not structural)
-
-discoveryConditions values to use across entries:
-`"first_fight"`, `"heavy_sparring"`, `"dropped_in_sparring"`, `"sustained_body_work"`, `"championship_rounds"`, `"back_to_back_fights"`
-
-Use judgment — power gift reveals in first fight or heavy sparring. Stamina flaw reveals in championship rounds or back to back fights. Chin flaw reveals when dropped in sparring or first fight.
-
-All 8 eligible attributes must be present. attributeCeilingBoost is always 2.
+All files go in `packages/engine/src/types/data/`. This is a new subfolder — create it.
 
 ---
 
-**`packages/engine/data/nations/latvia/coach-voice/gifts-and-flaws.json`**
+**`src/types/data/soulTraits.ts`**
+Matches `universal/soul-traits.json`.
+```typescript
+export type RevealDifficulty = 'easy' | 'medium' | 'hard'
 
-Same infrastructure as other coach voice files. Placeholder lines only — Ginter replaces manually.
+export interface SoulTrait {
+  id: string
+  opposite: string
+  revealDifficulty: RevealDifficulty
+  description: string
+}
 
-Coach voice fires when the discovery condition for a gift or flaw is met. The moment system pulls a random line from this file and surfaces it to the player as a coach observation.
-
-Cover all 8 gifts and all 8 flaws — 16 entries total.
-
-Structure per entry:
-```json
-{
-  "id": "power_gift",
-  "type": "gift",
-  "lines": [
-    "PLACEHOLDER — power gift discovery",
-    "PLACEHOLDER — power gift discovery"
-  ]
+export interface SoulTraitsData {
+  meta: Meta
+  traits: SoulTrait[]
 }
 ```
 
-Minimum 2 placeholder lines per entry. Placeholder text must identify what it is so Ginter knows what to replace it with.
+---
 
-Tone reminder: dry, blunt, Latvian coach. Deadpan understatement. The coach is not excited. He is just telling you what he saw.
+**`src/types/data/attributes.ts`**
+Matches `universal/attributes.json`.
+```typescript
+export type AttributeCategory = 'striking' | 'defense' | 'physical' | 'mental'
 
-Meta must explain: these lines fire when a gift or flaw discovery condition is met, engine picks randomly from the lines array, add more lines to any array without code changes.
+export interface AttributeScale {
+  min: number
+  max?: number
+  generationMax?: number
+  absoluteMax?: number
+}
+
+export interface Attribute {
+  id: string
+  category: AttributeCategory
+  scale: AttributeScale
+  description: string
+}
+
+export interface AttributesData {
+  meta: Meta
+  attributes: Attribute[]
+}
+```
+
+---
+
+**`src/types/data/weightClasses.ts`**
+Matches `universal/weight-classes.json`.
+
+---
+
+**`src/types/data/physicalStats.ts`**
+Matches `universal/physical-stats.json`.
+Each profile band has probability, modifiers (Partial record of attribute id to number), and any offsets or ratios specific to that profile.
+
+---
+
+**`src/types/data/health.ts`**
+Matches `universal/health.json`.
+Each body part has id, description, generationBands, fragileThreshold, attributeModifiers.
+
+---
+
+**`src/types/data/giftsAndFlaws.ts`**
+Matches `universal/gifts-and-flaws.json`.
+Include a HealthNudge interface. discoveryConditions is string array.
+
+---
+
+**`src/types/data/nation.ts`**
+Matches `nations/latvia/nation.json` — and any future nation bundle.
+PhysicalProfile overrides are Partial — only overridden bands are present.
+
+---
+
+**`src/types/data/cities.ts`**
+Matches `nations/latvia/cities.json`.
+Population type: `'small_town' | 'mid_city' | 'capital'`
+RegionTag type: `'rural' | 'urban' | 'coastal' | 'industrial' | 'high_altitude'`
+
+---
+
+**`src/types/data/names.ts`**
+Matches `nations/latvia/names.json`.
+
+---
+
+**`src/types/data/economicStatuses.ts`**
+Matches `nations/latvia/economic-statuses.json`.
+
+---
+
+**`src/types/data/reasonsForBoxing.ts`**
+Matches `nations/latvia/reasons-for-boxing.json`.
+
+---
+
+**`src/types/data/coachVoice.ts`**
+Matches all three coach voice files — attributes, physical stats, gifts and flaws share the same structure.
+```typescript
+export interface CoachVoiceBand {
+  range: string
+  label: string
+  lines: string[]
+}
+
+export interface CoachVoiceAttribute {
+  attributeId: string
+  bands: CoachVoiceBand[]
+}
+
+export interface CoachVoiceProfile {
+  profileId: string
+  lines: string[]
+}
+
+export interface CoachVoiceGiftFlaw {
+  id: string
+  type: 'gift' | 'flaw'
+  lines: string[]
+}
+
+export interface CoachVoiceAttributesData {
+  meta: Meta
+  attributes: CoachVoiceAttribute[]
+}
+
+export interface CoachVoicePhysicalData {
+  meta: Meta
+  profiles: CoachVoiceProfile[]
+}
+
+export interface CoachVoiceGiftsFlawsData {
+  meta: Meta
+  entries: CoachVoiceGiftFlaw[]
+}
+```
+
+---
+
+**`src/types/data/meta.ts`**
+Shared Meta interface used by every data file.
+```typescript
+export interface Meta {
+  version: string
+  description: string
+  [key: string]: unknown
+}
+```
+
+Create this first. Every other type file imports from it.
+
+---
+
+**`src/types/data/index.ts`**
+Barrel file. Re-exports everything from all type files in this folder.
+
+---
+
+### Rules
+- Every interface must exactly match the JSON it represents — no extra fields, no missing fields
+- Use string literal union types wherever the JSON has a fixed set of string values
+- All fields that are optional in the JSON must be marked optional with `?`
+- No `any`. No type assertions.
+- Import Meta from `./meta.ts` in every file that uses it
+- Add a comment above each interface explaining which JSON file it maps to
 
 ---
 
 ### Definition Of Done
-- [ ] `universal/gifts-and-flaws.json` — all 8 eligible attributes, discoveryConditions on every entry, healthNudge on chin/durability/recovery_rate
-- [ ] `nations/latvia/coach-voice/gifts-and-flaws.json` — 16 entries, minimum 2 placeholder lines each
-- [ ] Both files valid JSON
-- [ ] Both files have meta blocks
+- [ ] `src/types/data/` folder created with all 13 files
+- [ ] `meta.ts` created first, imported correctly everywhere
+- [ ] `index.ts` exports everything
+- [ ] `pnpm typecheck` passes clean across all packages
+- [ ] No `any`, no type assertions
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — both files marked `[x]`
+- [ ] `docs/data-registry.md` — all type files marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: universal gifts and flaws + coach voice`
+- [ ] Committed: `feat: TypeScript types for all data files`
 
 ### Notes
-- Data only — no TypeScript, no engine logic
-- discoveryConditions are consumed by the moment system — do not implement that logic now, just define the conditions in the data
-- Coach voice fires on discovery — that wiring happens in the moment system, not here
-- Placeholder text must be descriptive enough that Ginter knows exactly what line to write
+- Types only — no generation logic, no engine functions
+- If a JSON field's shape is ambiguous, check the actual JSON file before deciding the type
+- Partial<> for nation physicalProfile overrides — not all bands will be present
+- The compiler is your reviewer — if it passes clean the types are correct
