@@ -1,6 +1,13 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 
+// /dev/shm has restrictive permissions on some Linux systems; /tmp is always writable.
+// --no-sandbox must be passed to the electron binary directly (not here) to take
+// effect before the zygote process is created.
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('disable-dev-shm-usage');
+}
+
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1280,
