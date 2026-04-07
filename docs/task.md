@@ -1,9 +1,9 @@
 # Current Task
 
-## Task: Data Loader + Person Type + Person Generation + Tests
+## Task: Development Profiles + Dynamic Loader Refactor
 
 ### What To Build
-The data loader, a fully defined Person type, the person generation function, and tests that verify generation produces valid people. This is the first engine code — read the engine skill before touching anything.
+Two things in sequence. Do them in this order — loader first, development profiles second.
 
 ### Skill To Load
 `.claude/skills/engine/SKILL.md`
@@ -11,19 +11,50 @@ The data loader, a fully defined Person type, the person generation function, an
 
 ---
 
-### Files To Create / Update
+## Part 1 — Dynamic Loader Refactor
 
----
+The current `loader.ts` has hardcoded nation blocks. Adding a new nation requires touching engine code. This must be fixed before the nation count grows.
 
-**`packages/engine/src/data/loader.ts`**
+### Goal
+The loader dynamically scans `data/nations/` and loads every nation bundle it finds. Adding a nation bundle becomes: drop the folder in, restart. No engine code changes required. This is the foundation for Steam mod support.
 
-Reads all JSON data files at startup. Returns a single typed object containing all loaded data. Called once when the engine initialises — not called mid-simulation.
+### How It Works
+Each nation folder must contain these standard files to be considered valid:
+- `nation.json`
+- `cities.json`
+- `names.json`
+- `economic-statuses.json`
+- `reasons-for-boxing.json`
+- `coach-voice/attributes.json`
+- `coach-voice/physical-stats.json`
+- `coach-voice/gifts-and-flaws.json`
+
+The loader scans `data/nations/`, finds every subfolder, attempts to load the standard files from each. If any standard file is missing from a nation folder — throw a descriptive error naming the nation and the missing file. Never silently skip a broken bundle.
+
+### Changes To `src/data/loader.ts`
+
+Replace the hardcoded `nations.latvia` block with a dynamic structure:
 
 ```typescript
-// loader.ts loads all game data from JSON files at startup.
-// The engine receives this object and uses it throughout the simulation.
-// Nothing in the engine reads JSON files directly — only the loader does.
+// NationBundle holds all data for a single loaded nation.
+// The structure is identical regardless of which nation it is —
+// any nation folder with the standard files becomes a valid bundle.
+export interface NationBundle {
+  nation: NationData
+  cities: CitiesData
+  names: NamesData
+  economicStatuses: EconomicStatusesData
+  reasonsForBoxing: ReasonsForBoxingData
+  coachVoice: {
+    attributes: CoachVoiceAttributesData
+    physicalStats: CoachVoicePhysicalData
+    giftsAndFlaws: CoachVoiceGiftsFlawsData
+  }
+}
 
+// GameData.nations is now a record keyed by nation id (folder name).
+// Engine code accesses nations as: data.nations['latvia']
+// This works for any nation — no hardcoded keys anywhere.
 export interface GameData {
   soulTraits: SoulTraitsData
   attributes: AttributesData
@@ -31,176 +62,132 @@ export interface GameData {
   physicalStats: PhysicalStatsData
   health: HealthData
   giftsAndFlaws: GiftsAndFlawsData
-  nations: {
-    latvia: {
-      nation: NationData
-      cities: CitiesData
-      names: NamesData
-      economicStatuses: EconomicStatusesData
-      reasonsForBoxing: ReasonsForBoxingData
-      coachVoice: {
-        attributes: CoachVoiceAttributesData
-        physicalStats: CoachVoicePhysicalData
-        giftsAndFlaws: CoachVoiceGiftsFlawsData
-      }
+  developmentProfiles: DevelopmentProfilesData  // new — added this task
+  nations: Record<string, NationBundle>
+}
+```
+
+Use `readdirSync` to scan the nations folder. Load each subfolder as a NationBundle. The nation id is the folder name — must match the `id` field in `nation.json`. Throw if they don't match.
+
+Comment why dynamic loading was chosen over hardcoded blocks, and why a mismatch between folder name and nation id is a hard error.
+
+### Update All Call Sites
+`generatePerson()` currently accesses `data.nations.latvia` directly — update it to `data.nations[nationId]`. This makes generation nation-agnostic. Add a check: if the nation bundle doesn't exist in the loaded data, throw a descriptive error.
+
+### Tests
+Update existing loader tests to work with the dynamic structure. Add a test that verifies: if a nation folder is missing a required file, loadGameData throws with a message naming the nation and the missing file.
+
+---
+
+## Part 2 — Development Profiles
+
+### New Data File
+**`packages/engine/data/universal/development-profiles.json`**
+
+Meta must explain: development profile is assigned at generation and never changes. It defines the shape of a person's attribute curve over their career — when they peak, how fast they rise, how long they plateau, how fast they decline. The engine uses this profile alongside age to calculate the ageFactor at any point in time. The hardcoded ageFactor function in generation/person.ts is replaced by a curve lookup using this data.
+
+Three profiles:
+
+```json
+{
+  "profiles": [
+    {
+      "id": "early_bloomer",
+      "label": "Early Bloomer",
+      "probability": 0.20,
+      "peakAgeRange": { "min": 22, "max": 25 },
+      "riseRate": 0.08,
+      "plateauDuration": 3,
+      "declineRate": 0.04,
+      "description": "Develops faster than peers, peaks younger, fades sooner. High output early career. Risk of early decline."
+    },
+    {
+      "id": "normal",
+      "label": "Normal",
+      "probability": 0.60,
+      "peakAgeRange": { "min": 26, "max": 30 },
+      "riseRate": 0.05,
+      "plateauDuration": 4,
+      "declineRate": 0.025,
+      "description": "Standard development curve. The majority of fighters."
+    },
+    {
+      "id": "late_bloomer",
+      "label": "Late Bloomer",
+      "probability": 0.20,
+      "peakAgeRange": { "min": 29, "max": 34 },
+      "riseRate": 0.03,
+      "plateauDuration": 5,
+      "declineRate": 0.015,
+      "description": "Slow to develop. Peaks later, plateaus longer, declines more gradually. Long career ceiling."
     }
-  }
+  ]
 }
-
-export function loadGameData(): GameData
 ```
 
-Use `fs.readFileSync` with `JSON.parse`. Paths resolve relative to the data folder. If any file fails to load, throw a descriptive error — fail fast, never silently.
+`riseRate` — how much ageFactor increases per year before peak.
+`plateauDuration` — how many years the fighter stays near peak (ageFactor > 0.95) after reaching it.
+`declineRate` — how much ageFactor decreases per year after plateau ends.
+`peakAgeRange` — rolled at generation to get this person's specific peak age.
 
-Comment why each section is structured the way it is. Comment why we load everything at startup rather than lazily.
+### New Type File
+**`src/types/data/developmentProfiles.ts`**
 
----
+Interface matching the JSON. Export `DevelopmentProfile` and `DevelopmentProfilesData`. Add to `src/types/data/index.ts`.
 
-**`packages/engine/src/utils/rng.ts`**
+### Update `src/types/person.ts`
+Add two fields:
+```typescript
+developmentProfileId: string   // references development-profiles.json id
+peakAge: number                // rolled from profile's peakAgeRange at generation
+```
 
-Seeded random number generator. All randomness in the engine goes through this — never `Math.random()` directly. Reproducible results for a given seed means saves can be debugged and replayed.
+### Update `src/generation/person.ts`
+
+**Replace the hardcoded `ageFactor()` function** with a data-driven calculation:
 
 ```typescript
-// All engine randomness flows through the seeded RNG.
-// Using Math.random() directly is forbidden — results would not be
-// reproducible across sessions, making saves impossible to debug.
-
-export interface RNG {
-  next(): number           // 0 to 1
-  nextInt(min: number, max: number): number
-  pick<T>(array: T[]): T
-  weightedPick<T>(items: T[], weights: number[]): T
-}
-
-export function createRng(seed: number): RNG
+// calculateAgeFactor derives the current/potential ratio from the person's
+// development profile and their specific peak age.
+// Before peak: linear rise from a base of 0.55 at age 14, using profile riseRate.
+// At/near peak: plateau at 0.98 for plateauDuration years.
+// After plateau: linear decline using profile declineRate, floored at 0.40.
+// Using data-driven rates rather than hardcoded values means development curves
+// can be tuned in JSON without touching engine code.
+function calculateAgeFactor(age: number, peakAge: number, profile: DevelopmentProfile): number
 ```
 
-Use a simple seedable algorithm — mulberry32 or xoshiro128** are fine. Comment which algorithm is used and why it was chosen over Math.random().
+Add development profile roll to Step 1 (Identity):
+- Roll profile from weighted probabilities
+- Roll peak age from `peakAgeRange` using RNG
+- Store both on the person
 
----
-
-**Update `packages/engine/src/types/person.ts`**
-
-Flesh out the stub that exists from scaffold. A Person is the base — every human in the world starts here.
-
-```typescript
-export interface SoulTraitAssignment {
-  traitId: string        // references soul-traits.json id
-  revealed: boolean      // has the player discovered this trait yet
-}
-
-export interface AttributeValue {
-  attributeId: string    // references attributes.json id
-  current: number        // 1-20, changes over time
-  potential: number      // 1-20, set at generation, never changes
-}
-
-export interface HealthValue {
-  bodyPartId: string     // references health.json id
-  integrity: number      // 1-20, baseline set at generation
-  damage: number         // accumulated fight damage, starts at 0
-}
-
-export interface PhysicalProfile {
-  heightCm: number
-  reachCm: number
-  weightKg: number
-  handSize: string       // band id from physical-stats.json
-  neckThickness: string
-  boneDensity: string
-  bodyProportions: string
-}
-
-export interface GiftFlawAssignment {
-  entryId: string        // references gifts-and-flaws.json id
-  type: 'gift' | 'flaw'
-  appliesTo: string      // attribute id
-  discovered: boolean
-}
-
-export interface Person {
-  id: string
-  name: { first: string; surname: string }
-  age: number
-  nationId: string
-  cityId: string
-  economicStatusId: string
-  reasonForBoxingId: string
-  soulTraits: SoulTraitAssignment[]
-  physicalProfile: PhysicalProfile
-  health: HealthValue[]
-  attributes: AttributeValue[]
-  giftsAndFlaws: GiftFlawAssignment[]
-}
-```
-
----
-
-**`packages/engine/src/generation/person.ts`**
-
-The person generation function. Takes loaded game data and a seed, returns a fully generated Person.
-
-```typescript
-// generatePerson creates a complete person from the game data.
-// Generation order matters — each layer feeds the next:
-// 1. Identity (nation, city, name, age, background)
-// 2. Soul traits (rolled from universal definitions)
-// 3. Physical profile (rolled from physical-stats, anchored to weight class)
-// 4. Health baseline (rolled from health definitions, nudged by physical profile)
-// 5. Gifts and flaws (independent probability rolls per eligible attribute)
-// 6. Attributes (rolled within generationMax, modified by physical profile,
-//    health, gifts and flaws — potential set here, current starts equal to potential
-//    then reduced by age factor)
-
-export function generatePerson(data: GameData, rng: RNG, nationId: string, cityId: string): Person
-```
-
-Key rules:
-- Generation order must follow the comment above — attributes come last because they depend on everything else
-- Gift-eligible attributes cap at 18 at generation unless a gift was rolled — then cap is 20
-- Non-gift attributes generate up to 20 naturally
-- Current value starts equal to potential then reduced by an age factor — a 16 year old has lower current than potential, a 28 year old at peak has current near potential
-- Nation physicalProfile overrides apply when rolling physical profile bands — merge nation overrides with universal defaults before rolling
-- All rolls go through the RNG — no Math.random() anywhere
-- Comment every section explaining why that order and why that calculation
-
----
-
-**`packages/engine/src/generation/person.test.ts`**
-
-Tests that verify generation produces valid people. Use Vitest.
-
-Tests to write:
-- Generated person has all required fields
-- Soul traits — no person has both a trait and its opposite
-- Attributes — all values within valid range (1-20)
-- Gift-eligible attributes without a gift never exceed 18 at generation
-- Gift-eligible attributes with a gift can reach 19-20
-- Health integrity values within 1-20
-- Physical profile bands are valid ids from physical-stats data
-- Name comes from the correct nation name pool
-- City belongs to the specified nation
-- Deterministic — same seed produces same person every time
-- Age factor — a generated 16 year old has lower current attribute values than potential
+### Update Tests
+- Add test: early bloomer at age 23 has higher ageFactor than late bloomer at same age
+- Add test: late bloomer at age 32 has higher ageFactor than early bloomer at same age
+- Add test: same profile + same seed = same peakAge every time
+- Add test: ageFactor never exceeds 1.0, never goes below 0.40
+- Update existing age factor tests to use the new function signature
 
 ---
 
 ### Definition Of Done
-- [ ] `src/data/loader.ts` — loads all files, throws on missing file, fully typed return
-- [ ] `src/utils/rng.ts` — seeded, deterministic, no Math.random()
-- [ ] `src/types/person.ts` — fully defined, no stubs remaining
-- [ ] `src/generation/person.ts` — correct generation order, all rolls through RNG
-- [ ] `src/generation/person.test.ts` — all tests listed above written and passing
+- [ ] `loader.ts` — dynamic nation scanning, no hardcoded nation keys
+- [ ] `generatePerson()` — accesses nations via `data.nations[nationId]`
+- [ ] `universal/development-profiles.json` — 3 profiles, probabilities sum to 1.0
+- [ ] `src/types/data/developmentProfiles.ts` — created, exported from index
+- [ ] `src/types/person.ts` — `developmentProfileId` and `peakAge` added
+- [ ] `src/generation/person.ts` — hardcoded `ageFactor()` replaced with data-driven version
+- [ ] All existing tests still passing
+- [ ] New tests written and passing
 - [ ] `pnpm typecheck` clean
-- [ ] `pnpm test` passing
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — all new files marked `[x]`
+- [ ] `docs/data-registry.md` — `development-profiles.json` marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: data loader + person generation + tests`
+- [ ] Committed: `feat: dynamic loader + development profiles`
 
 ### Notes
-- Read the engine skill fully before writing any code
-- Generation order is not optional — attributes must come last
-- Comment why on every non-obvious decision — future Claude Code sessions will read these
-- The determinism test is critical — if the same seed does not produce the same person the save system will break
-- Do not build the Fighter type this session — Person is the base, Fighter extends it later
+- Loader refactor first — generation changes depend on the updated GameData structure
+- The hardcoded ageFactor function must be fully deleted — no dead code left behind
+- Nation id must equal folder name — enforce this with a thrown error, not a warning
+- riseRate, plateauDuration, declineRate are tuning values — they will change as the game is balanced. They must live in JSON, never in code.
