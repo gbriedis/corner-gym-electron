@@ -1,205 +1,206 @@
 # Current Task
 
-## Task: TypeScript Types for All Data Files
+## Task: Data Loader + Person Type + Person Generation + Tests
 
 ### What To Build
-TypeScript interfaces for every data file built so far. No engine logic. No generation functions. Just types that exactly match the JSON schemas. The engine cannot read the data without these.
+The data loader, a fully defined Person type, the person generation function, and tests that verify generation produces valid people. This is the first engine code — read the engine skill before touching anything.
 
 ### Skill To Load
+`.claude/skills/engine/SKILL.md`
 `.claude/skills/new-feature/SKILL.md`
-`.claude/rules/data.md`
 
 ---
 
-### Files To Create
-
-All files go in `packages/engine/src/types/data/`. This is a new subfolder — create it.
+### Files To Create / Update
 
 ---
 
-**`src/types/data/soulTraits.ts`**
-Matches `universal/soul-traits.json`.
+**`packages/engine/src/data/loader.ts`**
+
+Reads all JSON data files at startup. Returns a single typed object containing all loaded data. Called once when the engine initialises — not called mid-simulation.
+
 ```typescript
-export type RevealDifficulty = 'easy' | 'medium' | 'hard'
+// loader.ts loads all game data from JSON files at startup.
+// The engine receives this object and uses it throughout the simulation.
+// Nothing in the engine reads JSON files directly — only the loader does.
 
-export interface SoulTrait {
-  id: string
-  opposite: string
-  revealDifficulty: RevealDifficulty
-  description: string
+export interface GameData {
+  soulTraits: SoulTraitsData
+  attributes: AttributesData
+  weightClasses: WeightClassesData
+  physicalStats: PhysicalStatsData
+  health: HealthData
+  giftsAndFlaws: GiftsAndFlawsData
+  nations: {
+    latvia: {
+      nation: NationData
+      cities: CitiesData
+      names: NamesData
+      economicStatuses: EconomicStatusesData
+      reasonsForBoxing: ReasonsForBoxingData
+      coachVoice: {
+        attributes: CoachVoiceAttributesData
+        physicalStats: CoachVoicePhysicalData
+        giftsAndFlaws: CoachVoiceGiftsFlawsData
+      }
+    }
+  }
 }
 
-export interface SoulTraitsData {
-  meta: Meta
-  traits: SoulTrait[]
-}
+export function loadGameData(): GameData
 ```
 
+Use `fs.readFileSync` with `JSON.parse`. Paths resolve relative to the data folder. If any file fails to load, throw a descriptive error — fail fast, never silently.
+
+Comment why each section is structured the way it is. Comment why we load everything at startup rather than lazily.
+
 ---
 
-**`src/types/data/attributes.ts`**
-Matches `universal/attributes.json`.
+**`packages/engine/src/utils/rng.ts`**
+
+Seeded random number generator. All randomness in the engine goes through this — never `Math.random()` directly. Reproducible results for a given seed means saves can be debugged and replayed.
+
 ```typescript
-export type AttributeCategory = 'striking' | 'defense' | 'physical' | 'mental'
+// All engine randomness flows through the seeded RNG.
+// Using Math.random() directly is forbidden — results would not be
+// reproducible across sessions, making saves impossible to debug.
 
-export interface AttributeScale {
-  min: number
-  max?: number
-  generationMax?: number
-  absoluteMax?: number
+export interface RNG {
+  next(): number           // 0 to 1
+  nextInt(min: number, max: number): number
+  pick<T>(array: T[]): T
+  weightedPick<T>(items: T[], weights: number[]): T
 }
 
-export interface Attribute {
-  id: string
-  category: AttributeCategory
-  scale: AttributeScale
-  description: string
-}
-
-export interface AttributesData {
-  meta: Meta
-  attributes: Attribute[]
-}
+export function createRng(seed: number): RNG
 ```
 
----
-
-**`src/types/data/weightClasses.ts`**
-Matches `universal/weight-classes.json`.
+Use a simple seedable algorithm — mulberry32 or xoshiro128** are fine. Comment which algorithm is used and why it was chosen over Math.random().
 
 ---
 
-**`src/types/data/physicalStats.ts`**
-Matches `universal/physical-stats.json`.
-Each profile band has probability, modifiers (Partial record of attribute id to number), and any offsets or ratios specific to that profile.
+**Update `packages/engine/src/types/person.ts`**
 
----
+Flesh out the stub that exists from scaffold. A Person is the base — every human in the world starts here.
 
-**`src/types/data/health.ts`**
-Matches `universal/health.json`.
-Each body part has id, description, generationBands, fragileThreshold, attributeModifiers.
-
----
-
-**`src/types/data/giftsAndFlaws.ts`**
-Matches `universal/gifts-and-flaws.json`.
-Include a HealthNudge interface. discoveryConditions is string array.
-
----
-
-**`src/types/data/nation.ts`**
-Matches `nations/latvia/nation.json` — and any future nation bundle.
-PhysicalProfile overrides are Partial — only overridden bands are present.
-
----
-
-**`src/types/data/cities.ts`**
-Matches `nations/latvia/cities.json`.
-Population type: `'small_town' | 'mid_city' | 'capital'`
-RegionTag type: `'rural' | 'urban' | 'coastal' | 'industrial' | 'high_altitude'`
-
----
-
-**`src/types/data/names.ts`**
-Matches `nations/latvia/names.json`.
-
----
-
-**`src/types/data/economicStatuses.ts`**
-Matches `nations/latvia/economic-statuses.json`.
-
----
-
-**`src/types/data/reasonsForBoxing.ts`**
-Matches `nations/latvia/reasons-for-boxing.json`.
-
----
-
-**`src/types/data/coachVoice.ts`**
-Matches all three coach voice files — attributes, physical stats, gifts and flaws share the same structure.
 ```typescript
-export interface CoachVoiceBand {
-  range: string
-  label: string
-  lines: string[]
+export interface SoulTraitAssignment {
+  traitId: string        // references soul-traits.json id
+  revealed: boolean      // has the player discovered this trait yet
 }
 
-export interface CoachVoiceAttribute {
-  attributeId: string
-  bands: CoachVoiceBand[]
+export interface AttributeValue {
+  attributeId: string    // references attributes.json id
+  current: number        // 1-20, changes over time
+  potential: number      // 1-20, set at generation, never changes
 }
 
-export interface CoachVoiceProfile {
-  profileId: string
-  lines: string[]
+export interface HealthValue {
+  bodyPartId: string     // references health.json id
+  integrity: number      // 1-20, baseline set at generation
+  damage: number         // accumulated fight damage, starts at 0
 }
 
-export interface CoachVoiceGiftFlaw {
-  id: string
+export interface PhysicalProfile {
+  heightCm: number
+  reachCm: number
+  weightKg: number
+  handSize: string       // band id from physical-stats.json
+  neckThickness: string
+  boneDensity: string
+  bodyProportions: string
+}
+
+export interface GiftFlawAssignment {
+  entryId: string        // references gifts-and-flaws.json id
   type: 'gift' | 'flaw'
-  lines: string[]
+  appliesTo: string      // attribute id
+  discovered: boolean
 }
 
-export interface CoachVoiceAttributesData {
-  meta: Meta
-  attributes: CoachVoiceAttribute[]
-}
-
-export interface CoachVoicePhysicalData {
-  meta: Meta
-  profiles: CoachVoiceProfile[]
-}
-
-export interface CoachVoiceGiftsFlawsData {
-  meta: Meta
-  entries: CoachVoiceGiftFlaw[]
+export interface Person {
+  id: string
+  name: { first: string; surname: string }
+  age: number
+  nationId: string
+  cityId: string
+  economicStatusId: string
+  reasonForBoxingId: string
+  soulTraits: SoulTraitAssignment[]
+  physicalProfile: PhysicalProfile
+  health: HealthValue[]
+  attributes: AttributeValue[]
+  giftsAndFlaws: GiftFlawAssignment[]
 }
 ```
 
 ---
 
-**`src/types/data/meta.ts`**
-Shared Meta interface used by every data file.
+**`packages/engine/src/generation/person.ts`**
+
+The person generation function. Takes loaded game data and a seed, returns a fully generated Person.
+
 ```typescript
-export interface Meta {
-  version: string
-  description: string
-  [key: string]: unknown
-}
+// generatePerson creates a complete person from the game data.
+// Generation order matters — each layer feeds the next:
+// 1. Identity (nation, city, name, age, background)
+// 2. Soul traits (rolled from universal definitions)
+// 3. Physical profile (rolled from physical-stats, anchored to weight class)
+// 4. Health baseline (rolled from health definitions, nudged by physical profile)
+// 5. Gifts and flaws (independent probability rolls per eligible attribute)
+// 6. Attributes (rolled within generationMax, modified by physical profile,
+//    health, gifts and flaws — potential set here, current starts equal to potential
+//    then reduced by age factor)
+
+export function generatePerson(data: GameData, rng: RNG, nationId: string, cityId: string): Person
 ```
 
-Create this first. Every other type file imports from it.
+Key rules:
+- Generation order must follow the comment above — attributes come last because they depend on everything else
+- Gift-eligible attributes cap at 18 at generation unless a gift was rolled — then cap is 20
+- Non-gift attributes generate up to 20 naturally
+- Current value starts equal to potential then reduced by an age factor — a 16 year old has lower current than potential, a 28 year old at peak has current near potential
+- Nation physicalProfile overrides apply when rolling physical profile bands — merge nation overrides with universal defaults before rolling
+- All rolls go through the RNG — no Math.random() anywhere
+- Comment every section explaining why that order and why that calculation
 
 ---
 
-**`src/types/data/index.ts`**
-Barrel file. Re-exports everything from all type files in this folder.
+**`packages/engine/src/generation/person.test.ts`**
 
----
+Tests that verify generation produces valid people. Use Vitest.
 
-### Rules
-- Every interface must exactly match the JSON it represents — no extra fields, no missing fields
-- Use string literal union types wherever the JSON has a fixed set of string values
-- All fields that are optional in the JSON must be marked optional with `?`
-- No `any`. No type assertions.
-- Import Meta from `./meta.ts` in every file that uses it
-- Add a comment above each interface explaining which JSON file it maps to
+Tests to write:
+- Generated person has all required fields
+- Soul traits — no person has both a trait and its opposite
+- Attributes — all values within valid range (1-20)
+- Gift-eligible attributes without a gift never exceed 18 at generation
+- Gift-eligible attributes with a gift can reach 19-20
+- Health integrity values within 1-20
+- Physical profile bands are valid ids from physical-stats data
+- Name comes from the correct nation name pool
+- City belongs to the specified nation
+- Deterministic — same seed produces same person every time
+- Age factor — a generated 16 year old has lower current attribute values than potential
 
 ---
 
 ### Definition Of Done
-- [ ] `src/types/data/` folder created with all 13 files
-- [ ] `meta.ts` created first, imported correctly everywhere
-- [ ] `index.ts` exports everything
-- [ ] `pnpm typecheck` passes clean across all packages
-- [ ] No `any`, no type assertions
+- [ ] `src/data/loader.ts` — loads all files, throws on missing file, fully typed return
+- [ ] `src/utils/rng.ts` — seeded, deterministic, no Math.random()
+- [ ] `src/types/person.ts` — fully defined, no stubs remaining
+- [ ] `src/generation/person.ts` — correct generation order, all rolls through RNG
+- [ ] `src/generation/person.test.ts` — all tests listed above written and passing
+- [ ] `pnpm typecheck` clean
+- [ ] `pnpm test` passing
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` — all type files marked `[x]`
+- [ ] `docs/data-registry.md` — all new files marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: TypeScript types for all data files`
+- [ ] Committed: `feat: data loader + person generation + tests`
 
 ### Notes
-- Types only — no generation logic, no engine functions
-- If a JSON field's shape is ambiguous, check the actual JSON file before deciding the type
-- Partial<> for nation physicalProfile overrides — not all bands will be present
-- The compiler is your reviewer — if it passes clean the types are correct
+- Read the engine skill fully before writing any code
+- Generation order is not optional — attributes must come last
+- Comment why on every non-obvious decision — future Claude Code sessions will read these
+- The determinism test is critical — if the same seed does not produce the same person the save system will break
+- Do not build the Fighter type this session — Person is the base, Fighter extends it later
