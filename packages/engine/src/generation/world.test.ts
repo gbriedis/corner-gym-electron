@@ -6,15 +6,9 @@ import type { GameConfig } from '../types/gameConfig.js'
 
 let data: GameData
 
-const normalModifiers = {
-  rentModifier: 1.0,
-  talentDensity: 1.0,
-  rivalGymDensity: 1.0,
-  giftProbabilityMultiplier: 1.0,
-  flawProbabilityMultiplier: 1.0,
-  economicStatusWeightShift: 1.0,
-  developmentProfileShift: 1.0,
-}
+// All tiers set to the same value so person-count assertions stay simple.
+// Production config uses different values per tier — that's tested separately.
+const FLAT_POP = 10
 
 const baseConfig: GameConfig = {
   seed: 42,
@@ -25,10 +19,10 @@ const baseConfig: GameConfig = {
   playerNationId: 'latvia',
   renderedNations: ['latvia'],
   difficulty: 'normal',
-  difficultyModifiers: normalModifiers,
+  difficultyModifiers: {}, // empty — resolveModifiers fills 1.0 for every field
   leagues: { amateur: true, pro: true },
   worldSettings: {
-    populationPerCity: 10,
+    populationPerCity: { small_town: FLAT_POP, mid_city: FLAT_POP, capital: FLAT_POP },
     gymsPerCity: { small_town: 1, mid_city: 3, capital: 6 },
   },
 }
@@ -49,9 +43,7 @@ describe('generateWorld — determinism', () => {
   it('produces a different world for a different seed', () => {
     const a = generateWorld(baseConfig, data)
     const b = generateWorld({ ...baseConfig, seed: 99 }, data)
-    // Worlds should differ — same seed must not be required for any valid world
     expect(a.worldState.seed).not.toBe(b.worldState.seed)
-    // At least one person id should differ
     const aIds = new Set(a.persons.map(p => p.id))
     const bIds = b.persons.map(p => p.id)
     const allMatch = bIds.every(id => aIds.has(id))
@@ -60,27 +52,58 @@ describe('generateWorld — determinism', () => {
 })
 
 describe('generateWorld — person count', () => {
-  it('generates populationPerCity persons per city', () => {
+  it('generates populationPerCity persons per city (flat-pop config)', () => {
     const { worldState, persons } = generateWorld(baseConfig, data)
     const latviaBundle = data.nations['latvia']
     expect(latviaBundle).toBeDefined()
     const cityCount = latviaBundle!.cities.cities.length
-    // Each city generates populationPerCity * talentDensity people (rounded)
-    expect(persons.length).toBe(cityCount * 10)
-    // WorldState has all nations
+    // All tiers set to FLAT_POP so total = cityCount * FLAT_POP
+    expect(persons.length).toBe(cityCount * FLAT_POP)
     expect(Object.keys(worldState.nations)).toContain('latvia')
+  })
+
+  it('capitals produce more persons than small towns with tier-based config', () => {
+    const tieredConfig: GameConfig = {
+      ...baseConfig,
+      worldSettings: {
+        populationPerCity: { small_town: 5, mid_city: 20, capital: 100 },
+        gymsPerCity: { small_town: 1, mid_city: 3, capital: 6 },
+      },
+    }
+    const flat = generateWorld(baseConfig, data)
+    const tiered = generateWorld(tieredConfig, data)
+    // Tiered should differ in person count (capital contributes 100 vs 10)
+    expect(tiered.persons.length).not.toBe(flat.persons.length)
   })
 
   it('scales person count by talentDensity multiplier', () => {
     const hardConfig: GameConfig = {
       ...baseConfig,
       difficulty: 'hard',
-      difficultyModifiers: { ...normalModifiers, talentDensity: 0.5 },
+      difficultyModifiers: { talentDensity: 0.5 },
     }
     const normal = generateWorld(baseConfig, data)
     const hard = generateWorld(hardConfig, data)
-    // Hard difficulty with 0.5 talentDensity should produce ~half the persons
     expect(hard.persons.length).toBeLessThan(normal.persons.length)
+  })
+
+  it('normal difficulty with empty modifiers produces same result as all-1.0 modifiers', () => {
+    const explicitConfig: GameConfig = {
+      ...baseConfig,
+      difficultyModifiers: {
+        rentModifier: 1.0,
+        talentDensity: 1.0,
+        rivalGymDensity: 1.0,
+        giftProbabilityMultiplier: 1.0,
+        flawProbabilityMultiplier: 1.0,
+        economicStatusWeightShift: 1.0,
+        developmentProfileShift: 1.0,
+      },
+    }
+    const fromEmpty = generateWorld(baseConfig, data)
+    const fromExplicit = generateWorld(explicitConfig, data)
+    expect(fromEmpty.persons.length).toBe(fromExplicit.persons.length)
+    expect(JSON.stringify(fromEmpty.worldState.gyms)).toBe(JSON.stringify(fromExplicit.worldState.gyms))
   })
 })
 
@@ -142,18 +165,12 @@ describe('generateWorld — world structure', () => {
   })
 
   it('throws when playerCityId is not in any rendered nation', () => {
-    const badConfig: GameConfig = {
-      ...baseConfig,
-      playerCityId: 'nonexistent-city',
-    }
+    const badConfig: GameConfig = { ...baseConfig, playerCityId: 'nonexistent-city' }
     expect(() => generateWorld(badConfig, data)).toThrow()
   })
 
   it('throws when renderedNation is not in loaded data', () => {
-    const badConfig: GameConfig = {
-      ...baseConfig,
-      renderedNations: ['nonexistent-nation'],
-    }
+    const badConfig: GameConfig = { ...baseConfig, renderedNations: ['nonexistent-nation'] }
     expect(() => generateWorld(badConfig, data)).toThrow()
   })
 })

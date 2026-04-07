@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0.0",
-    "description": "Difficulty presets apply multipliers to city-level modifiers and generation probabilities. All values are multipliers against the base value — 1.0 means unchanged. Only fields that differ from baseline are listed per difficulty. Engine merges difficulty modifiers with defaults at world generation time."
+    "description": "Difficulty presets apply multipliers to city-level modifiers and generation probabilities. Only fields that genuinely differ from 1.0 are listed — absent fields default to 1.0 in the engine. Normal difficulty has no modifiers because the defaults are the baseline."
   },
   "difficulties": [
     {
@@ -20,15 +20,7 @@
     {
       "id": "normal",
       "label": "Normal",
-      "modifiers": {
-        "rentModifier": 1.0,
-        "talentDensity": 1.0,
-        "rivalGymDensity": 1.0,
-        "giftProbabilityMultiplier": 1.0,
-        "flawProbabilityMultiplier": 1.0,
-        "economicStatusWeightShift": 1.0,
-        "developmentProfileShift": 1.0
-      }
+      "modifiers": {}
     },
     {
       "id": "hard",

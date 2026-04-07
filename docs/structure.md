@@ -110,7 +110,7 @@ corner-gym/
     │       │   ├── person.ts          # generatePerson — full Person from data + seed
     │       │   ├── person.test.ts     # 37 tests
     │       │   ├── world.ts           # generateWorld — WorldState + Person[] from GameConfig + GameData
-    │       │   └── world.test.ts      # 14 tests — determinism, person count, player gym, structure
+    │       │   └── world.test.ts      # 16 tests — determinism, person count, player gym, tier population, empty modifiers
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │
@@ -120,7 +120,7 @@ corner-gym/
     │   ├── electron-builder.yml
     │   └── src/
     │       ├── main.ts                # BrowserWindow creation, opens DB, wires IPC
-    │       ├── preload.ts             # contextBridge — exposes electronAPI to renderer
+    │       ├── preload.cts            # contextBridge — exposes electronAPI to renderer (CJS forced via .cts)
     │       ├── ipc.ts                 # IPC handlers: get-new-game-options, generate-and-save, load-save, list-saves, delete-save
     │       └── db.ts                  # SQLite layer — openDb, createSave, loadSave, listSaves, deleteSave
     │
@@ -137,10 +137,31 @@ corner-gym/
             │   └── client.ts          # Typed wrappers — generateAndSave, loadSave, listSaves, deleteSave, getNewGameOptions
             ├── store/
             │   └── gameStore.ts       # Zustand store — worldState, persons, currentScreen, pendingSaveId
+                ├── assets/
+            │   └── fonts/
+            │       ├── RockBro.otf                    # Display font — logotype and headings
+            │       ├── Inconsolata-Light.ttf
+            │       ├── Inconsolata-Regular.ttf
+            │       ├── Inconsolata-Medium.ttf
+            │       ├── Inconsolata-SemiBold.ttf
+            │       └── Inconsolata-Bold.ttf
+            ├── styles/
+            │   └── theme.css                          # All CSS custom properties — palette, spacing, typography, borders
+            ├── components/
+            │   ├── Button.tsx                         # Variants: primary, secondary, danger, ghost. Sizes: sm, md, lg
+            │   ├── Input.tsx                          # Text input with label, error, disabled states
+            │   ├── Card.tsx                           # Container with default, active, muted variants
+            │   ├── Dropdown.tsx                       # Controlled dropdown, keyboard nav, outside-click close
+            │   ├── Badge.tsx                          # 7 variants: easy/normal/hard/extreme/gift/flaw/neutral. Selectable
+            │   ├── ProgressBar.tsx                    # Animated fill, CSS cubic-bezier transition
+            │   └── layout/
+            │       ├── TopBar.tsx                     # Fixed 44px bar — logotype, screen title, gym/year
+            │       ├── SideNav.tsx                    # Fixed left nav — 5 items, expand/collapse, active accent
+            │       └── GameShell.tsx                  # Composes TopBar + SideNav + scrollable main
             └── screens/
-                ├── MainMenu.tsx       # New Game / Load Game / Quit
-                ├── NewGame.tsx        # Player name, gym name, nation, city, difficulty, seed form
-                ├── Loading.tsx        # Spinner + live progress events during world generation
-                ├── LoadGame.tsx       # Save list with load and delete actions
-                └── Game.tsx           # Placeholder — proves load flow; shows player name, gym, year/week
+                ├── MainMenu.tsx       # New Game / Load Game / Quit — grain overlay, Rock Bro title
+                ├── NewGame.tsx        # Player name, gym name, nation, city, difficulty, seed — two-column grid
+                ├── Loading.tsx        # ProgressBar + step/detail text + elapsed timer
+                ├── LoadGame.tsx       # Save list with load and delete (confirm step) actions
+                └── Game.tsx           # Placeholder in GameShell — proves load flow; shows player name, gym, year/week
 ```

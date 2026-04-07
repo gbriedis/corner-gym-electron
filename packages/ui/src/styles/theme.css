@@ -1,0 +1,72 @@
+:root {
+  /* ── Palette — nostalgOS 12 ─────────────────────────────────────────────── */
+  --color-bg-dark:          #272a32;
+  --color-bg-mid:           #21525a;
+  --color-bg-light:         #dad4c9;
+  --color-text-primary:     #dad4c9;
+  --color-text-muted:       #deada5;
+  --color-accent-red:       #dc6250;
+  --color-accent-gold:      #ffd183;
+  --color-accent-amber:     #eeb24a;
+  --color-accent-green:     #55927f;
+  --color-accent-blue:      #5a8bde;
+  --color-accent-blue-dark: #2152a5;
+  --color-accent-purple:    #b89ce9;
+  --color-accent-purple-dark: #844790;
+
+  /* ── Typography ─────────────────────────────────────────────────────────── */
+  --font-display: 'Rock Bro', serif;
+  --font-body:    'Inconsolata', 'Inconsolata', monospace;
+
+  /* ── Spacing scale ──────────────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+
+  /* ── Border radius ──────────────────────────────────────────────────────── */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* ── Transitions ────────────────────────────────────────────────────────── */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+
+  /* ── Borders ────────────────────────────────────────────────────────────── */
+  --border-subtle: 1px solid rgba(218, 212, 201, 0.08);
+  --border-mid:    1px solid rgba(218, 212, 201, 0.15);
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────── */
+@keyframes btn-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Global base styles — font, background, colour */
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, select, textarea {
+  font-family: var(--font-body);
+}

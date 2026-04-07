@@ -134,11 +134,32 @@
 | State | File |
 |-------|------|
 | [x] | `packages/desktop/src/main.ts` |
-| [x] | `packages/desktop/src/preload.ts` |
+| [x] | `packages/desktop/src/preload.cts` |
 | [x] | `packages/desktop/src/ipc.ts` |
 | [x] | `packages/desktop/src/db.ts` |
 
-## UI
+## UI — Assets & Styles
+| State | File |
+|-------|------|
+| [x] | `packages/ui/src/assets/fonts/RockBro.otf` |
+| [x] | `packages/ui/src/assets/fonts/Inconsolata-*.ttf` |
+| [x] | `packages/ui/src/index.css` |
+| [x] | `packages/ui/src/styles/theme.css` |
+
+## UI — Components
+| State | File |
+|-------|------|
+| [x] | `packages/ui/src/components/Button.tsx` |
+| [x] | `packages/ui/src/components/Input.tsx` |
+| [x] | `packages/ui/src/components/Card.tsx` |
+| [x] | `packages/ui/src/components/Dropdown.tsx` |
+| [x] | `packages/ui/src/components/Badge.tsx` |
+| [x] | `packages/ui/src/components/ProgressBar.tsx` |
+| [x] | `packages/ui/src/components/layout/TopBar.tsx` |
+| [x] | `packages/ui/src/components/layout/SideNav.tsx` |
+| [x] | `packages/ui/src/components/layout/GameShell.tsx` |
+
+## UI — Screens
 | State | File |
 |-------|------|
 | [x] | `packages/ui/src/electron.d.ts` |

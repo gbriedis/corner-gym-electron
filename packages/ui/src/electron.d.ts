@@ -28,7 +28,8 @@ export interface CityOption {
 export interface DifficultyPreset {
   id: string
   label: string
-  modifiers: {
+  // Partial — normal difficulty has empty modifiers; engine resolves absent fields to 1.0.
+  modifiers: Partial<{
     rentModifier: number
     talentDensity: number
     rivalGymDensity: number
@@ -36,7 +37,7 @@ export interface DifficultyPreset {
     flawProbabilityMultiplier: number
     economicStatusWeightShift: number
     developmentProfileShift: number
-  }
+  }>
 }
 
 export interface NewGameOptions {
@@ -44,7 +45,7 @@ export interface NewGameOptions {
     renderedNations: string[]
     startYear: number
     leagues: { amateur: boolean; pro: boolean }
-    worldSettings: { populationPerCity: number; gymsPerCity: Record<string, number> }
+    worldSettings: { populationPerCity: Record<string, number>; gymsPerCity: Record<string, number> }
   }
   difficulties: DifficultyPreset[]
   nationCities: Record<string, CityOption[]>

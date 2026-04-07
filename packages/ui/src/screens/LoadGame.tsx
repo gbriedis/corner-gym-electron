@@ -2,6 +2,7 @@ import { useState, useEffect, type JSX } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { listSaves, loadSave, deleteSave } from '../ipc/client'
 import type { SaveSummary } from '../electron'
+import Button from '../components/Button'
 
 export default function LoadGame(): JSX.Element {
   const setScreen = useGameStore((s) => s.setScreen)
@@ -43,79 +44,143 @@ export default function LoadGame(): JSX.Element {
   }
 
   return (
-    <div className="w-screen h-screen bg-gray-950 flex flex-col items-center justify-center">
-      <div className="w-full max-w-2xl px-6">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-white text-xl font-bold tracking-wide">Load Game</h2>
-          <button
-            onClick={() => setScreen('mainMenu')}
-            className="text-gray-500 hover:text-gray-300 text-sm uppercase tracking-wide"
+    <div
+      style={{
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'var(--color-bg-dark)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'auto',
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: '640px', padding: 'var(--space-8) var(--space-6)' }}>
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginBottom: 'var(--space-8)',
+          }}
+        >
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '28px',
+              color: 'var(--color-accent-amber)',
+            }}
           >
-            Back
-          </button>
+            Load Game
+          </h2>
+          <Button variant="ghost" size="sm" onClick={() => setScreen('mainMenu')}>
+            ← Back
+          </Button>
         </div>
 
         {error !== null && (
-          <p className="mb-4 text-red-400 text-sm">{error}</p>
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '12px',
+              color: 'var(--color-accent-red)',
+              marginBottom: 'var(--space-4)',
+            }}
+          >
+            {error}
+          </p>
         )}
 
         {saves.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-600 text-sm">No saves found.</p>
-            <button
-              onClick={() => setScreen('newGame')}
-              className="mt-4 text-gray-400 hover:text-white text-sm underline"
+          <div style={{ textAlign: 'center', padding: 'var(--space-16) 0' }}>
+            <p
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '13px',
+                color: 'var(--color-text-muted)',
+                marginBottom: 'var(--space-4)',
+              }}
             >
+              No saves found.
+            </p>
+            <Button variant="ghost" size="sm" onClick={() => setScreen('newGame')}>
               Start a new game
-            </button>
+            </Button>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
             {saves.map((save) => (
               <div
                 key={save.id}
-                className="bg-gray-900 border border-gray-800 px-4 py-3 flex items-center justify-between gap-4"
+                style={{
+                  backgroundColor: 'var(--color-bg-panel)',
+                  border: 'var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: 'var(--space-3) var(--space-4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 'var(--space-4)',
+                }}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium truncate">{save.saveName}</p>
-                  <p className="text-gray-500 text-xs mt-0.5">
+                {/* Save info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: 'var(--color-text-primary)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {save.saveName}
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '11px',
+                      color: 'var(--color-text-muted)',
+                      marginTop: '2px',
+                    }}
+                  >
                     {save.cityId} · {save.difficulty} · Week {save.currentWeek}, {save.currentYear}
                   </p>
-                  <p className="text-gray-600 text-xs mt-0.5">
+                  <p
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '10px',
+                      color: 'var(--color-text-muted)',
+                      opacity: 0.6,
+                      marginTop: '2px',
+                    }}
+                  >
                     Last played {formatDate(save.lastPlayedAt)}
                   </p>
                 </div>
 
-                <div className="flex gap-2 shrink-0">
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 'var(--space-2)', flexShrink: 0 }}>
                   {confirmDelete === save.id ? (
                     <>
-                      <button
-                        onClick={() => handleDelete(save.id)}
-                        className="px-3 py-1 bg-red-900 hover:bg-red-800 text-red-300 text-xs uppercase tracking-wide"
-                      >
+                      <Button variant="danger" size="sm" onClick={() => handleDelete(save.id)}>
                         Confirm
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 text-xs uppercase tracking-wide"
-                      >
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(null)}>
                         Cancel
-                      </button>
+                      </Button>
                     </>
                   ) : (
                     <>
-                      <button
-                        onClick={() => setConfirmDelete(save.id)}
-                        className="px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-500 hover:text-red-400 text-xs uppercase tracking-wide transition-colors"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(save.id)}>
                         Delete
-                      </button>
-                      <button
-                        onClick={() => handleLoad(save.id)}
-                        className="px-3 py-1 bg-white hover:bg-gray-200 text-gray-900 text-xs font-medium uppercase tracking-wide transition-colors"
-                      >
+                      </Button>
+                      <Button variant="primary" size="sm" onClick={() => handleLoad(save.id)}>
                         Load
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>

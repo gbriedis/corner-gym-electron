@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0.0",
-    "description": "Default settings for a new game. All values here are the baseline a normal difficulty game uses. Difficulty presets in difficulties.json apply multipliers on top of these defaults. Seed null means auto-generate a random seed at game start."
+    "description": "Default settings for a new game. All values here are the baseline a normal difficulty game uses. Difficulty presets in difficulties.json apply multipliers on top of these defaults. Seed null means auto-generate a random seed at game start. populationPerCity is keyed by city population type so capital cities generate more fighters than small towns."
   },
   "seed": null,
   "startYear": 2026,
@@ -11,7 +11,11 @@
     "pro": true
   },
   "worldSettings": {
-    "populationPerCity": 200,
+    "populationPerCity": {
+      "small_town": 150,
+      "mid_city": 400,
+      "capital": 1200
+    },
     "gymsPerCity": {
       "small_town": 1,
       "mid_city": 3,

@@ -20,6 +20,7 @@ import { generatePerson } from './person.js'
 
 import type { GameData } from '../data/loader.js'
 import type { GameConfig } from '../types/gameConfig.js'
+import { resolveModifiers } from '../types/gameConfig.js'
 import type { WorldState, NationState, CityState, GymState } from '../types/worldState.js'
 import type { Person } from '../types/person.js'
 
@@ -44,6 +45,11 @@ export function generateWorld(
   // every nation, city, person, and gym is generated identically.
   const rng = createRng(config.seed)
 
+  // Resolve partial difficulty modifiers to full values before any generation runs.
+  // Doing this once at entry rather than at each use site prevents scattered ?? 1.0
+  // expressions throughout the generation code and makes the fallback policy explicit.
+  const modifiers = resolveModifiers(config.difficultyModifiers)
+
   const allPersons: Person[] = []
   const nations: Record<string, NationState> = {}
   const cities: Record<string, CityState> = {}
@@ -62,11 +68,14 @@ export function generateWorld(
 
     const cityIds: string[] = []
 
-    // Step 3 — For each city, generate population scaled by difficulty talentDensity.
-    // talentDensity < 1.0 (hard/extreme) reduces how many fighters exist in the world,
-    // making recruitment harder. We round up to ensure every city has at least one person.
+    // Step 3 — For each city, generate population.
+    // Base count comes from the tier-specific populationPerCity value — capitals generate
+    // far more fighters than small towns, reflecting real population differences.
+    // talentDensity < 1.0 (hard/extreme) further reduces the count, making recruitment harder.
+    // We round up to ensure every city has at least one person.
     for (const city of bundle.cities.cities) {
-      const rawCount = config.worldSettings.populationPerCity * config.difficultyModifiers.talentDensity
+      const baseCount = config.worldSettings.populationPerCity[city.population] ?? 150
+      const rawCount = baseCount * modifiers.talentDensity
       const personCount = Math.max(1, Math.round(rawCount))
 
       const cityPersons: Person[] = []

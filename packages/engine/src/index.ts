@@ -6,6 +6,7 @@
 export type { Person } from './types/person.js'
 export type { WorldState, GymState, CityState, NationState } from './types/worldState.js'
 export type { GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings } from './types/gameConfig.js'
+export { resolveModifiers } from './types/gameConfig.js'
 
 // Generation — exported so desktop can call generateWorld via IPC
 export { generateWorld } from './generation/world.js'

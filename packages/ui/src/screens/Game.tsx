@@ -1,17 +1,36 @@
 import type { JSX } from 'react'
 import { useGameStore } from '../store/gameStore'
+import GameShell from '../components/layout/GameShell'
+import Button from '../components/Button'
 
 // Game screen placeholder — proves the new game + load flow works end to end.
 // No simulation logic lives here yet.
 export default function Game(): JSX.Element {
   const worldState = useGameStore((s) => s.worldState)
-  const setScreen = useGameStore((s) => s.setScreen)
   const clearWorld = useGameStore((s) => s.clearWorld)
+  const setScreen = useGameStore((s) => s.setScreen)
 
   if (worldState === null) {
     return (
-      <div className="w-screen h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-gray-600 text-sm">No world loaded.</p>
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'var(--color-bg-dark)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '13px',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          No world loaded.
+        </p>
       </div>
     )
   }
@@ -22,23 +41,50 @@ export default function Game(): JSX.Element {
   }
 
   return (
-    <div className="w-screen h-screen bg-gray-950 flex flex-col items-center justify-center gap-4">
-      <p className="text-white text-xl font-medium">
-        Welcome, {worldState.playerName}.
-      </p>
-      <p className="text-gray-400 text-base">
-        {worldState.gymName} is yours.
-      </p>
-      <p className="text-gray-600 text-sm font-mono mt-2">
-        Year {worldState.currentYear} · Week {worldState.currentWeek}
-      </p>
-
-      <button
-        onClick={handleExit}
-        className="mt-8 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-xs uppercase tracking-wide transition-colors"
+    <GameShell>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: 'var(--space-2)',
+        }}
       >
-        Exit to Main Menu
-      </button>
-    </div>
+        <p
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '22px',
+            color: 'var(--color-accent-amber)',
+          }}
+        >
+          Welcome, {worldState.playerName}.
+        </p>
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '14px',
+            color: 'var(--color-text-primary)',
+          }}
+        >
+          {worldState.gymName} is yours.
+        </p>
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '11px',
+            color: 'var(--color-text-muted)',
+            marginTop: 'var(--space-1)',
+          }}
+        >
+          Year {worldState.currentYear} · Week {worldState.currentWeek}
+        </p>
+
+        <div style={{ marginTop: 'var(--space-8)' }}>
+          <Button variant="ghost" size="sm" onClick={handleExit}>
+            Exit to Main Menu
+          </Button>
+        </div>
+      </div>
+    </GameShell>
   )
 }
