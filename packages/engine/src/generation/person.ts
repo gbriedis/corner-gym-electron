@@ -26,6 +26,7 @@ import type {
 import type { SoulTrait } from '../types/data/soulTraits.js'
 import type { GiftOrFlaw } from '../types/data/giftsAndFlaws.js'
 import type { GenerationBand } from '../types/data/health.js'
+import type { DevelopmentProfile } from '../types/data/developmentProfiles.js'
 
 // ─── Identity helpers ────────────────────────────────────────────────────────
 
@@ -36,16 +37,36 @@ function generateId(rng: RNG): string {
   return `${hex(rng.next())}-${hex(rng.next())}-${hex(rng.next())}`
 }
 
-// ageFactor maps a person's age to the ratio of current / potential at generation.
-// Before age 28 a person has not yet reached their ceiling — current trails potential.
-// Peak is around 28. After 28 there is a gentle decline.
-function ageFactor(age: number): number {
-  if (age < 28) {
-    // Linear ramp from 0.60 at 16 to 0.98 at 28.
-    return 0.6 + ((age - 16) / 12) * 0.38
+// calculateAgeFactor derives the current/potential ratio from the person's
+// development profile and their specific peak age.
+// Before peak: linear rise from a base of 0.55 at age 14, using profile riseRate.
+// At/near peak: plateau at 0.98 for plateauDuration years.
+// After plateau: linear decline using profile declineRate, floored at 0.40.
+// Using data-driven rates rather than hardcoded values means development curves
+// can be tuned in JSON without touching engine code.
+export function calculateAgeFactor(age: number, peakAge: number, profile: DevelopmentProfile): number {
+  const BASE = 0.55
+  const BASE_AGE = 14
+  const PEAK_FACTOR = 0.98
+  const FLOOR = 0.40
+
+  const plateauEnd = peakAge + profile.plateauDuration
+
+  if (age <= peakAge) {
+    // Linear rise from BASE at BASE_AGE toward PEAK_FACTOR at peakAge.
+    // riseRate controls the slope — early bloomers rise faster.
+    const years = age - BASE_AGE
+    return Math.min(PEAK_FACTOR, BASE + years * profile.riseRate)
   }
-  // Gentle decline after peak — 0.98 at 28, 0.02 reduction per year.
-  return Math.max(0.5, 0.98 - (age - 28) * 0.02)
+
+  if (age <= plateauEnd) {
+    // Plateau: person is at or very near their ceiling.
+    return PEAK_FACTOR
+  }
+
+  // Decline: linear fall after plateau ends, floored at FLOOR.
+  const yearsAfterPlateau = age - plateauEnd
+  return Math.max(FLOOR, PEAK_FACTOR - yearsAfterPlateau * profile.declineRate)
 }
 
 // ─── Physical profile helpers ─────────────────────────────────────────────────
@@ -186,11 +207,12 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   // yet a competitor, so no weight class is stored, but we need one to get a realistic
   // height from baseHeightByWeightClassCm.
 
-  if (nationId !== 'latvia') {
-    throw new Error(`Nation "${nationId}" is not yet implemented — only "latvia" exists.`)
+  const nationBundle = data.nations[nationId]
+  if (nationBundle === undefined) {
+    throw new Error(`Nation "${nationId}" was not found in loaded game data.`)
   }
 
-  const cities = data.nations.latvia.cities.cities
+  const cities = nationBundle.cities.cities
   const city = cities.find(c => c.id === cityId)
   if (city === undefined) {
     throw new Error(`City "${cityId}" does not exist in nation "${nationId}"`)
@@ -198,21 +220,27 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
 
   const age = rng.nextInt(16, 32)
 
-  const names = data.nations.latvia.names
+  const names = nationBundle.names
   const firstName = rng.pick(names.male.firstNames)
   const surname = rng.pick(names.male.surnames)
 
-  const economicStatuses = data.nations.latvia.economicStatuses.statuses
+  const economicStatuses = nationBundle.economicStatuses.statuses
   const economicStatus = rng.weightedPick(
     economicStatuses,
     economicStatuses.map(s => s.weight),
   )
 
-  const reasons = data.nations.latvia.reasonsForBoxing.reasons
+  const reasons = nationBundle.reasonsForBoxing.reasons
   const reasonForBoxing = rng.weightedPick(
     reasons,
     reasons.map(r => r.weight),
   )
+
+  // Development profile is rolled in Step 1 because peakAge feeds the ageFactor
+  // calculation in Step 6 — it must be known before attributes are rolled.
+  const profiles = data.developmentProfiles.profiles
+  const profile = rng.weightedPick(profiles, profiles.map(p => p.probability))
+  const peakAge = rng.nextInt(profile.peakAgeRange.min, profile.peakAgeRange.max)
 
   // Step 2 — Soul traits
   //
@@ -233,7 +261,7 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   const physicalWeightClasses = data.weightClasses.weightClasses.filter(wc => wc.amateurOnly !== true)
   const physicalWeightClass = rng.pick(physicalWeightClasses)
 
-  const nationProfile = data.nations.latvia.nation.physicalProfile
+  const nationProfile = nationBundle.nation.physicalProfile
 
   const heightBands = data.physicalStats.heightProfile.bands
   const heightProbs = mergeNationProbabilities(heightBands, nationProfile.heightProfile)
@@ -342,7 +370,7 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
     data,
   )
 
-  const factor = ageFactor(age)
+  const factor = calculateAgeFactor(age, peakAge, profile)
 
   const attributes: AttributeValue[] = data.attributes.attributes.map(attr => {
     const isGiftEligible = attr.scale.generationMax !== undefined
@@ -390,6 +418,8 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
     cityId,
     economicStatusId: economicStatus.id,
     reasonForBoxingId: reasonForBoxing.id,
+    developmentProfileId: profile.id,
+    peakAge,
     soulTraits,
     physicalProfile,
     health,

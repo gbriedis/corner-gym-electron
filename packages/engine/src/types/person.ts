@@ -40,6 +40,8 @@ export interface Person {
   cityId: string
   economicStatusId: string
   reasonForBoxingId: string
+  developmentProfileId: string // references development-profiles.json id
+  peakAge: number              // rolled from profile's peakAgeRange at generation
   soulTraits: SoulTraitAssignment[]
   physicalProfile: PhysicalProfile
   health: HealthValue[]

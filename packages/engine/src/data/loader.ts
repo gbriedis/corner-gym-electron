@@ -7,8 +7,13 @@
 // a clear error message — before any simulation runs. Lazy loading would
 // produce silent failures or corrupt mid-simulation state that is harder
 // to diagnose.
+//
+// Nations are loaded dynamically by scanning data/nations/ rather than
+// hardcoding nation keys in this file. This means adding a nation is:
+// drop the folder in, restart. No engine code changes required.
+// This is the foundation for future mod support.
 
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -19,6 +24,7 @@ import type {
   PhysicalStatsData,
   HealthData,
   GiftsAndFlawsData,
+  DevelopmentProfilesData,
   NationData,
   CitiesData,
   NamesData,
@@ -45,8 +51,86 @@ function load<T>(relativePath: string): T {
   }
 }
 
+// NationBundle holds all data for a single loaded nation.
+// The structure is identical regardless of which nation it is —
+// any nation folder with the standard files becomes a valid bundle.
+export interface NationBundle {
+  nation: NationData
+  cities: CitiesData
+  names: NamesData
+  economicStatuses: EconomicStatusesData
+  reasonsForBoxing: ReasonsForBoxingData
+  coachVoice: {
+    attributes: CoachVoiceAttributesData
+    physicalStats: CoachVoicePhysicalData
+    giftsAndFlaws: CoachVoiceGiftsFlawsData
+  }
+}
+
+// loadNationBundle loads all required files for a single nation folder.
+// The nation id in nation.json must match the folder name — a mismatch means
+// the engine would silently use the wrong id for city lookups, name pools,
+// and generation, so we treat it as a hard error rather than a warning.
+function loadNationBundle(nationsDir: string, folderName: string): NationBundle {
+  const base = join(nationsDir, folderName)
+
+  // loadFile wraps individual file loads with nation-level context in the error.
+  // This ensures the error message always names the nation and the missing file,
+  // not just a raw path — important when loading many nations at startup.
+  function loadFile<T>(file: string): T {
+    try {
+      const fullPath = join(base, file)
+      return JSON.parse(readFileSync(fullPath, 'utf-8')) as T
+    } catch (_err) {
+      throw new Error(`Nation "${folderName}" is missing required file "${file}"`)
+    }
+  }
+
+  const nation = loadFile<NationData>('nation.json')
+
+  // Folder name is the canonical nation id throughout the engine.
+  // If nation.json declares a different id, any code that uses the folder
+  // name to look up the bundle would find a mismatch and break silently.
+  if (nation.id !== folderName) {
+    throw new Error(
+      `Nation folder "${folderName}" contains nation.json with id "${nation.id}" — ` +
+      `folder name and nation id must match.`,
+    )
+  }
+
+  return {
+    nation,
+    cities: loadFile<CitiesData>('cities.json'),
+    names: loadFile<NamesData>('names.json'),
+    economicStatuses: loadFile<EconomicStatusesData>('economic-statuses.json'),
+    reasonsForBoxing: loadFile<ReasonsForBoxingData>('reasons-for-boxing.json'),
+    coachVoice: {
+      attributes: loadFile<CoachVoiceAttributesData>('coach-voice/attributes.json'),
+      physicalStats: loadFile<CoachVoicePhysicalData>('coach-voice/physical-stats.json'),
+      giftsAndFlaws: loadFile<CoachVoiceGiftsFlawsData>('coach-voice/gifts-and-flaws.json'),
+    },
+  }
+}
+
+// loadNationsFromDir scans a directory for nation subfolders and loads each one.
+// Exported so tests can point it at a temporary directory to verify error behaviour
+// without touching the real data folder.
+export function loadNationsFromDir(nationsDir: string): Record<string, NationBundle> {
+  const folders = readdirSync(nationsDir, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name)
+
+  const nations: Record<string, NationBundle> = {}
+  for (const folder of folders) {
+    nations[folder] = loadNationBundle(nationsDir, folder)
+  }
+  return nations
+}
+
 // GameData is the single typed object the engine holds after startup.
 // All simulation code receives this object — nothing reads JSON after this point.
+// nations is keyed by nation id (which equals the folder name in data/nations/).
+// Engine code accesses nations as: data.nations['latvia']
 export interface GameData {
   soulTraits: SoulTraitsData
   attributes: AttributesData
@@ -54,20 +138,8 @@ export interface GameData {
   physicalStats: PhysicalStatsData
   health: HealthData
   giftsAndFlaws: GiftsAndFlawsData
-  nations: {
-    latvia: {
-      nation: NationData
-      cities: CitiesData
-      names: NamesData
-      economicStatuses: EconomicStatusesData
-      reasonsForBoxing: ReasonsForBoxingData
-      coachVoice: {
-        attributes: CoachVoiceAttributesData
-        physicalStats: CoachVoicePhysicalData
-        giftsAndFlaws: CoachVoiceGiftsFlawsData
-      }
-    }
-  }
+  developmentProfiles: DevelopmentProfilesData
+  nations: Record<string, NationBundle>
 }
 
 // loadGameData is called once when the engine initialises.
@@ -80,19 +152,7 @@ export function loadGameData(): GameData {
     physicalStats: load<PhysicalStatsData>('universal/physical-stats.json'),
     health: load<HealthData>('universal/health.json'),
     giftsAndFlaws: load<GiftsAndFlawsData>('universal/gifts-and-flaws.json'),
-    nations: {
-      latvia: {
-        nation: load<NationData>('nations/latvia/nation.json'),
-        cities: load<CitiesData>('nations/latvia/cities.json'),
-        names: load<NamesData>('nations/latvia/names.json'),
-        economicStatuses: load<EconomicStatusesData>('nations/latvia/economic-statuses.json'),
-        reasonsForBoxing: load<ReasonsForBoxingData>('nations/latvia/reasons-for-boxing.json'),
-        coachVoice: {
-          attributes: load<CoachVoiceAttributesData>('nations/latvia/coach-voice/attributes.json'),
-          physicalStats: load<CoachVoicePhysicalData>('nations/latvia/coach-voice/physical-stats.json'),
-          giftsAndFlaws: load<CoachVoiceGiftsFlawsData>('nations/latvia/coach-voice/gifts-and-flaws.json'),
-        },
-      },
-    },
+    developmentProfiles: load<DevelopmentProfilesData>('universal/development-profiles.json'),
+    nations: loadNationsFromDir(join(DATA_ROOT, 'nations')),
   }
 }

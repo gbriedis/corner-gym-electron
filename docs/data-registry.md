@@ -39,6 +39,7 @@
 | [x] | `packages/engine/src/types/data/economicStatuses.ts` |
 | [x] | `packages/engine/src/types/data/reasonsForBoxing.ts` |
 | [x] | `packages/engine/src/types/data/coachVoice.ts` |
+| [x] | `packages/engine/src/types/data/developmentProfiles.ts` |
 
 ## Engine — Utilities
 | State | File |
@@ -78,6 +79,7 @@
 | [x] | `packages/engine/data/universal/physical-stats.json` |
 | [x] | `packages/engine/data/universal/health.json` |
 | [x] | `packages/engine/data/universal/gifts-and-flaws.json` |
+| [x] | `packages/engine/data/universal/development-profiles.json` |
 
 ## Data — Nations: Latvia
 | State | File |

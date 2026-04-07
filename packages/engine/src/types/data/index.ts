@@ -35,6 +35,8 @@ export type { EconomicStatus, EconomicStatusesData } from './economicStatuses.js
 
 export type { ReasonForBoxing, ReasonsForBoxingData } from './reasonsForBoxing.js'
 
+export type { AgeRange, DevelopmentProfile, DevelopmentProfilesData } from './developmentProfiles.js'
+
 export type {
   CoachVoiceBand,
   CoachVoiceAttribute,

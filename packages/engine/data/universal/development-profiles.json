@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "purpose": "Development profile is assigned at generation and never changes. It defines the shape of a person's attribute curve over their career — when they peak, how fast they rise, how long they plateau, how fast they decline. The engine uses this profile alongside the person's specific peak age to calculate ageFactor at any point in time. riseRate, plateauDuration, and declineRate are tuning values — they live here so they can be adjusted without touching engine code.",
+    "ageFactorFloor": 0.40,
+    "ageFactorPeak": 0.98,
+    "ageFactorBase": 0.55,
+    "baseAge": 14
+  },
+  "profiles": [
+    {
+      "id": "early_bloomer",
+      "label": "Early Bloomer",
+      "probability": 0.20,
+      "peakAgeRange": { "min": 22, "max": 25 },
+      "riseRate": 0.08,
+      "plateauDuration": 3,
+      "declineRate": 0.04,
+      "description": "Develops faster than peers, peaks younger, fades sooner. High output early career. Risk of early decline."
+    },
+    {
+      "id": "normal",
+      "label": "Normal",
+      "probability": 0.60,
+      "peakAgeRange": { "min": 26, "max": 30 },
+      "riseRate": 0.05,
+      "plateauDuration": 4,
+      "declineRate": 0.025,
+      "description": "Standard development curve. The majority of fighters."
+    },
+    {
+      "id": "late_bloomer",
+      "label": "Late Bloomer",
+      "probability": 0.20,
+      "peakAgeRange": { "min": 29, "max": 34 },
+      "riseRate": 0.03,
+      "plateauDuration": 5,
+      "declineRate": 0.015,
+      "description": "Slow to develop. Peaks later, plateaus longer, declines more gradually. Long career ceiling."
+    }
+  ]
+}

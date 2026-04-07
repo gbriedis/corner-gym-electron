@@ -1,9 +1,13 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
+import { join } from 'path'
 import { describe, it, expect, beforeAll } from 'vitest'
-import { loadGameData } from '../data/loader.js'
+import { loadGameData, loadNationsFromDir } from '../data/loader.js'
 import { createRng } from '../utils/rng.js'
-import { generatePerson } from './person.js'
+import { generatePerson, calculateAgeFactor } from './person.js'
 import type { GameData } from '../data/loader.js'
 import type { Person } from '../types/person.js'
+import type { DevelopmentProfile } from '../types/data/developmentProfiles.js'
 
 let data: GameData
 let person: Person
@@ -181,24 +185,32 @@ describe('generatePerson — physical profile', () => {
 
 describe('generatePerson — identity', () => {
   it('name comes from the correct nation name pool', () => {
-    const validFirstNames = new Set(data.nations.latvia.names.male.firstNames)
-    const validSurnames = new Set(data.nations.latvia.names.male.surnames)
+    const latvia = data.nations['latvia']
+    expect(latvia).toBeDefined()
+    const validFirstNames = new Set(latvia.names.male.firstNames)
+    const validSurnames = new Set(latvia.names.male.surnames)
     expect(validFirstNames.has(person.name.first)).toBe(true)
     expect(validSurnames.has(person.name.surname)).toBe(true)
   })
 
   it('city belongs to the specified nation', () => {
-    const validCityIds = new Set(data.nations.latvia.cities.cities.map(c => c.id))
+    const latvia = data.nations['latvia']
+    expect(latvia).toBeDefined()
+    const validCityIds = new Set(latvia.cities.cities.map(c => c.id))
     expect(validCityIds.has(person.cityId)).toBe(true)
   })
 
   it('economic status id exists in data', () => {
-    const validIds = new Set(data.nations.latvia.economicStatuses.statuses.map(s => s.id))
+    const latvia = data.nations['latvia']
+    expect(latvia).toBeDefined()
+    const validIds = new Set(latvia.economicStatuses.statuses.map(s => s.id))
     expect(validIds.has(person.economicStatusId)).toBe(true)
   })
 
   it('reason for boxing id exists in data', () => {
-    const validIds = new Set(data.nations.latvia.reasonsForBoxing.reasons.map(r => r.id))
+    const latvia = data.nations['latvia']
+    expect(latvia).toBeDefined()
+    const validIds = new Set(latvia.reasonsForBoxing.reasons.map(r => r.id))
     expect(validIds.has(person.reasonForBoxingId)).toBe(true)
   })
 })
@@ -218,9 +230,8 @@ describe('generatePerson — determinism', () => {
 })
 
 describe('generatePerson — age factor', () => {
-  it('a generated 16-year-old has lower current attribute values than potential on average', () => {
-    // Run several seeds to find a stable 16-year-old and verify the pattern holds.
-    // Age 16 has a factor of ~0.60, so current should be well below potential.
+  it('a generated 16-year-old has lower current attribute values than potential', () => {
+    // Age 16 is before the peak for every profile — current must trail potential.
     const youngPeople: Person[] = []
     for (let seed = 0; seed < 500; seed++) {
       const p = generatePerson(data, createRng(seed), 'latvia', 'latvia-riga')
@@ -233,16 +244,16 @@ describe('generatePerson — age factor', () => {
     for (const p of youngPeople) {
       const totalPotential = p.attributes.reduce((s, a) => s + a.potential, 0)
       const totalCurrent = p.attributes.reduce((s, a) => s + a.current, 0)
-      // At age 16 the factor is 0.60, so total current should be clearly below total potential.
       expect(totalCurrent).toBeLessThan(totalPotential)
     }
   })
 
-  it('a 28-year-old has current close to potential (within 5% on average)', () => {
+  it('a person at their exact peak age has current very close to potential', () => {
+    // Find people whose age equals their peakAge — they should be at the plateau.
     const peakPeople: Person[] = []
-    for (let seed = 0; seed < 500; seed++) {
+    for (let seed = 0; seed < 1000; seed++) {
       const p = generatePerson(data, createRng(seed), 'latvia', 'latvia-riga')
-      if (p.age === 28) peakPeople.push(p)
+      if (p.age === p.peakAge) peakPeople.push(p)
       if (peakPeople.length >= 5) break
     }
 
@@ -251,8 +262,133 @@ describe('generatePerson — age factor', () => {
     for (const p of peakPeople) {
       const totalPotential = p.attributes.reduce((s, a) => s + a.potential, 0)
       const totalCurrent = p.attributes.reduce((s, a) => s + a.current, 0)
-      // At age 28 the factor is 0.98, so total current should be very close to total potential.
       expect(totalCurrent / totalPotential).toBeGreaterThan(0.93)
+    }
+  })
+})
+
+describe('calculateAgeFactor — development profile curves', () => {
+  const earlyBloomer: DevelopmentProfile = {
+    id: 'early_bloomer',
+    label: 'Early Bloomer',
+    probability: 0.20,
+    peakAgeRange: { min: 22, max: 25 },
+    riseRate: 0.08,
+    plateauDuration: 3,
+    declineRate: 0.04,
+    description: '',
+  }
+
+  const lateBloomer: DevelopmentProfile = {
+    id: 'late_bloomer',
+    label: 'Late Bloomer',
+    probability: 0.20,
+    peakAgeRange: { min: 29, max: 34 },
+    riseRate: 0.03,
+    plateauDuration: 5,
+    declineRate: 0.015,
+    description: '',
+  }
+
+  it('early bloomer at age 23 has higher ageFactor than late bloomer at age 23', () => {
+    // Early bloomer peaks at 22-25 — at 23 they are near or at peak.
+    // Late bloomer peaks at 29-34 — at 23 they are still rising slowly.
+    const earlyFactor = calculateAgeFactor(23, 23, earlyBloomer)
+    const lateFactor = calculateAgeFactor(23, 32, lateBloomer)
+    expect(earlyFactor).toBeGreaterThan(lateFactor)
+  })
+
+  it('late bloomer at age 32 has higher ageFactor than early bloomer at age 32', () => {
+    // Late bloomer peaks at 29-34 — at 32 they are at or near peak.
+    // Early bloomer peaks at 22-25 — at 32 they are well into decline.
+    const earlyFactor = calculateAgeFactor(32, 23, earlyBloomer)
+    const lateFactor = calculateAgeFactor(32, 32, lateBloomer)
+    expect(lateFactor).toBeGreaterThan(earlyFactor)
+  })
+
+  it('ageFactor never exceeds 1.0', () => {
+    for (const [profile, peak] of [[earlyBloomer, 23], [lateBloomer, 32]] as const) {
+      for (let age = 14; age <= 45; age++) {
+        expect(calculateAgeFactor(age, peak, profile)).toBeLessThanOrEqual(1.0)
+      }
+    }
+  })
+
+  it('ageFactor never goes below 0.40', () => {
+    for (const [profile, peak] of [[earlyBloomer, 23], [lateBloomer, 32]] as const) {
+      for (let age = 14; age <= 60; age++) {
+        expect(calculateAgeFactor(age, peak, profile)).toBeGreaterThanOrEqual(0.40)
+      }
+    }
+  })
+
+  it('same profile + same peakAge = same factor (deterministic)', () => {
+    const f1 = calculateAgeFactor(27, 25, earlyBloomer)
+    const f2 = calculateAgeFactor(27, 25, earlyBloomer)
+    expect(f1).toBe(f2)
+  })
+})
+
+describe('generatePerson — development profile', () => {
+  it('has developmentProfileId and peakAge', () => {
+    expect(typeof person.developmentProfileId).toBe('string')
+    expect(typeof person.peakAge).toBe('number')
+  })
+
+  it('developmentProfileId references a valid profile', () => {
+    const validIds = new Set(data.developmentProfiles.profiles.map(p => p.id))
+    expect(validIds.has(person.developmentProfileId)).toBe(true)
+  })
+
+  it('peakAge falls within the profile peakAgeRange', () => {
+    const profile = data.developmentProfiles.profiles.find(
+      p => p.id === person.developmentProfileId,
+    )
+    expect(profile).toBeDefined()
+    if (profile !== undefined) {
+      expect(person.peakAge).toBeGreaterThanOrEqual(profile.peakAgeRange.min)
+      expect(person.peakAge).toBeLessThanOrEqual(profile.peakAgeRange.max)
+    }
+  })
+
+  it('same seed = same profile and peakAge (determinism)', () => {
+    const p1 = generatePerson(data, createRng(42), 'latvia', 'latvia-riga')
+    const p2 = generatePerson(data, createRng(42), 'latvia', 'latvia-riga')
+    expect(p1.developmentProfileId).toBe(p2.developmentProfileId)
+    expect(p1.peakAge).toBe(p2.peakAge)
+  })
+})
+
+describe('loadNationsFromDir — error handling', () => {
+  it('throws naming the nation and the missing file when a required file is absent', () => {
+    // Create a minimal fake nation folder that has nation.json but is missing cities.json.
+    // This exercises the must-name-nation-and-file requirement without touching real data.
+    const tmp = mkdtempSync(join(tmpdir(), 'corner-gym-test-'))
+    const nationDir = join(tmp, 'test-nation')
+    mkdirSync(nationDir)
+    mkdirSync(join(nationDir, 'coach-voice'))
+
+    // Write only nation.json — all other required files are absent.
+    writeFileSync(
+      join(nationDir, 'nation.json'),
+      JSON.stringify({
+        meta: {},
+        id: 'test-nation',
+        label: 'Test Nation',
+        region: 'Test',
+        boxingCulture: 1,
+        description: 'Temporary test nation.',
+        regionalTagsAvailable: [],
+        namePoolReference: 'names.json',
+        physicalProfile: { note: 'none' },
+      }),
+    )
+
+    try {
+      expect(() => loadNationsFromDir(tmp)).toThrow(/test-nation/)
+      expect(() => loadNationsFromDir(tmp)).toThrow(/cities\.json/)
+    } finally {
+      rmSync(tmp, { recursive: true })
     }
   })
 })

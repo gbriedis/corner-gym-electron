@@ -59,7 +59,8 @@ corner-gym/
     │   │   │   ├── weight-classes.json        # 10 weight classes — limits in kg, Super Heavyweight amateur only
     │   │   │   ├── physical-stats.json        # Physical stat band definitions — height, reach, hands, neck, bone, proportions
     │   │   │   ├── health.json                # Body part baseline integrity — 7 parts, fragile thresholds, attribute links
-    │   │   │   └── gifts-and-flaws.json       # Gift/flaw definitions for 8 attributes — ceiling boost, probabilities, discovery conditions, health nudges
+    │   │   │   ├── gifts-and-flaws.json       # Gift/flaw definitions for 8 attributes — ceiling boost, probabilities, discovery conditions, health nudges
+    │   │   │   └── development-profiles.json  # 3 profiles (early/normal/late bloomer) — peak age range, rise/plateau/decline rates
     │   │   └── nations/
     │   │       └── latvia/
     │   │           ├── nation.json            # Latvia nation definition — boxing culture, region tags, physicalProfile overrides
@@ -96,7 +97,8 @@ corner-gym/
     │       │       ├── names.ts       # Matches nations/{nation}/names.json
     │       │       ├── economicStatuses.ts # Matches nations/{nation}/economic-statuses.json
     │       │       ├── reasonsForBoxing.ts # Matches nations/{nation}/reasons-for-boxing.json
-    │       │       └── coachVoice.ts  # Matches nations/{nation}/coach-voice/*.json
+    │       │       ├── coachVoice.ts  # Matches nations/{nation}/coach-voice/*.json
+    │       │       └── developmentProfiles.ts # Matches universal/development-profiles.json
     │       ├── data/
     │       │   └── loader.ts          # Loads all JSON at startup — returns typed GameData object
     │       ├── utils/
