@@ -5,13 +5,30 @@
   "eventTemplates": [
     {
       "id": "club_tournament_small",
-      "circuitLevel": "club_tournament",
+      "circuitLevel": "club_card",
       "label": "Club Tournament",
-      "boutCount": { "min": 6 },
-      "weightClassCount": { "min": 3, "max": 6 },
+      "boutCount": {
+        "min": 6
+      },
+      "weightClassCount": {
+        "min": 3,
+        "max": 6
+      },
       "locationScope": "city",
-      "frequencyPerYear": { "min": 4, "max": 8 },
-      "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
+      "frequencyPerYear": {
+        "min": 4,
+        "max": 8
+      },
+      "typicalMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        9,
+        10,
+        11
+      ],
       "venuePool": [
         "riga_boksa_klubs",
         "imanta_sporta_halle",
@@ -26,13 +43,26 @@
     },
     {
       "id": "regional_open_standard",
-      "circuitLevel": "regional_open",
+      "circuitLevel": "regional_tournament",
       "label": "Regional Open",
-      "boutCount": { "min": 12 },
-      "weightClassCount": { "min": 5, "max": 8 },
+      "boutCount": {
+        "min": 12
+      },
+      "weightClassCount": {
+        "min": 5,
+        "max": 8
+      },
       "locationScope": "regional",
-      "frequencyPerYear": { "min": 2, "max": 4 },
-      "typicalMonths": [2, 3, 9, 10],
+      "frequencyPerYear": {
+        "min": 2,
+        "max": 4
+      },
+      "typicalMonths": [
+        2,
+        3,
+        9,
+        10
+      ],
       "venuePool": [
         "riga_sporta_nams",
         "latgales_olimpiskais_centrs",
@@ -47,12 +77,22 @@
       "id": "national_championship_annual",
       "circuitLevel": "national_championship",
       "label": "Latvian National Championship",
-      "boutCount": { "min": 30 },
+      "boutCount": {
+        "min": 30
+      },
       "weightClassCount": 10,
       "locationScope": "national",
       "frequencyPerYear": 1,
-      "typicalMonths": [11],
-      "hostCityRotation": ["riga", "daugavpils", "liepaja", "jelgava", "valmiera"],
+      "typicalMonths": [
+        11
+      ],
+      "hostCityRotation": [
+        "riga",
+        "daugavpils",
+        "liepaja",
+        "jelgava",
+        "valmiera"
+      ],
       "venuePool": [
         "arena_riga",
         "olimpiskais_sporta_centrs_riga",

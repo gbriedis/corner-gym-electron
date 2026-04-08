@@ -188,6 +188,7 @@
 | [x] | `packages/ui/src/screens/Loading.tsx` |
 | [x] | `packages/ui/src/screens/LoadGame.tsx` |
 | [x] | `packages/ui/src/screens/Game.tsx` |
+| [x] | `packages/ui/src/screens/Calendar.tsx` — multi-day D1/N pills, event detail panel with schedule, format indicator, circuit rename |
 | [ ] | `packages/ui/src/screens/Gym.tsx` |
 | [ ] | `packages/ui/src/screens/Inbox.tsx` |
 | [ ] | `packages/ui/src/screens/Fighters.tsx` |

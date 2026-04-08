@@ -7,8 +7,8 @@
 import type { Meta } from './meta.js'
 
 export type CircuitLevel =
-  | 'club_tournament'
-  | 'regional_open'
+  | 'club_card'              // was club_tournament
+  | 'regional_tournament'    // was regional_open
   | 'national_championship'
   | 'baltic_championship'
   | 'european_championship'
@@ -121,7 +121,7 @@ export interface WeightClassRange {
 }
 
 // frequencyPerYear can be a fixed number (national_championship: 1)
-// or a range when the organiser count varies (club_tournament: { min: 4, max: 8 }).
+// or a range when the organiser count varies (club_card: { min: 4, max: 8 }).
 export interface FrequencyRange {
   min: number
   max: number

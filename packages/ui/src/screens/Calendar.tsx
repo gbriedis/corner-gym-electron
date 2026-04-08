@@ -78,6 +78,40 @@ function weekToMonth(week: number): number {
   return 12
 }
 
+// CIRCUIT_DAY_STRUCTURE maps each multi-day circuit level to its day schedule.
+// Finals are always on Sunday; earlier days count back from there.
+// Single-day circuits (club_card, regional_tournament) are absent from this map.
+const CIRCUIT_DAY_STRUCTURE: Partial<Record<CalendarEvent['circuitLevel'], Array<{ label: string }>>> = {
+  national_championship: [
+    { label: 'Quarterfinals' },
+    { label: 'Semifinals' },
+    { label: 'Finals' },
+  ],
+  baltic_championship: [
+    { label: 'Quarterfinals' },
+    { label: 'Semifinals' },
+    { label: 'Finals' },
+  ],
+  european_championship: [
+    { label: 'Round of 16' },
+    { label: 'Quarterfinals' },
+    { label: 'Semifinals' },
+    { label: 'Finals' },
+  ],
+  world_championship: [
+    { label: 'Round of 16' },
+    { label: 'Quarterfinals' },
+    { label: 'Semifinals' },
+    { label: 'Finals' },
+  ],
+  olympics: [
+    { label: 'Round of 16' },
+    { label: 'Quarterfinals' },
+    { label: 'Semifinals' },
+    { label: 'Finals' },
+  ],
+}
+
 // isoWeekSaturday returns the Saturday of the given ISO week and year.
 // Boxing events are displayed on Saturday — the traditional fight-night day —
 // which gives the grid a concrete date anchor without needing day-level data.
@@ -107,44 +141,77 @@ function buildMonthCells(year: number, month: number): (number | null)[] {
   return cells
 }
 
-// eventsOnDay returns all events whose fight-night Saturday falls on this date.
-function eventsOnDay(
+
+// eventDayDate returns the actual Date for day `dayNum` (1-indexed) of a multi-day event.
+// Multi-day events end on Sunday of their ISO week — day N counts back from that Sunday.
+// A 3-day event: day 1 = Friday, day 2 = Saturday, day 3 = Sunday.
+// A 4-day event: day 1 = Thursday, day 2 = Friday, day 3 = Saturday, day 4 = Sunday.
+// Anchoring on Sunday ensures the finals are always the last day of a calendar row.
+function eventDayDate(year: number, week: number, dayNum: number, totalDays: number): Date {
+  const jan4 = new Date(year, 0, 4)
+  const dow = (jan4.getDay() + 6) % 7
+  const week1Mon = new Date(jan4)
+  week1Mon.setDate(jan4.getDate() - dow)
+  const weekMon = new Date(week1Mon)
+  weekMon.setDate(week1Mon.getDate() + (week - 1) * 7)
+  const sun = new Date(weekMon)
+  sun.setDate(weekMon.getDate() + 6)
+  const result = new Date(sun)
+  result.setDate(sun.getDate() - (totalDays - dayNum))
+  return result
+}
+
+// getEventDaysOnDate returns all events (with their day index in the event) that
+// have at least one day falling on the given calendar date.
+// For single-day events: only present when their Saturday matches.
+// For multi-day events: present for each day that falls on this date.
+function getEventDaysOnDate(
   events: CalendarEvent[],
   year: number,
   month: number,
   day: number,
-): CalendarEvent[] {
-  return events.filter(event => {
-    const sat = isoWeekSaturday(event.year, event.week)
-    return (
-      sat.getFullYear() === year &&
-      sat.getMonth() + 1 === month &&
-      sat.getDate() === day
-    )
-  })
+): Array<{ event: CalendarEvent; dayIndex: number; totalDays: number }> {
+  const result: Array<{ event: CalendarEvent; dayIndex: number; totalDays: number }> = []
+  for (const event of events) {
+    const dayStructure = CIRCUIT_DAY_STRUCTURE[event.circuitLevel]
+    if (dayStructure === undefined) {
+      const sat = isoWeekSaturday(event.year, event.week)
+      if (sat.getFullYear() === year && sat.getMonth() + 1 === month && sat.getDate() === day) {
+        result.push({ event, dayIndex: 0, totalDays: 1 })
+      }
+    } else {
+      for (let i = 0; i < dayStructure.length; i++) {
+        const d = eventDayDate(event.year, event.week, i + 1, dayStructure.length)
+        if (d.getFullYear() === year && d.getMonth() + 1 === month && d.getDate() === day) {
+          result.push({ event, dayIndex: i, totalDays: dayStructure.length })
+        }
+      }
+    }
+  }
+  return result
 }
 
 // circuitBadgeVariant maps a circuit level to a Badge variant for prestige display.
 function circuitBadgeVariant(level: CalendarEvent['circuitLevel']): BadgeVariant {
   switch (level) {
-    case 'club_tournament':       return 'neutral'
-    case 'regional_open':         return 'normal'
+    case 'club_card':             return 'neutral'
+    case 'regional_tournament':   return 'normal'
     case 'national_championship': return 'hard'
-    case 'baltic_championship':   return 'hard'
-    case 'european_championship': return 'extreme'
-    case 'world_championship':    return 'extreme'
-    case 'olympics':              return 'extreme'
+    case 'baltic_championship':   return 'easy'
+    case 'european_championship': return 'normal'
+    case 'world_championship':    return 'hard'
+    case 'olympics':              return 'hard'
   }
 }
 
 function circuitLabel(level: CalendarEvent['circuitLevel']): string {
   switch (level) {
-    case 'club_tournament':       return 'Club'
-    case 'regional_open':         return 'Regional'
-    case 'national_championship': return 'National'
+    case 'club_card':             return 'Club Card'
+    case 'regional_tournament':   return 'Regional'
+    case 'national_championship': return 'Nationals'
     case 'baltic_championship':   return 'Baltic'
     case 'european_championship': return 'European'
-    case 'world_championship':    return 'World'
+    case 'world_championship':    return 'Worlds'
     case 'olympics':              return 'Olympics'
   }
 }
@@ -159,7 +226,7 @@ function statusBadgeVariant(status: CalendarEvent['status']): BadgeVariant {
 }
 
 // pillStyle returns inline styles for an event pill in the grid cell.
-// Prestige increases from muted club events to glowing Olympics pills.
+// Prestige increases from muted club cards to glowing Olympics pills.
 function pillStyle(level: CalendarEvent['circuitLevel']): React.CSSProperties {
   const base: React.CSSProperties = {
     display: 'block',
@@ -179,18 +246,18 @@ function pillStyle(level: CalendarEvent['circuitLevel']): React.CSSProperties {
     marginBottom: '1px',
   }
   switch (level) {
-    case 'club_tournament':
+    case 'club_card':
       return { ...base, background: 'rgba(218,212,201,0.08)', color: 'rgba(218,212,201,0.5)' }
-    case 'regional_open':
+    case 'regional_tournament':
       return { ...base, background: 'rgba(90,139,222,0.15)', color: 'var(--color-accent-blue)' }
     case 'national_championship':
       return { ...base, background: 'rgba(238,178,74,0.18)', color: 'var(--color-accent-amber)', fontWeight: 600 }
     case 'baltic_championship':
-      return { ...base, background: 'rgba(255,209,131,0.2)', color: 'var(--color-accent-gold)', fontWeight: 600, fontSize: '10px' }
+      return { ...base, background: 'rgba(85,146,127,0.2)', color: 'var(--color-accent-green)', fontWeight: 600, fontSize: '10px' }
     case 'european_championship':
-      return { ...base, background: 'rgba(255,209,131,0.22)', color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '10px' }
+      return { ...base, background: 'rgba(33,82,165,0.18)', color: 'var(--color-accent-blue-dark)', fontWeight: 700, fontSize: '10px' }
     case 'world_championship':
-      return { ...base, background: 'rgba(220,98,80,0.2)', color: 'var(--color-accent-red)', fontWeight: 700, fontSize: '10px' }
+      return { ...base, background: 'rgba(255,209,131,0.2)', color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '10px' }
     case 'olympics':
       return {
         ...base,
@@ -234,8 +301,8 @@ function displayVenueName(event: CalendarEvent): string {
 // Hardcoded because this is static data — saves an IPC round-trip.
 function governingBody(level: CalendarEvent['circuitLevel']): string {
   switch (level) {
-    case 'club_tournament':
-    case 'regional_open':
+    case 'club_card':
+    case 'regional_tournament':
     case 'national_championship':
       return 'Latvian Boxing Federation (LBF)'
     case 'baltic_championship':
@@ -342,6 +409,20 @@ function VenueImage({ venueId, venueName, isOlympics }: {
   )
 }
 
+// circuitAccentColor returns the primary display color for a circuit level.
+// Used for panel headers, borders, and day-schedule accents.
+function circuitAccentColor(level: CalendarEvent['circuitLevel']): string {
+  switch (level) {
+    case 'club_card':             return 'var(--color-text-muted)'
+    case 'regional_tournament':   return 'var(--color-accent-blue)'
+    case 'national_championship': return 'var(--color-accent-amber)'
+    case 'baltic_championship':   return 'var(--color-accent-green)'
+    case 'european_championship': return 'var(--color-accent-blue-dark)'
+    case 'world_championship':    return 'var(--color-accent-gold)'
+    case 'olympics':              return 'var(--color-accent-gold)'
+  }
+}
+
 // EventDetailPanel renders the right-side panel when an event is selected.
 function EventDetailPanel({ event, onClose }: {
   event: CalendarEvent
@@ -349,11 +430,19 @@ function EventDetailPanel({ event, onClose }: {
 }): JSX.Element {
   const isOlympics = event.circuitLevel === 'olympics'
   const isNational = event.circuitLevel === 'national_championship'
+  const isClubCard = event.circuitLevel === 'club_card'
   const isInternational = [
     'baltic_championship', 'european_championship', 'world_championship', 'olympics',
   ].includes(event.circuitLevel)
 
-  const sat = isoWeekSaturday(event.year, event.week)
+  const dayStructure = CIRCUIT_DAY_STRUCTURE[event.circuitLevel]
+  const isMultiDay = dayStructure !== undefined
+  const totalDays = dayStructure?.length ?? 1
+
+  // Date shown in header — for single-day events: Saturday; for multi-day: Day 1 → Day N range
+  const sat = isMultiDay
+    ? eventDayDate(event.year, event.week, 1, totalDays)
+    : isoWeekSaturday(event.year, event.week)
   const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
   const nations = participatingNations(event.circuitLevel)
@@ -362,13 +451,7 @@ function EventDetailPanel({ event, onClose }: {
   // Weight classes sorted heavy → light for consistent top-down display.
   const sortedWeightClasses = sortWeightClassesHeavyFirst(event.weightClasses)
 
-  // Olympics gets a gold panel accent; national gets an amber one; others get default.
-  const accentColor = isOlympics
-    ? 'var(--color-accent-gold)'
-    : isNational
-      ? 'var(--color-accent-amber)'
-      : 'var(--color-text-muted)'
-
+  const accentColor = circuitAccentColor(event.circuitLevel)
   const borderColor = isOlympics
     ? 'rgba(255,209,131,0.25)'
     : 'rgba(218,212,201,0.08)'
@@ -404,12 +487,19 @@ function EventDetailPanel({ event, onClose }: {
               fontSize: isOlympics ? '14px' : '12px',
               fontWeight: 700,
               color: accentColor,
-              marginBottom: 'var(--space-1)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              marginBottom: '3px',
               lineHeight: 1.3,
             }}
           >
             {event.label}
           </div>
+          {isMultiDay && (
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.4)', marginBottom: 'var(--space-1)' }}>
+              {totalDays}-day event
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', alignItems: 'center' }}>
             <Badge variant={circuitBadgeVariant(event.circuitLevel)} label={circuitLabel(event.circuitLevel)} />
             <Badge variant={statusBadgeVariant(event.status)} label={event.status} />
@@ -516,10 +606,84 @@ function EventDetailPanel({ event, onClose }: {
           </div>
         </div>
 
+        {/* Format indicator */}
+        <div style={{ marginBottom: 'var(--space-3)' }}>
+          <Row
+            label="Format"
+            value={
+              isClubCard
+                ? 'Card · One bout per fighter · Results same night'
+                : isMultiDay
+                  ? `Tournament · Single Elimination · ${totalDays} Days`
+                  : 'Tournament · Single Elimination'
+            }
+          />
+        </div>
+
         {/* Governing body */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
           <Row label="Sanctioned by" value={governingBody(event.circuitLevel)} />
         </div>
+
+        {/* Multi-day competition schedule */}
+        {isMultiDay && dayStructure !== undefined && (
+          <div style={{ marginBottom: 'var(--space-3)' }}>
+            <SectionLabel label="Competition Schedule" />
+            <div
+              style={{
+                marginTop: 'var(--space-1)',
+                borderLeft: `2px solid ${accentColor}`,
+                paddingLeft: 'var(--space-2)',
+                opacity: 0.9,
+              }}
+            >
+              {dayStructure.map((ds, i) => {
+                const dayDate = eventDayDate(event.year, event.week, i + 1, totalDays)
+                const dayOfWeek = dayDate.toLocaleDateString('en-GB', { weekday: 'short' })
+                const dayMonth = dayDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      gap: 'var(--space-2)',
+                      padding: '3px 0',
+                      borderBottom: i < dayStructure.length - 1 ? '1px solid rgba(218,212,201,0.05)' : 'none',
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.4)', minWidth: '36px', flexShrink: 0 }}>
+                      Day {i + 1}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.5)', minWidth: '68px', flexShrink: 0 }}>
+                      {dayOfWeek} {dayMonth}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                      {ds.label}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Club card informal tone */}
+        {isClubCard && (
+          <div
+            style={{
+              background: 'rgba(218,212,201,0.04)',
+              border: 'var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--space-2) var(--space-3)',
+              marginBottom: 'var(--space-3)',
+            }}
+          >
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.5)', lineHeight: 1.5 }}>
+              Informal card. One bout per fighter. Results same night. No bracket — fighters are matched on the night.
+            </div>
+          </div>
+        )}
 
         {/* National championship city rotation note */}
         {isNational && (
@@ -1033,8 +1197,8 @@ export default function Calendar(): JSX.Element {
               }}
             >
               {cells.map((day, idx) => {
-                const dayEvents = day !== null
-                  ? eventsOnDay(events, viewYear, viewMonth, day)
+                const daySlots = day !== null
+                  ? getEventDaysOnDate(events, viewYear, viewMonth, day)
                   : []
 
                 const isToday =
@@ -1082,17 +1246,28 @@ export default function Calendar(): JSX.Element {
                           {day}
                         </div>
 
-                        {/* Event pills */}
-                        {dayEvents.map(event => (
-                          <button
-                            key={event.id}
-                            onClick={() => setSelectedEvent(event)}
-                            style={pillStyle(event.circuitLevel)}
-                            title={event.label}
-                          >
-                            {circuitLabel(event.circuitLevel)}
-                          </button>
-                        ))}
+                        {/* Event pills — continuation days shown at reduced opacity */}
+                        {daySlots.map(({ event, dayIndex, totalDays }) => {
+                          const isContinuation = dayIndex > 0
+                          return (
+                            <button
+                              key={`${event.id}-d${dayIndex}`}
+                              onClick={() => setSelectedEvent(event)}
+                              style={{
+                                ...pillStyle(event.circuitLevel),
+                                opacity: isContinuation ? 0.6 : 1,
+                              }}
+                              title={event.label}
+                            >
+                              {isContinuation
+                                ? `· D${dayIndex + 1}/${totalDays}`
+                                : totalDays > 1
+                                  ? `${circuitLabel(event.circuitLevel)} · D1/${totalDays}`
+                                  : circuitLabel(event.circuitLevel)
+                              }
+                            </button>
+                          )
+                        })}
                       </>
                     )}
                   </div>
@@ -1113,8 +1288,8 @@ export default function Calendar(): JSX.Element {
             >
               {(
                 [
-                  ['club_tournament', 'Club Tournament'],
-                  ['regional_open', 'Regional Open'],
+                  ['club_card', 'Club Card'],
+                  ['regional_tournament', 'Regional Tournament'],
                   ['national_championship', 'National Championship'],
                   ['baltic_championship', 'Baltic Championship'],
                   ['european_championship', 'European Championship'],

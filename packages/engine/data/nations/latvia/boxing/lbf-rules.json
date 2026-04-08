@@ -4,13 +4,28 @@
   },
   "sanctioningBodyId": "lbf",
   "ageCategories": [
-    { "id": "junior", "label": "Junior", "minAge": 13, "maxAge": 14 },
-    { "id": "youth", "label": "Youth", "minAge": 15, "maxAge": 17 },
-    { "id": "senior", "label": "Senior", "minAge": 18, "maxAge": 40 }
+    {
+      "id": "junior",
+      "label": "Junior",
+      "minAge": 13,
+      "maxAge": 14
+    },
+    {
+      "id": "youth",
+      "label": "Youth",
+      "minAge": 15,
+      "maxAge": 17
+    },
+    {
+      "id": "senior",
+      "label": "Senior",
+      "minAge": 18,
+      "maxAge": 40
+    }
   ],
   "circuitRules": [
     {
-      "circuitLevel": "club_tournament",
+      "circuitLevel": "club_card",
       "ageCategory": "junior",
       "rounds": 3,
       "roundDurationMinutes": 2,
@@ -24,7 +39,7 @@
       "description": "LBF junior amateur rules for club competition. Shorter rounds reflect the developing physical capacity of 13–14 year olds."
     },
     {
-      "circuitLevel": "club_tournament",
+      "circuitLevel": "club_card",
       "ageCategory": "youth",
       "rounds": 3,
       "roundDurationMinutes": 2,
@@ -38,7 +53,7 @@
       "description": "LBF youth amateur rules for club competition. Shorter rounds than senior to match the development level of 15–17 year olds."
     },
     {
-      "circuitLevel": "club_tournament",
+      "circuitLevel": "club_card",
       "ageCategory": "senior",
       "rounds": 3,
       "roundDurationMinutes": 3,
@@ -52,7 +67,7 @@
       "description": "Standard LBF senior amateur rules for club competition."
     },
     {
-      "circuitLevel": "regional_open",
+      "circuitLevel": "regional_tournament",
       "ageCategory": "junior",
       "rounds": 3,
       "roundDurationMinutes": 2,
@@ -66,7 +81,7 @@
       "description": "LBF junior amateur rules for regional open competition. Single bout per day reflects the elevated competition level."
     },
     {
-      "circuitLevel": "regional_open",
+      "circuitLevel": "regional_tournament",
       "ageCategory": "youth",
       "rounds": 3,
       "roundDurationMinutes": 2,
@@ -80,7 +95,7 @@
       "description": "LBF youth amateur rules for regional open competition."
     },
     {
-      "circuitLevel": "regional_open",
+      "circuitLevel": "regional_tournament",
       "ageCategory": "senior",
       "rounds": 3,
       "roundDurationMinutes": 3,

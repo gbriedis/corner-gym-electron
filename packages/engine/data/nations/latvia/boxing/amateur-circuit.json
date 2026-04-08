@@ -6,24 +6,38 @@
   },
   "circuitLevels": [
     {
-      "id": "club_tournament",
+      "id": "club_card",
       "label": "Club Tournament",
       "prestige": 1,
       "sanctioningBody": "lbf",
       "format": "card",
-      "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
+      "typicalMonths": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        9,
+        10,
+        11
+      ],
       "locationScope": "city",
       "minimumBouts": 0,
       "frequencyPerYear": 8,
       "description": "Entry-level amateur competitions organised by individual clubs and gyms under LBF sanction. Open to all registered amateur boxers regardless of experience. Primary path for new fighters to earn their first competitive bouts and accumulate LBF ranking points. Fields are small (8-16 fighters per weight class) and drawn from the host city and nearby clubs."
     },
     {
-      "id": "regional_open",
+      "id": "regional_tournament",
       "label": "Regional Open",
       "prestige": 3,
       "sanctioningBody": "lbf",
       "format": "tournament_bracket",
-      "typicalMonths": [2, 3, 9, 10],
+      "typicalMonths": [
+        2,
+        3,
+        9,
+        10
+      ],
       "locationScope": "regional",
       "minimumBouts": 4,
       "frequencyPerYear": 3,
@@ -37,11 +51,25 @@
       "format": "tournament_bracket",
       "multiDay": true,
       "daysStructure": [
-        { "day": 1, "label": "Quarterfinals", "roundNumber": 1 },
-        { "day": 2, "label": "Semifinals", "roundNumber": 2 },
-        { "day": 3, "label": "Finals", "roundNumber": 3 }
+        {
+          "day": 1,
+          "label": "Quarterfinals",
+          "roundNumber": 1
+        },
+        {
+          "day": 2,
+          "label": "Semifinals",
+          "roundNumber": 2
+        },
+        {
+          "day": 3,
+          "label": "Finals",
+          "roundNumber": 3
+        }
       ],
-      "typicalMonths": [11],
+      "typicalMonths": [
+        11
+      ],
       "locationScope": "national",
       "minimumBouts": 10,
       "frequencyPerYear": 1,

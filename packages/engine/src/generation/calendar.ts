@@ -30,7 +30,7 @@ import type { WeightClass } from '../types/data/weightClasses.js'
 import type { RNG } from '../utils/rng.js'
 
 // MAJOR_LEVELS are circuit levels that cannot share a week.
-// Club and regional events can overlap because they run in different cities.
+// Club cards and regional tournaments can overlap because they run in different cities.
 const MAJOR_LEVELS = new Set<CircuitLevel>([
   'national_championship',
   'baltic_championship',
@@ -152,7 +152,7 @@ function pickWeightClasses(
 
   // Lighter classes dominate club-level boxing — assign descending weights
   // so flyweight is n× more likely than super_heavyweight to be included.
-  const isClub = template.circuitLevel === 'club_tournament'
+  const isClub = template.circuitLevel === 'club_card'
   const baseWeights = isClub
     ? allWeightClasses.map((_, i) => n - i)  // 10, 9, 8 … 1 for n=10
     : allWeightClasses.map(() => 1)           // equal probability
@@ -269,7 +269,7 @@ function generateDomesticEvents(
         const cityFreqs: Array<{ cityId: string; freq: number }> = []
         for (const cityId of eligibleCities) {
           const cityData = cityLookup.get(cityId)
-          const cityFreq = cityData?.eventHostingFrequency?.club_tournament
+          const cityFreq = cityData?.eventHostingFrequency?.club_card
           const freq = cityFreq !== undefined
             ? rng.nextInt(cityFreq.min, cityFreq.max)
             : 1  // conservative fallback
@@ -328,7 +328,7 @@ function generateDomesticEvents(
         const cityFreqs: Array<{ cityId: string; freq: number }> = []
         for (const cityId of eligibleCities) {
           const cityData = cityLookup.get(cityId)
-          const cityFreq = cityData?.eventHostingFrequency?.regional_open
+          const cityFreq = cityData?.eventHostingFrequency?.regional_tournament
           const freq = cityFreq !== undefined
             ? rng.nextInt(cityFreq.min, cityFreq.max)
             : 0

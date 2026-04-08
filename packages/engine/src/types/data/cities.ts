@@ -10,12 +10,12 @@ export interface EventHostingFrequencyRange {
   max: number
 }
 
-// Per-circuit event hosting frequency for a city. Only club_tournament and
-// regional_open are hosted locally — national and above are assigned by
+// Per-circuit event hosting frequency for a city. Only club_card and
+// regional_tournament are hosted locally — national and above are assigned by
 // the federation rotation and are not city-owned decisions.
 export interface EventHostingFrequency {
-  club_tournament?: EventHostingFrequencyRange
-  regional_open?: EventHostingFrequencyRange
+  club_card?: EventHostingFrequencyRange
+  regional_tournament?: EventHostingFrequencyRange
 }
 
 export interface City {

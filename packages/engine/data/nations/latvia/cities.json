@@ -12,8 +12,14 @@
       "isStartingOption": true,
       "boxingActivityLevel": "medium",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 1, "max": 2 },
-        "regional_open": { "min": 0, "max": 1 }
+        "club_card": {
+          "min": 1,
+          "max": 2
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 1
+        }
       },
       "rentModifier": 0.75,
       "talentDensity": 1.1,
@@ -28,8 +34,14 @@
       "isStartingOption": true,
       "boxingActivityLevel": "high",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 2, "max": 3 },
-        "regional_open": { "min": 1, "max": 2 }
+        "club_card": {
+          "min": 2,
+          "max": 3
+        },
+        "regional_tournament": {
+          "min": 1,
+          "max": 2
+        }
       },
       "rentModifier": 1.6,
       "talentDensity": 1.4,
@@ -44,8 +56,14 @@
       "isStartingOption": true,
       "boxingActivityLevel": "medium",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 1, "max": 2 },
-        "regional_open": { "min": 0, "max": 1 }
+        "club_card": {
+          "min": 1,
+          "max": 2
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 1
+        }
       },
       "rentModifier": 0.7,
       "talentDensity": 1.0,
@@ -60,8 +78,14 @@
       "isStartingOption": true,
       "boxingActivityLevel": "medium",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 1, "max": 2 },
-        "regional_open": { "min": 0, "max": 1 }
+        "club_card": {
+          "min": 1,
+          "max": 2
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 1
+        }
       },
       "rentModifier": 0.85,
       "talentDensity": 1.05,
@@ -76,8 +100,14 @@
       "isStartingOption": false,
       "boxingActivityLevel": "medium",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 1, "max": 2 },
-        "regional_open": { "min": 0, "max": 1 }
+        "club_card": {
+          "min": 1,
+          "max": 2
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 1
+        }
       },
       "rentModifier": 0.8,
       "talentDensity": 0.9,
@@ -92,8 +122,14 @@
       "isStartingOption": false,
       "boxingActivityLevel": "low",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 0, "max": 1 },
-        "regional_open": { "min": 0, "max": 0 }
+        "club_card": {
+          "min": 0,
+          "max": 1
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 0
+        }
       },
       "rentModifier": 1.2,
       "talentDensity": 0.7,
@@ -108,8 +144,14 @@
       "isStartingOption": false,
       "boxingActivityLevel": "medium",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 1, "max": 2 },
-        "regional_open": { "min": 0, "max": 1 }
+        "club_card": {
+          "min": 1,
+          "max": 2
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 1
+        }
       },
       "rentModifier": 0.6,
       "talentDensity": 0.95,
@@ -124,8 +166,14 @@
       "isStartingOption": false,
       "boxingActivityLevel": "low",
       "eventHostingFrequency": {
-        "club_tournament": { "min": 0, "max": 1 },
-        "regional_open": { "min": 0, "max": 0 }
+        "club_card": {
+          "min": 0,
+          "max": 1
+        },
+        "regional_tournament": {
+          "min": 0,
+          "max": 0
+        }
       },
       "rentModifier": 0.6,
       "talentDensity": 0.85,

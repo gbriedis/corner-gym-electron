@@ -10,7 +10,9 @@
       "country": "latvia",
       "capacity": 200,
       "description": "The main boxing club gym in Riga, located in a repurposed Soviet-era sports building. Hosts club-level tournaments year-round. Cramped, loud, familiar — every serious Riga fighter has competed here at least once as a novice. The ring is set on the main gym floor with folding chairs packed around it.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "imanta_sporta_halle",
@@ -19,7 +21,9 @@
       "country": "latvia",
       "capacity": 350,
       "description": "A city sports hall in the Imanta district of Riga, one of several neighbourhood facilities that regularly host LBF-sanctioned club tournaments. Shared with wrestling, judo, and weightlifting. Events here draw fighters from the western Riga suburbs and nearby clubs.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "riga_sporta_nams",
@@ -28,7 +32,9 @@
       "country": "latvia",
       "capacity": 800,
       "description": "A mid-size city sports facility in Riga used for regional boxing opens and other combat sports competitions. Larger than a gym but smaller than the Olympic Centre — the right scale for a strong regional field without the overhead of a major arena. Consistently used for Riga-region LBF opens.",
-      "eligibleFor": ["regional_open"]
+      "eligibleFor": [
+        "regional_tournament"
+      ]
     },
     {
       "id": "olimpiskais_sporta_centrs_riga",
@@ -37,7 +43,10 @@
       "country": "latvia",
       "capacity": 3500,
       "description": "Riga's Olympic Sports Centre, a multi-sport complex housing a main competition hall used for combat sports, gymnastics, and team sports. Smaller than Arena Riga but well-equipped for national-level boxing events and a regular host for Latvian national championship preliminaries.",
-      "eligibleFor": ["national_championship", "baltic_championship"]
+      "eligibleFor": [
+        "national_championship",
+        "baltic_championship"
+      ]
     },
     {
       "id": "arena_riga",
@@ -47,7 +56,10 @@
       "country": "latvia",
       "capacity": 11200,
       "description": "Latvia's largest multipurpose arena, located in the centre of Riga. Has hosted WBA continental bouts, KOK World Series kickboxing and boxing events, and Latvian national championship boxing. Primary venue for any major boxing card staged in the capital.",
-      "eligibleFor": ["national_championship", "baltic_championship"]
+      "eligibleFor": [
+        "national_championship",
+        "baltic_championship"
+      ]
     },
     {
       "id": "daugavpils_boksa_klubs",
@@ -56,7 +68,9 @@
       "country": "latvia",
       "capacity": 150,
       "description": "The main boxing gym in Daugavpils, Latvia's predominantly Russian-speaking second city. A working club that has produced several Latvian national team fighters. Hosts club tournaments for the Latgale region's eastern corner. The atmosphere is intense — Daugavpils has a proud fighting culture.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "daugavpils_sports_palace",
@@ -65,7 +79,10 @@
       "country": "latvia",
       "capacity": 2500,
       "description": "The main indoor sports venue in Daugavpils. Used for regional and national-level competitions including boxing, wrestling, and team sports. When the Latvian National Championship rotation reaches Daugavpils, this venue hosts the event.",
-      "eligibleFor": ["regional_open", "national_championship"]
+      "eligibleFor": [
+        "regional_tournament",
+        "national_championship"
+      ]
     },
     {
       "id": "liepajas_boksa_klubs",
@@ -74,7 +91,9 @@
       "country": "latvia",
       "capacity": 150,
       "description": "Boxing club gym in Liepāja, a port city with an active combat sports scene built partly around the former Soviet military base. Club-level events here draw fighters from the Kurzeme coast. Small, no-frills, and competitive.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "liepajas_olimpiskais_centrs",
@@ -83,7 +102,10 @@
       "country": "latvia",
       "capacity": 3000,
       "description": "Multi-sport complex in Liepāja, Latvia's third-largest city and a historically active boxing region. Hosts national championship rotation events and regional boxing competitions along the Baltic coast.",
-      "eligibleFor": ["regional_open", "national_championship"]
+      "eligibleFor": [
+        "regional_tournament",
+        "national_championship"
+      ]
     },
     {
       "id": "jelgavas_boksa_klubs",
@@ -92,7 +114,9 @@
       "country": "latvia",
       "capacity": 120,
       "description": "The boxing club of Jelgava, the main city of the Zemgale region. Hosts club tournaments for fighters from across the Zemgale plain. Small hall attached to the Zemgales Olimpiskais centrs complex. When the national championship rotates to Jelgava, most fighters will have already competed in this building as novices.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "zemgales_olimpiskais_centrs",
@@ -101,7 +125,10 @@
       "country": "latvia",
       "capacity": 1200,
       "description": "The main multi-sport complex in Jelgava and the principal venue for the Zemgale region. Used for regional boxing opens and, when the national championship rotation reaches Jelgava, as the national championship host. Has a proper competition hall with fixed seating and space for a full tournament setup.",
-      "eligibleFor": ["regional_open", "national_championship"]
+      "eligibleFor": [
+        "regional_tournament",
+        "national_championship"
+      ]
     },
     {
       "id": "valmieras_boksa_klubs",
@@ -110,7 +137,9 @@
       "country": "latvia",
       "capacity": 100,
       "description": "Boxing club in Valmiera, the main city of the Vidzeme region. One of the smaller club venues in the Latvian circuit. Events here serve fighters from northern Latvia and the Gauja valley clubs.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "vidzemes_olimpiskais_centrs",
@@ -119,7 +148,10 @@
       "country": "latvia",
       "capacity": 1000,
       "description": "The main sports facility in Valmiera and the primary venue for the Vidzeme region's competitive events. Hosts regional boxing opens and serves as the national championship venue when the rotation reaches Valmiera.",
-      "eligibleFor": ["regional_open", "national_championship"]
+      "eligibleFor": [
+        "regional_tournament",
+        "national_championship"
+      ]
     },
     {
       "id": "rezeknes_sporta_halle",
@@ -128,7 +160,9 @@
       "country": "latvia",
       "capacity": 300,
       "description": "Sports hall in Rēzekne, the second city of the Latgale region. Used for club-level boxing tournaments alongside other indoor sports. Serves fighters from central Latgale who would otherwise need to travel to Daugavpils or Riga to compete.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     },
     {
       "id": "latgales_olimpiskais_centrs",
@@ -137,7 +171,9 @@
       "country": "latvia",
       "capacity": 1500,
       "description": "The regional sports complex in Rēzekne that serves the wider Latgale region. Larger than the Rēzekne sports hall and used for regional-level competitions drawing fighters from across eastern Latvia.",
-      "eligibleFor": ["regional_open"]
+      "eligibleFor": [
+        "regional_tournament"
+      ]
     },
     {
       "id": "jurmala_sporta_halle",
@@ -146,7 +182,9 @@
       "country": "latvia",
       "capacity": 200,
       "description": "A sports hall in the resort city of Jūrmala on the Gulf of Riga coast. Club boxing events here draw from the coastal strip west of Riga. A quieter venue compared to city clubs — the local boxing scene is smaller but persistent.",
-      "eligibleFor": ["club_tournament"]
+      "eligibleFor": [
+        "club_card"
+      ]
     }
   ]
 }

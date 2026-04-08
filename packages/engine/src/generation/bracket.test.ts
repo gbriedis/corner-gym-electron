@@ -47,7 +47,7 @@ describe('generateBracket — structure', () => {
   it('bracket id encodes event + weight class + age category', () => {
     const rng = createRng(1)
     const { bracket } = generateBracket(
-      'event1', 'heavyweight', 'youth', 'regional_open', 3,
+      'event1', 'heavyweight', 'youth', 'regional_tournament', 3,
       makeEntrants(4), BASE_DAYS, rng,
     )
     expect(bracket.id).toBe('event1-heavyweight-youth')
