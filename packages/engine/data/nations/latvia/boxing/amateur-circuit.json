@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "description": "Domestic Latvian amateur boxing circuit levels. This file covers domestic tiers only: club tournaments, regional opens, and the national championship. Baltic, European, World, and Olympic circuits live in international/boxing/circuits.json. minimumBouts is a soft matchmaking guide — the engine uses it to generate realistic competition fields but a coach can apply any eligible fighter to any sanctioned event. Selection events (national championship) use application-based entry — the LBF publishes the accepted fighters list; rejection arrives as a federation statement in the inbox.",
+    "scope": "national",
+    "nation": "latvia"
+  },
+  "circuitLevels": [
+    {
+      "id": "club_tournament",
+      "label": "Club Tournament",
+      "prestige": 1,
+      "sanctioningBody": "lbf",
+      "format": "tournament_bracket",
+      "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
+      "locationScope": "city",
+      "minimumBouts": 0,
+      "frequencyPerYear": 8,
+      "description": "Entry-level amateur competitions organised by individual clubs and gyms under LBF sanction. Open to all registered amateur boxers regardless of experience. Primary path for new fighters to earn their first competitive bouts and accumulate LBF ranking points. Fields are small (8-16 fighters per weight class) and drawn from the host city and nearby clubs."
+    },
+    {
+      "id": "regional_open",
+      "label": "Regional Open",
+      "prestige": 3,
+      "sanctioningBody": "lbf",
+      "format": "tournament_bracket",
+      "typicalMonths": [2, 3, 9, 10],
+      "locationScope": "regional",
+      "minimumBouts": 4,
+      "frequencyPerYear": 3,
+      "description": "Regional-level open tournaments drawing fighters from across a Latvia region (Riga, Vidzeme, Kurzeme, Latgale, Zemgale). Larger fields than club tournaments, stronger competition, and significantly more LBF ranking points. A strong regional open result is the standard stepping stone toward national championship qualification in the eyes of coaches and the federation."
+    },
+    {
+      "id": "national_championship",
+      "label": "Latvian National Championship",
+      "prestige": 7,
+      "sanctioningBody": "lbf",
+      "format": "tournament_bracket",
+      "typicalMonths": [11],
+      "locationScope": "national",
+      "minimumBouts": 10,
+      "frequencyPerYear": 1,
+      "description": "The pinnacle of domestic Latvian amateur boxing. Held annually in November, the national championship awards the Latvian National Champion title in each weight class. The LBF uses application-based entry — coaches submit fighter applications, the federation evaluates all applicants against the declared field and published eligibility criteria, then releases the accepted list. Rejection is communicated as an official federation statement. The tournament rotates host city across Riga, Daugavpils, Liepāja, Jelgava, and Valmiera on a fixed index tracked in world state."
+    }
+  ]
+}

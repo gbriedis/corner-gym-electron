@@ -63,17 +63,27 @@ corner-gym/
     │   │   │   ├── development-profiles.json  # 3 profiles — peak age, rise/plateau/decline rates
     │   │   │   ├── game-config-defaults.json  # Default settings for a new game (seed, year, nations, world settings)
     │   │   │   └── difficulties.json          # 4 difficulty presets — multipliers on city modifiers and probabilities
-    │   │   └── nations/
-    │   │       └── latvia/
-    │   │           ├── nation.json
-    │   │           ├── cities.json            # 8 Latvian cities with modifiers
-    │   │           ├── names.json
-    │   │           ├── economic-statuses.json
-    │   │           ├── reasons-for-boxing.json
-    │   │           └── coach-voice/
-    │   │               ├── attributes.json
-    │   │               ├── physical-stats.json
-    │   │               └── gifts-and-flaws.json
+    │   │   ├── nations/
+    │   │   │   └── latvia/
+    │   │   │       ├── nation.json
+    │   │   │       ├── cities.json            # 8 Latvian cities with modifiers
+    │   │   │       ├── names.json
+    │   │   │       ├── economic-statuses.json
+    │   │   │       ├── reasons-for-boxing.json
+    │   │   │       ├── coach-voice/
+    │   │   │       │   ├── attributes.json
+    │   │   │       │   ├── physical-stats.json
+    │   │   │       │   └── gifts-and-flaws.json
+    │   │   │       └── boxing/
+    │   │   │           ├── sanctioning-bodies.json  # LBF — national body, affiliates to EUBC
+    │   │   │           ├── amateur-circuit.json     # 3 domestic circuit levels
+    │   │   │           └── event-templates.json     # 3 event templates for calendar generation
+    │   │   └── international/
+    │   │       └── boxing/
+    │   │           ├── sanctioning-bodies.json  # EUBC (continental) + IBA (international)
+    │   │           ├── circuits.json            # Baltic, European, World, Olympics circuit levels
+    │   │           ├── event-templates.json     # 4 international event templates with venue pools
+    │   │           └── venues.json              # 17 real venues — Latvian, Baltic, European, World/Olympic
     │   └── src/
     │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + advanceWeek
     │       ├── types/

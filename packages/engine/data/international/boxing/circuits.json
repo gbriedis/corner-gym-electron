@@ -1,0 +1,67 @@
+{
+  "_meta": {
+    "description": "International amateur boxing circuit levels. frequencyYears drives when the engine generates this event — after each running the engine adds frequencyYears to produce the next scheduled year. nextOccurrence is the next year this event is due. Selection events work via application: a fighter applies, the federation evaluates all applicants against the declared field and eligibility criteria, then publishes the accepted list. Rejection arrives as federation news in the player inbox, not a direct notification. Domestic Latvian circuit levels (club_tournament, regional_open, national_championship) live in nations/latvia/boxing/amateur-circuit.json."
+  },
+  "circuitLevels": [
+    {
+      "id": "baltic_championship",
+      "label": "Baltic Amateur Boxing Championship",
+      "prestige": 5,
+      "sanctioningBody": "eubc",
+      "format": "tournament_bracket",
+      "typicalMonths": [3, 4, 5],
+      "locationScope": "international",
+      "minimumBouts": 10,
+      "frequencyYears": 1,
+      "nextOccurrence": 2027,
+      "selectionMethod": "open",
+      "participatingNations": ["latvia", "lithuania", "estonia"],
+      "description": "Annual three-nation amateur championship contested between Latvia, Lithuania, and Estonia. Open entry for eligible registered amateurs — any fighter meeting EUBC eligibility requirements may apply through their national federation. Rotates host nation. A podium result here is a strong signal for national team selection ahead of European qualifiers."
+    },
+    {
+      "id": "european_championship",
+      "label": "European Amateur Boxing Championships",
+      "prestige": 8,
+      "sanctioningBody": "eubc",
+      "format": "tournament_bracket",
+      "typicalMonths": [3, 4, 5, 6],
+      "locationScope": "international",
+      "minimumBouts": 15,
+      "frequencyYears": 2,
+      "nextOccurrence": 2026,
+      "selectionMethod": "open",
+      "participatingNations": "all",
+      "description": "Biennial continental championship for all EUBC member nations. Open entry with EUBC eligibility requirements — national federations submit their nominated fighters and the EUBC confirms acceptance. The strongest proving ground for European amateur fighters short of the World Championships. Results feed directly into Olympic qualification point pools."
+    },
+    {
+      "id": "world_championship",
+      "label": "IBA World Amateur Boxing Championships",
+      "prestige": 9,
+      "sanctioningBody": "iba",
+      "format": "tournament_bracket",
+      "typicalMonths": [4, 5, 6, 9, 10],
+      "locationScope": "international",
+      "minimumBouts": 20,
+      "frequencyYears": 2,
+      "nextOccurrence": 2027,
+      "selectionMethod": "federation_selection",
+      "participatingNations": "all",
+      "description": "Biennial world championship — the highest level of amateur boxing below the Olympics. Fighter selection is controlled by the national federation: coaches submit applications, the federation evaluates all applicants against the published field and Olympic qualification implications, then releases the accepted list. Rejection arrives as a formal federation statement in the inbox. Medals at this level are career-defining for an amateur fighter."
+    },
+    {
+      "id": "olympics",
+      "label": "Olympic Games Boxing",
+      "prestige": 10,
+      "sanctioningBody": "iba",
+      "format": "tournament_bracket",
+      "typicalMonths": [7, 8],
+      "locationScope": "international",
+      "minimumBouts": 25,
+      "frequencyYears": 4,
+      "nextOccurrence": 2028,
+      "selectionMethod": "federation_selection",
+      "participatingNations": "all",
+      "description": "The pinnacle of amateur boxing. Olympic qualification berths are allocated per nation based on continental qualification tournaments and world ranking points. The national federation selects which fighters represent the nation in the allocated weight classes. Applications are evaluated against the full national squad picture — Olympic selection arrives as a federation statement, and rejection is delivered the same way. An Olympic medal is the highest achievement in the amateur game."
+    }
+  ]
+}

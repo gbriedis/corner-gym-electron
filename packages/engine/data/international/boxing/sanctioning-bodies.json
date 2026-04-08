@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "description": "International boxing sanctioning bodies shared across all nations. Any nation bundle can reference these ids without modifying this file. Adding a new nation to the game does not require editing this file — domestic nation files affiliate upward to the relevant body id here."
+  },
+  "sanctioningBodies": [
+    {
+      "id": "eubc",
+      "label": "European Amateur Boxing Association",
+      "level": "continental",
+      "affiliation": "iba",
+      "description": "The EUBC (European Boxing Confederation) governs amateur boxing across Europe. It organises the European Amateur Boxing Championships, selects European representatives for IBA World Championships, and coordinates qualification pathways for the Olympic Games. All European national federations affiliate to the EUBC.",
+      "titlesPerWeightClass": [
+        "european_amateur_champion"
+      ],
+      "rankingSystem": {
+        "id": "eubc_continental_rankings",
+        "description": "Points awarded at sanctioned EUBC events. Primary input for European championship seedings and Olympic qualification allocation per nation.",
+        "resetMonth": null
+      }
+    },
+    {
+      "id": "iba",
+      "label": "International Boxing Association",
+      "level": "international",
+      "affiliation": null,
+      "description": "The IBA (formerly AIBA) is the international governing body for amateur boxing. It organises the World Amateur Boxing Championships, sets global rules and weight classes, and historically managed Olympic boxing qualification. Continental associations (EUBC, ASBC, ABCA, etc.) affiliate to the IBA.",
+      "titlesPerWeightClass": [
+        "world_amateur_champion"
+      ],
+      "rankingSystem": {
+        "id": "iba_world_rankings",
+        "description": "Points awarded at sanctioned IBA events globally. Primary input for World Championship seedings and Olympic qualification berth allocation per nation.",
+        "resetMonth": null
+      }
+    }
+  ]
+}

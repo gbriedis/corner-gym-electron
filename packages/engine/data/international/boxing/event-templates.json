@@ -1,0 +1,79 @@
+{
+  "_meta": {
+    "description": "Templates for generating international boxing events on the calendar. Read by the event generation system to procedurally create scheduled events — real venues, exact dates, and fighter fields are assigned at generation time. venuePool lists venue ids eligible to host this event type. Club tournaments have no venue pool (city sports halls, not specific named venues). National championship and above draw from named venues. Event generation logic is not implemented here."
+  },
+  "eventTemplates": [
+    {
+      "id": "baltic_championship_annual",
+      "circuitLevel": "baltic_championship",
+      "label": "Baltic Amateur Boxing Championship",
+      "boutCount": { "min": 20, "max": 35 },
+      "weightClassCount": 10,
+      "locationScope": "international",
+      "frequencyYears": 1,
+      "typicalMonths": [3, 4, 5],
+      "venuePool": [
+        "arena_riga",
+        "olimpiskais_sporta_centrs_riga",
+        "twinsbet_arena_vilnius",
+        "unibet_arena_tallinn"
+      ],
+      "description": "Annual three-nation championship between Latvia, Lithuania, and Estonia. Rotates host nation annually. Venue is selected from the host nation's eligible pool. All 10 weight classes are contested. The LBF uses this event as a primary selection indicator when building national squads for European qualifiers."
+    },
+    {
+      "id": "european_championship_biennial",
+      "circuitLevel": "european_championship",
+      "label": "European Amateur Boxing Championships",
+      "boutCount": { "min": 60, "max": 100 },
+      "weightClassCount": 10,
+      "locationScope": "international",
+      "frequencyYears": 2,
+      "typicalMonths": [3, 4, 5, 6],
+      "venuePool": [
+        "ovo_arena_wembley",
+        "wizink_center_madrid",
+        "accor_arena_paris",
+        "belgrade_arena",
+        "hallenstadion_zurich",
+        "ziggo_dome_amsterdam"
+      ],
+      "description": "Biennial continental championship drawing all EUBC member nations. Large field with full bracket play across all 10 weight classes. Hosted in major European arenas. Results feed Olympic qualification point pools and directly inform federation selection decisions for World Championship squads."
+    },
+    {
+      "id": "world_championship_biennial",
+      "circuitLevel": "world_championship",
+      "label": "IBA World Amateur Boxing Championships",
+      "boutCount": { "min": 100, "max": 150 },
+      "weightClassCount": 10,
+      "locationScope": "international",
+      "frequencyYears": 2,
+      "typicalMonths": [4, 5, 6, 9, 10],
+      "venuePool": [
+        "mgm_grand_garden_arena",
+        "madison_square_garden",
+        "crypto_com_arena",
+        "kokugikan_tokyo",
+        "belgrade_arena",
+        "ovo_arena_wembley"
+      ],
+      "description": "Biennial world championship — the largest amateur boxing event outside the Olympic cycle. Deep fields from every IBA member nation. Hosted in globally significant arenas. A medal here is the highest non-Olympic achievement in the amateur game and the strongest possible argument for Olympic selection."
+    },
+    {
+      "id": "olympics_quadrennial",
+      "circuitLevel": "olympics",
+      "label": "Olympic Games Boxing",
+      "boutCount": { "min": 80, "max": 120 },
+      "weightClassCount": 10,
+      "locationScope": "international",
+      "frequencyYears": 4,
+      "typicalMonths": [7, 8],
+      "venuePool": [
+        "crypto_com_arena",
+        "excel_london",
+        "kokugikan_tokyo",
+        "madison_square_garden"
+      ],
+      "description": "Quadrennial Olympic boxing tournament. Only fighters who have secured national qualification berths through continental and world ranking pathways may compete. Venue is the Olympic host city's designated boxing arena — not freely assignable but represented here for reference. The pinnacle of the amateur game; an Olympic medal transforms a career."
+    }
+  ]
+}

@@ -123,12 +123,20 @@
 |-------|------|
 | [ ] | `packages/engine/data/finance/constants/latvia.json` |
 
-## Data — Boxing
+## Data — Boxing: Latvia (Domestic)
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/data/boxing/sanctioning-bodies/latvia.json` |
-| [ ] | `packages/engine/data/boxing/weight-classes/standard.json` |
-| [ ] | `packages/engine/data/boxing/amateur-circuits/latvia.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/sanctioning-bodies.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/amateur-circuit.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/event-templates.json` |
+
+## Data — Boxing: International
+| State | File |
+|-------|------|
+| [x] | `packages/engine/data/international/boxing/sanctioning-bodies.json` |
+| [x] | `packages/engine/data/international/boxing/circuits.json` |
+| [x] | `packages/engine/data/international/boxing/event-templates.json` |
+| [x] | `packages/engine/data/international/boxing/venues.json` |
 
 ## Desktop
 | State | File |

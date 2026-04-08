@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "description": "Domestic boxing sanctioning bodies in Latvia. This file covers national-level bodies only. International bodies (EUBC, IBA) live in international/boxing/sanctioning-bodies.json. LBF affiliates upward to EUBC, which affiliates to IBA.",
+    "scope": "national",
+    "nation": "latvia"
+  },
+  "sanctioningBodies": [
+    {
+      "id": "lbf",
+      "label": "Latvian Boxing Federation",
+      "level": "national",
+      "affiliation": "eubc",
+      "description": "The LBF is the sole governing body for amateur boxing in Latvia. It sanctions all domestic tournaments and championships, selects national team fighters for international competitions, and maintains the official Latvian amateur rankings. Founded in 1922, it is a member of the European Amateur Boxing Association (EUBC) and through it the International Boxing Association (IBA).",
+      "titlesPerWeightClass": [
+        "latvian_national_champion"
+      ],
+      "rankingSystem": {
+        "id": "lbf_national_rankings",
+        "description": "Points-based system. Points awarded per win at sanctioned events weighted by circuit level. National Championship final counts highest. Rankings reset annually after the National Championship.",
+        "resetMonth": 11
+      }
+    }
+  ]
+}
