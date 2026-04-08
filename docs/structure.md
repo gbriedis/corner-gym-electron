@@ -161,6 +161,16 @@ corner-gym/
             │   │   ├── Inconsolata-SemiBold.ttf
             │   │   └── Inconsolata-Bold.ttf
             │   └── venues/                            # Venue images — {venueId}.jpg/png; missing → styled placeholder
+            │       ├── arena_riga.jpg
+            │       ├── daugavpils_boksa_klubs.jpg
+            │       ├── daugavpils_sports_palace.jpg
+            │       ├── imanta_sporta_halle.jpg
+            │       ├── jelgavas_boksa_klubs.jpg
+            │       ├── liepajas_boksa_klubs.jpg
+            │       ├── liepajas_olimpiskais_centrs.jpg
+            │       ├── olimpiskais_sporta_centrs_riga.jpg
+            │       ├── riga_boksa_klubs.jpg
+            │       └── riga_sporta_nams.jpg
             ├── styles/
             │   └── theme.css                          # All CSS custom properties — palette, spacing, typography, borders
             ├── components/

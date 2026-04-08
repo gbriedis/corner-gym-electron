@@ -207,6 +207,13 @@ function formatWeightClass(id: string): string {
   return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
+// displayVenueName returns the venue name for display.
+// Falls back to a formatted venueId for saves generated before venueName was added.
+function displayVenueName(event: CalendarEvent): string {
+  if (event.venueName !== '') return event.venueName
+  return event.venueId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
 // governingBody returns the full name of the sanctioning body for a circuit level.
 // Hardcoded because this is static data — saves an IPC round-trip.
 function governingBody(level: CalendarEvent['circuitLevel']): string {
@@ -425,7 +432,7 @@ function EventDetailPanel({ event, onClose }: {
 
         {/* Venue image */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
-          <VenueImage venueId={event.venueId} venueName={event.venueName} isOlympics={isOlympics} />
+          <VenueImage venueId={event.venueId} venueName={displayVenueName(event)} isOlympics={isOlympics} />
         </div>
 
         {/* Location */}
@@ -439,7 +446,7 @@ function EventDetailPanel({ event, onClose }: {
               marginBottom: '2px',
             }}
           >
-            {event.venueName}
+            {displayVenueName(event)}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
             <SewingPinIcon width={11} height={11} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
@@ -713,6 +720,15 @@ export default function Calendar(): JSX.Element {
 
   const cells = buildMonthCells(viewYear, viewMonth)
 
+  // Upcoming events — starting from the current in-game week, up to 10.
+  // Events are already sorted year+week ascending from the DB.
+  const upcomingEvents = events
+    .filter(e =>
+      e.year > worldState.currentYear ||
+      (e.year === worldState.currentYear && e.week >= worldState.currentWeek),
+    )
+    .slice(0, 10)
+
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
       {/* Screen header */}
@@ -952,6 +968,99 @@ export default function Calendar(): JSX.Element {
               onClose={() => setSelectedEvent(null)}
             />
           )}
+        </div>
+      )}
+
+      {/* Upcoming events list */}
+      {!loading && upcomingEvents.length > 0 && (
+        <div style={{ marginTop: 'var(--space-6)' }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '9px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: 'rgba(218,212,201,0.35)',
+              marginBottom: 'var(--space-2)',
+            }}
+          >
+            Upcoming Events
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            {upcomingEvents.map(event => {
+              const sat = isoWeekSaturday(event.year, event.week)
+              const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+              const isSelected = selectedEvent?.id === event.id
+              return (
+                <button
+                  key={event.id}
+                  onClick={() => setSelectedEvent(event)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '60px 80px 1fr auto',
+                    gap: 'var(--space-3)',
+                    alignItems: 'center',
+                    padding: '6px var(--space-3)',
+                    background: isSelected
+                      ? 'rgba(218,212,201,0.06)'
+                      : 'rgba(218,212,201,0.02)',
+                    border: isSelected
+                      ? 'var(--border-mid)'
+                      : 'var(--border-subtle)',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
+                  {/* Date */}
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      color: 'rgba(218,212,201,0.45)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {dateStr} {event.year}
+                  </span>
+
+                  {/* Circuit badge */}
+                  <span style={{ ...pillStyle(event.circuitLevel), marginBottom: 0, width: 'auto' }}>
+                    {circuitLabel(event.circuitLevel)}
+                  </span>
+
+                  {/* Event name */}
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--color-text-primary)',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {event.label}
+                  </span>
+
+                  {/* Venue + city */}
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      color: 'rgba(218,212,201,0.4)',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '180px',
+                      textAlign: 'right',
+                    }}
+                  >
+                    {displayVenueName(event)} · {formatCityDisplay(event)}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
     </GameShell>

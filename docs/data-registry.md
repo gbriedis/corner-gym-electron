@@ -155,7 +155,7 @@
 |-------|------|
 | [x] | `packages/ui/src/assets/fonts/RockBro.otf` |
 | [x] | `packages/ui/src/assets/fonts/Inconsolata-*.ttf` |
-| [~] | `packages/ui/src/assets/venues/` — folder exists; no images yet. Missing images show styled placeholder. |
+| [~] | `packages/ui/src/assets/venues/` — 10 Latvian venue images present; remaining venues show styled placeholder. |
 | [x] | `packages/ui/src/index.css` |
 | [x] | `packages/ui/src/styles/theme.css` |
 

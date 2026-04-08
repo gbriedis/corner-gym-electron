@@ -246,9 +246,14 @@ function generateDomesticEvents(
       } else if (template.locationScope === 'city') {
         // Club tournaments — one set of events per city that has eligible venues.
         // Frequency comes from city data; falls back to conservative 2 if data is absent.
+        // Events are staggered so no two clubs share the same week nationally —
+        // Latvia is small enough that simultaneous events split the fighter pool.
         const eligibleCities = findCitiesWithVenues(
           nationId, template, circuitLevel, venueMap,
         )
+
+        // Track occupied weeks within this year and template — reset per year.
+        const clubTournamentWeeks = new Set<number>()
 
         for (const cityId of eligibleCities) {
           const cityShort = cityShortId(cityId)
@@ -261,7 +266,14 @@ function generateDomesticEvents(
           const distributed = distributeAcrossMonths(
             freq, template.typicalMonths, weekFloor, rng,
           )
-          for (const week of distributed) {
+          for (const rawWeek of distributed) {
+            let week = rawWeek
+            while (clubTournamentWeeks.has(week) && week <= 52) {
+              week += rng.nextInt(1, 2)
+            }
+            if (week > 52) continue
+            clubTournamentWeeks.add(week)
+
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
             events.push({
