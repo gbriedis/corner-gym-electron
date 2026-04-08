@@ -1,184 +1,322 @@
 # Current Task
 
-## Task: Circuit Level Rename + Calendar UI Multi-Day Update
+## Task: Calendar QoL + Sanctioning Body Page + Venue Page + Event Full Page
 
 ### What To Build
-Two things in sequence. Rename circuit level ids throughout the entire codebase first, then update the calendar UI to reflect the new names and show multi-day event structure properly.
+A collection of calendar quality of life improvements, three new dedicated pages (sanctioning body, venue, event full detail), and the regional tournament multi-day fix. Read all parts before starting — some share components.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
-`.claude/skills/public/frontend-design/SKILL.md`
 
 ---
 
-## Part 1 — Rename Circuit Level IDs
+## Part 1 — Data Fix
 
-### The Renames
+### Fix `nations/latvia/boxing/amateur-circuit.json`
+
+`regional_tournament` must NOT be multi-day:
+```json
+{
+  "id": "regional_tournament",
+  "multiDay": false
+}
 ```
-club_tournament  →  club_card
-regional_open    →  regional_tournament
+
+Remove `daysStructure` from `regional_tournament` entirely if present. Only `national_championship` and above have `multiDay: true`.
+
+Update calendar generation and UI — regional tournament detail panel shows "Single Day Tournament · Single Elimination" not a day schedule.
+
+---
+
+## Part 2 — Calendar QoL Fixes
+
+### 2a — Day Cell Colour Split
+
+When a day has events, the day cell background changes colour — no longer neutral. The cell background splits equally between the circuit level colours of events on that day.
+
+- 1 event: full cell background in that circuit level's colour at 20% opacity
+- 2 events: cell split 50/50 vertically, each half in its circuit level colour at 20% opacity
+- 3 events: cell split 33/33/33 vertically
+- 4+ events: split equally
+
+The split is a CSS gradient or flexbox column of coloured strips behind the day number and event pills. The day number stays visible on top. The cell becomes clearly clickable — the whole cell is the target, not just the small pill.
+
+Circuit level colours for cell backgrounds (20% opacity versions of badge colours):
+- `club_card` → `--color-bg-mid` tint
+- `regional_tournament` → `--color-accent-blue` at 20%
+- `national_championship` → `--color-accent-amber` at 20%
+- `baltic_championship` → `--color-accent-green` at 20%
+- `european_championship` → `--color-accent-blue-dark` at 20%
+- `world_championship` → `--color-accent-gold` at 20%
+- `olympics` → gold gradient at 20%
+
+---
+
+### 2b — Invisible Scrollbar
+
+Apply to all scrollable areas in the calendar and upcoming events panel.
+
+```css
+/* Thin, barely visible scrollbar — functional but unobtrusive */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+  background: var(--color-bg-mid); 
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--color-text-muted); 
+}
 ```
 
-Everything else stays the same.
+Apply globally in `theme.css`. Works in Electron/Chromium.
 
-### Files To Update
+---
 
-**Data files:**
-- `nations/latvia/boxing/amateur-circuit.json` — id fields and any references
-- `nations/latvia/boxing/event-templates.json` — circuitLevel fields
-- `nations/latvia/boxing/lbf-rules.json` — circuitLevel fields
-- `nations/latvia/boxing/venues.json` — eligibleFor arrays
-- `international/boxing/event-templates.json` — any references
-- `international/boxing/eubc-rules.json` — any references
-- `international/boxing/iba-rules.json` — any references
+### 2c — Click Outside to Close 75/25 Panel
 
-**TypeScript:**
-- `src/types/data/boxing.ts` — `CircuitLevel` union type
+The 75/25 event quick view closes when the user clicks anywhere outside the right panel — on the calendar grid, on empty space, anywhere that is not the panel itself.
+
+Use a transparent overlay behind the panel that captures clicks:
 ```typescript
-export type CircuitLevel =
-  | 'club_card'              // was club_tournament
-  | 'regional_tournament'    // was regional_open
-  | 'national_championship'
-  | 'baltic_championship'
-  | 'european_championship'
-  | 'world_championship'
-  | 'olympics'
+// Clicking the overlay closes the panel.
+// The overlay sits behind the panel but in front of the calendar grid.
+// This prevents accidental clicks on calendar events while panel is open.
+{selectedEvent && (
+  <div 
+    className="overlay" 
+    onClick={() => setSelectedEvent(null)} 
+  />
+)}
 ```
 
-**Engine code — search and replace all string literal references:**
-- `src/generation/calendar.ts` — any hardcoded circuit level strings
-- `src/generation/bracket.ts` — any references
-- Any other engine file referencing old ids
-
-**Desktop/IPC:**
-- `packages/desktop/src/db.ts` — any hardcoded strings in queries or defaults
-- `packages/desktop/src/ipc.ts` — any references
-
-**UI:**
-- `packages/ui/src/screens/Calendar.tsx` — badge colours, labels, any switch/case on circuit level
-
-### Verification
-After rename, run `pnpm typecheck` — TypeScript will catch any missed string literals that were typed. Then `pnpm test` — all 79 tests must still pass. Any test failures indicate a missed rename.
+Escape key also closes the panel (already exists — verify it still works).
 
 ---
 
-## Part 2 — Calendar UI Updates
+### 2d — Calendar Navigation Limit
 
-### Circuit Level Display Names and Badge Colours
+User cannot navigate past the last month that has generated events.
 
-Update all circuit level display labels and badge colours to match new ids and reflect actual meaning:
+Calculate `maxNavigableMonth` from the furthest event in the calendar data. Disable the "next month" arrow when `viewMonth/viewYear` would exceed this. Arrow visually dims when disabled — `opacity: 0.3`, `cursor: not-allowed`.
 
-| Circuit Level | Display Label | Badge Colour | Badge Style |
-|--------------|---------------|--------------|-------------|
-| `club_card` | "Club Card" | muted/grey | small, understated |
-| `regional_tournament` | "Regional" | `--color-accent-blue` | small |
-| `national_championship` | "Nationals" | `--color-accent-amber` | medium, slightly bolder |
-| `baltic_championship` | "Baltic" | `--color-accent-green` | medium |
-| `european_championship` | "European" | `--color-accent-blue-dark` | medium-large |
-| `world_championship` | "Worlds" | `--color-accent-gold` | large |
-| `olympics` | "Olympics" | gold gradient, glowing | largest, special treatment |
+Show a small note when at the limit: "Calendar generated to [Month Year]" in muted text below the navigation arrows.
 
 ---
 
-### Multi-Day Event Display in Calendar Grid
+### 2e — Olympics Future Landmark
 
-Multi-day events span multiple calendar days. The grid must show this clearly.
+Olympics is beyond the generation window so it never appears in the grid. But the user should know it exists as a goal.
 
-**In the month grid:**
-Multi-day events (anything with `multiDay: true`) show as a spanning pill across their days in the grid. Day 1 pill shows the event name with "D1" indicator. Days 2 and 3 show a continuation pill in the same colour with "D2", "D3" labels. If the days span across weeks in the grid, the continuation pill appears at the start of the next row.
-
-Single-day events show as normal pills.
-
-**Event pill content:**
-- Single-day: `[Badge] Event Name`
-- Multi-day Day 1: `[Badge] Event Name · D1/3`
-- Multi-day continuation: `[Badge] · D2/3` (lighter opacity, clearly a continuation)
-
----
-
-### Event Detail Panel — Multi-Day Structure
-
-When a multi-day event is clicked, the detail panel shows the full day structure.
-
-**Day structure section** (below venue info, above weight classes):
+In the right sidebar (upcoming events panel), below the list of upcoming events, add a "Future Landmarks" section. This shows events that are scheduled beyond the generation window — pulled from `international/boxing/circuits.json` `nextOccurrence` field.
 
 ```
-Competition Schedule
-━━━━━━━━━━━━━━━━━━━
-Day 1 · Fri 6 Nov    Quarterfinals
-Day 2 · Sat 7 Nov    Semifinals  
-Day 3 · Sun 8 Nov    Finals
-━━━━━━━━━━━━━━━━━━━
+Future Landmarks
+━━━━━━━━━━━━━━━━
+🥇 Olympics 2028
+   Paris · Summer 2028
+   Selection via federation
+   
+🌍 World Championships 2027
+   Location TBD · 2027
 ```
 
-Each day row shows: day number, day of week + date, round label. Use a subtle left border accent in the circuit level colour.
+Olympics gets the gold treatment — gold text, medal emoji. Clicking a landmark shows a small tooltip or inline expansion: what the event is, how to qualify, why it matters.
 
-Current day highlighted if event is in progress. Completed days shown with a checkmark. Upcoming days shown normally.
-
----
-
-### Updated Event Detail Panel — General Improvements
-
-**Header section:**
-- Event name in `--font-body`, uppercase, tracked
-- Circuit level badge — larger than in the grid pill
-- For multi-day: "3-day event" subtitle in muted text
-
-**Venue section:**
-- Venue image (existing — 16:9 ratio, graceful fallback)
-- Below image: venue name bold, city · country on same line, capacity with seat icon
-- For international events: country flag emoji next to country name if available
-
-**Format indicator:**
-- Single-day card events: "Card Format · One bout per fighter"
-- Tournament events: "Tournament · Single Elimination"
-- Multi-day: "Tournament · Single Elimination · 3 Days"
-
-**For Club Card specifically:**
-- Tone should feel informal — "Informal card. One bout per fighter. Results same night."
-- No bracket structure shown — it doesn't have one
-
-**For Nationals/International specifically:**
-- Show the full day schedule
-- Show "Entry closes [X weeks before event]" — calculate from current game week
-- Show participating nations for international events
-
-**Olympics detail panel** (existing gold treatment — enhance):
-- Full gold gradient header
-- "Every 4 years" prominently shown
-- Next occurrence year large
-- "Selection via federation" note with explanation
-- Venue image takes more vertical space — 21:9 ratio
+These are not calendar events — they're aspirational markers pulled directly from circuit data.
 
 ---
 
-### Upcoming Events Panel (right sidebar)
+### 2f — Upcoming Events Panel Name Fix
 
-Update circuit level labels and colours to match new naming. No structural changes needed.
+The upcoming events sidebar still shows "Club Tournament" in some places. Update all display labels to use the new circuit level display names:
+- `club_card` → "Club Card"
+- `regional_tournament` → "Regional"
+
+Audit every place circuit level ids are converted to display strings and ensure consistency.
+
+---
+
+### 2g — Sanctioning Body as Hyperlink Style
+
+Anywhere a sanctioning body name appears (event detail panel, upcoming events) — it renders as a text link, not a button. Styling:
+- Normal state: `--color-text-primary`, no underline
+- Hover state: underline appears, cursor pointer
+- Clicking navigates to `/sanctioning-body/:bodyId`
+
+Same treatment for venue names — hover underline, click navigates to `/venue/:venueId`.
+
+---
+
+## Part 3 — Sanctioning Body Page
+
+**Route:** `/sanctioning-body/:bodyId`
+
+**Data source:** `nations/latvia/boxing/lbf-rules.json`, `international/boxing/sanctioning-bodies.json`
+
+**Layout:** Full screen, back button top left returns to previous page.
+
+**Sections:**
+
+**Header:**
+- Body name large, in `--font-body` uppercase
+- Level badge (National / Continental / International)
+- Affiliation — "Affiliated with [EUBC]" as a link if applicable
+
+**About:**
+- Description from `sanctioning-bodies.json`
+- Jurisdiction — what nations/regions they govern
+
+**Competition Rules:**
+- Table of rules per circuit level — round limits, scoring system, headgear, glove weight, max bouts per day
+- Grouped by age category (Junior / Youth / Senior tabs or sections)
+- Pulled from the relevant rules JSON file
+
+**Titles Controlled:**
+- List of title belts this body awards per weight class
+- Each weight class as a row
+
+**Governed Events:**
+- List of circuit levels this body sanctions
+- Each as a card linking to... nothing yet (event history comes later)
+
+---
+
+## Part 4 — Venue Page
+
+**Route:** `/venue/:venueId`
+
+**Data source:** `nations/latvia/boxing/venues.json`, `international/boxing/venues.json`, `calendar_events` SQLite table
+
+**Layout:** Full screen, back button returns to previous page.
+
+**Sections:**
+
+**Header:**
+- Venue image — full width, 21:9 ratio, graceful fallback
+- Venue name overlaid bottom-left on the image in large `--font-body` text
+- City · Country · Capacity on the line below
+
+**About:**
+- Description from venues JSON
+- Capacity with seat icon
+- `eligibleFor` — which circuit levels this venue hosts, shown as badges
+
+**Upcoming Events Here:**
+- Query `calendar_events` by `venueId` where `status = 'scheduled'` and `year/week >= current`
+- Show as a compact list: date, event name, circuit badge
+- Empty state: "No upcoming events scheduled at this venue"
+
+**Past Events Here:**
+- Query `calendar_events` by `venueId` where `status = 'completed'`
+- Show as a compact list: date, event name, result summary (winner if available)
+- Empty state: "No recorded events yet" — this will fill as the game progresses
+
+---
+
+## Part 5 — Event Full Detail Page
+
+**Route:** `/calendar/event/:eventId`
+
+**Navigated to from:** "View Full Details →" button in the 75/25 quick view panel.
+
+**Layout:** Full screen, back button returns to calendar at the same month.
+
+**Sections:**
+
+**Header:**
+- Event name large
+- Circuit level badge, format indicator, date range (multi-day shows full date span)
+- Venue name as a link → venue page
+
+**Venue Feature:**
+- Venue image 21:9
+- Venue name, city, country, capacity
+- Link to full venue page
+
+**About This Event:**
+- Description pulled from event template description
+- Sanctioning body as a link → sanctioning body page
+- Round rules for this circuit level + senior age category (rounds, duration, scoring)
+- Selection method note if federation_selection
+
+**For Multi-Day Events — Competition Schedule:**
+- Day by day breakdown (already exists in 75/25 — expanded version here)
+- Each day shows date, round label, and eventually fighters per bout
+
+**Bracket Section (placeholder for now):**
+- Header: "Tournament Bracket"
+- If `status = 'open'`: "Bracket will be drawn when entry closes — [X weeks before event]"
+- If `status = 'closed'` or beyond: show bracket structure (empty for now — fighters entered later)
+- Note: "Enter a fighter via the Fighters screen once your roster is set up"
+
+**History Section:**
+- "Past editions of this event" — query calendar_events by templateId where status = 'completed'
+- Show as list: year, host city, venue
+- Empty state: "No previous editions recorded" — fills as game progresses
+
+**Why This Event Matters:**
+- For each circuit level, a short paragraph explaining the significance
+- `club_card`: "A local card. One bout, go home. The starting point."
+- `regional_tournament`: "First real tournament experience. Fighters advance through a bracket in a single day."
+- `national_championship`: "The Latvian title. The ceiling of domestic amateur boxing and the gateway to international selection."
+- `baltic_championship`: "Latvia, Lithuania, Estonia. Regional prestige."
+- `european_championship`: "The highest level most Latvian fighters will ever compete at."
+- `world_championship`: "World amateur title. Reached by very few."
+- `olympics`: "Every four years. The pinnacle. Selection via federation qualification. This is what everything points toward."
+
+Olympics "Why This Event Matters" gets the full gold treatment — gold text, larger font, the weight of it should be felt.
+
+---
+
+## Part 6 — Routing Update
+
+**Update `packages/ui/src/App.tsx`**
+
+Add three new routes:
+```typescript
+/sanctioning-body/:bodyId    → SanctioningBodyPage
+/venue/:venueId              → VenuePage  
+/calendar/event/:eventId     → EventFullPage
+```
+
+All three pages need access to `gameData` (the loaded JSON data) and `saveId` (for SQLite queries). Pass via Zustand store or React context — do not prop drill.
+
+**Update `packages/ui/src/store/gameStore.ts`**
+
+Add `gameData: GameData | null` to the store if not already present. Calendar pages need access to the raw JSON data (venue descriptions, sanctioning body rules etc) without IPC round trips for static data.
 
 ---
 
 ### Definition Of Done
-- [ ] All `club_tournament` → `club_card` renames complete in data and code
-- [ ] All `regional_open` → `regional_tournament` renames complete
-- [ ] `pnpm typecheck` clean after rename
-- [ ] All 79 existing tests still passing after rename
-- [ ] Calendar grid shows multi-day events as spanning pills
-- [ ] Day continuation pills have correct D1/D2/D3 indicators
-- [ ] Event detail panel shows day schedule for multi-day events
-- [ ] Circuit level badges updated with new labels and colours
-- [ ] Club card detail tone is informal
-- [ ] Olympics detail panel enhanced with gold treatment
-- [ ] `pnpm dev` — calendar looks correct, multi-day events visible
-- [ ] `docs/data-registry.md` updated if any new files created
-- [ ] `docs/structure.md` updated if any new files created
+- [ ] `regional_tournament` — `multiDay: false`, no day schedule in detail panel
+- [ ] Day cell colour split — cells background-tinted by event circuit colours
+- [ ] Invisible scrollbar applied globally
+- [ ] Click outside closes 75/25 panel
+- [ ] Calendar navigation capped at last generated event month
+- [ ] Future Landmarks section in sidebar — Olympics and World Championships
+- [ ] Upcoming events panel shows "Club Card" not "Club Tournament"
+- [ ] Sanctioning body names render as hover-underline links
+- [ ] Venue names render as hover-underline links
+- [ ] Sanctioning body page — rules table, titles, governed events
+- [ ] Venue page — image, description, upcoming/past events from SQLite
+- [ ] Event full page — accessible from 75/25 "View Full Details" button
+- [ ] Event full page — venue image, bracket placeholder, history, why it matters
+- [ ] Olympics "Why It Matters" has gold treatment
+- [ ] Three new routes registered in App.tsx
+- [ ] `gameData` accessible in store for new pages
+- [ ] `pnpm dev` — all three pages navigate correctly
+- [ ] `pnpm typecheck` clean
+- [ ] `pnpm test` passing
+- [ ] `docs/structure.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: circuit level rename + calendar multi-day UI`
+- [ ] Committed: `feat: calendar qol + sanctioning body + venue + event pages`
 
 ### Notes
-- Read frontend-design skill before touching any UI code
-- Rename first, UI second — do not mix them
-- TypeScript will catch most missed renames if CircuitLevel union is updated first
-- Club card has no bracket — never show bracket UI elements for club_card events
-- Multi-day spanning pills: if days span a week boundary in the grid, show continuation at start of new row
-- Day schedule dates: calculate real dates from year + week number + day of week
+- Venue and sanctioning body links are text links not buttons — hover underline only
+- Overlay for click-outside must sit behind the panel but in front of the calendar
+- Future Landmarks are not calendar events — pulled from circuit data nextOccurrence
+- All SQLite queries for past/upcoming events use saveId from the store
+- Empty states on history sections are expected — they fill as the game progresses
+- "View Full Details" button in 75/25 panel navigates to /calendar/event/:eventId
+- Back navigation must return to calendar at the same month — store current month/year in URL params or store
