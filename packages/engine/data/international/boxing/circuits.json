@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "International amateur boxing circuit levels. frequencyYears drives when the engine generates this event — after each running the engine adds frequencyYears to produce the next scheduled year. nextOccurrence is the next year this event is due. Selection events work via application: a fighter applies, the federation evaluates all applicants against the declared field and eligibility criteria, then publishes the accepted list. Rejection arrives as federation news in the player inbox, not a direct notification. Domestic Latvian circuit levels (club_tournament, regional_open, national_championship) live in nations/latvia/boxing/amateur-circuit.json."
   },
   "circuitLevels": [

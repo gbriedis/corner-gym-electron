@@ -5,15 +5,23 @@ import SideNav from './SideNav'
 interface Props {
   title?: string
   children: ReactNode
+  // activeNav and onNavigate allow callers to control navigation —
+  // screens that handle cross-screen routing (e.g. Calendar) provide
+  // their own values; screens that stay self-contained omit them.
+  activeNav?: string
+  onNavigate?: (id: string) => void
 }
 
-export default function GameShell({ title = '', children }: Props): JSX.Element {
-  const [activeNav, setActiveNav] = useState('gym')
+export default function GameShell({ title = '', children, activeNav: activeNavProp, onNavigate: onNavigateProp }: Props): JSX.Element {
+  const [internalNav, setInternalNav] = useState('gym')
+
+  const activeNav = activeNavProp ?? internalNav
+  const handleNavigate = onNavigateProp ?? setInternalNav
 
   return (
     <div style={{ width: '100vw', height: '100vh', backgroundColor: 'var(--color-bg-dark)' }}>
       <TopBar title={title} />
-      <SideNav activeItem={activeNav} onNavigate={setActiveNav} />
+      <SideNav activeItem={activeNav} onNavigate={handleNavigate} />
 
       {/* Main content area — offset from TopBar and SideNav, scrollable */}
       <main

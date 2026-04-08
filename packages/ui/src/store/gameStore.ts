@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { WorldState, Person } from '@corner-gym/engine'
 
-type Screen = 'mainMenu' | 'newGame' | 'loadGame' | 'loading' | 'game'
+type Screen = 'mainMenu' | 'newGame' | 'loadGame' | 'loading' | 'game' | 'calendar'
 
 interface GameStore {
   worldState: WorldState | null

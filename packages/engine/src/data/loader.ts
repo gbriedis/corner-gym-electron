@@ -13,7 +13,7 @@
 // drop the folder in, restart. No engine code changes required.
 // This is the foundation for future mod support.
 
-import { readFileSync, readdirSync } from 'fs'
+import { readFileSync, readdirSync, existsSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -33,6 +33,11 @@ import type {
   CoachVoiceAttributesData,
   CoachVoicePhysicalData,
   CoachVoiceGiftsFlawsData,
+  SanctioningBodiesData,
+  AmateurCircuitData,
+  EventTemplatesData,
+  VenuesData,
+  InternationalCircuitsData,
 } from '../types/data/index.js'
 
 // DATA_ROOT resolves relative to this compiled file's location on disk.
@@ -51,6 +56,16 @@ function load<T>(relativePath: string): T {
   }
 }
 
+// NationBoxingData holds all boxing files for a single nation.
+// Optional on NationBundle — nations can exist without a boxing scene.
+// Adding boxing to a nation is: drop the boxing/ folder in, restart.
+export interface NationBoxingData {
+  sanctioningBodies: SanctioningBodiesData
+  amateurCircuit: AmateurCircuitData
+  eventTemplates: EventTemplatesData
+  venues: VenuesData
+}
+
 // NationBundle holds all data for a single loaded nation.
 // The structure is identical regardless of which nation it is —
 // any nation folder with the standard files becomes a valid bundle.
@@ -64,6 +79,20 @@ export interface NationBundle {
     attributes: CoachVoiceAttributesData
     physicalStats: CoachVoicePhysicalData
     giftsAndFlaws: CoachVoiceGiftsFlawsData
+  }
+  // boxing is undefined when the nation has no boxing/ folder — not an error.
+  boxing?: NationBoxingData
+}
+
+// InternationalData holds shared data that is not nation-specific.
+// International boxing bodies, circuits, and venues are referenced by
+// any nation that participates in those events.
+export interface InternationalData {
+  boxing: {
+    sanctioningBodies: SanctioningBodiesData
+    circuits: InternationalCircuitsData
+    eventTemplates: EventTemplatesData
+    venues: VenuesData
   }
 }
 
@@ -98,7 +127,22 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
     )
   }
 
-  return {
+  // Boxing data is optional — a nation without a boxing/ folder is valid.
+  // We check for the folder before attempting any loads so missing boxing
+  // produces undefined rather than a hard error. This allows new nations to
+  // be added incrementally without requiring boxing data on day one.
+  const boxingDir = join(base, 'boxing')
+  let boxing: NationBoxingData | undefined
+  if (existsSync(boxingDir)) {
+    boxing = {
+      sanctioningBodies: loadFile<SanctioningBodiesData>('boxing/sanctioning-bodies.json'),
+      amateurCircuit: loadFile<AmateurCircuitData>('boxing/amateur-circuit.json'),
+      eventTemplates: loadFile<EventTemplatesData>('boxing/event-templates.json'),
+      venues: loadFile<VenuesData>('boxing/venues.json'),
+    }
+  }
+
+  const bundle: NationBundle = {
     nation,
     cities: loadFile<CitiesData>('cities.json'),
     names: loadFile<NamesData>('names.json'),
@@ -110,6 +154,14 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
       giftsAndFlaws: loadFile<CoachVoiceGiftsFlawsData>('coach-voice/gifts-and-flaws.json'),
     },
   }
+
+  // Conditionally assign so exactOptionalPropertyTypes is satisfied —
+  // the field must be absent (not undefined) when boxing data does not exist.
+  if (boxing !== undefined) {
+    bundle.boxing = boxing
+  }
+
+  return bundle
 }
 
 // loadNationsFromDir scans a directory for nation subfolders and loads each one.
@@ -140,6 +192,7 @@ export interface GameData {
   giftsAndFlaws: GiftsAndFlawsData
   developmentProfiles: DevelopmentProfilesData
   nations: Record<string, NationBundle>
+  international: InternationalData
 }
 
 // loadGameData is called once when the engine initialises.
@@ -154,5 +207,13 @@ export function loadGameData(): GameData {
     giftsAndFlaws: load<GiftsAndFlawsData>('universal/gifts-and-flaws.json'),
     developmentProfiles: load<DevelopmentProfilesData>('universal/development-profiles.json'),
     nations: loadNationsFromDir(join(DATA_ROOT, 'nations')),
+    international: {
+      boxing: {
+        sanctioningBodies: load<SanctioningBodiesData>('international/boxing/sanctioning-bodies.json'),
+        circuits: load<InternationalCircuitsData>('international/boxing/circuits.json'),
+        eventTemplates: load<EventTemplatesData>('international/boxing/event-templates.json'),
+        venues: load<VenuesData>('international/boxing/venues.json'),
+      },
+    },
   }
 }

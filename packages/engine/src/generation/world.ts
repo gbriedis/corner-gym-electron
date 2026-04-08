@@ -17,12 +17,14 @@
 
 import { createRng } from '../utils/rng.js'
 import { generatePerson } from './person.js'
+import { generateCalendar } from './calendar.js'
 
 import type { GameData } from '../data/loader.js'
 import type { GameConfig } from '../types/gameConfig.js'
 import { resolveModifiers } from '../types/gameConfig.js'
 import type { WorldState, NationState, CityState, GymState } from '../types/worldState.js'
 import type { Person } from '../types/person.js'
+import type { CalendarEvent } from '../types/calendar.js'
 
 // Non-player gym name templates — deterministic pick via RNG, not hardcoded data,
 // because gym names are presentation layer and not simulation-critical values.
@@ -39,7 +41,7 @@ const GYM_NAME_TEMPLATES = [
 export function generateWorld(
   config: GameConfig,
   data: GameData,
-): { worldState: WorldState; persons: Person[] } {
+): { worldState: WorldState; persons: Person[]; calendar: CalendarEvent[] } {
   // Step 1 — Initialise RNG from config.seed.
   // Seeding here ensures reproducibility: given the same config.seed,
   // every nation, city, person, and gym is generated identically.
@@ -165,7 +167,22 @@ export function generateWorld(
     nations,
     cities,
     gyms,
+    // Rotation indices start at 0 — first national championship will use index 0
+    // of its hostCityRotation. The calendar generator increments and stores back here.
+    rotationIndices: {},
   }
 
-  return { worldState, persons: allPersons }
+  // Generate the calendar after world state is assembled so rotationIndices
+  // can be updated in place on the worldState during generation.
+  // Start at week 1 — the game always begins at the start of the year.
+  const calendar = generateCalendar(
+    config.startYear,
+    1,
+    config,
+    data,
+    rng,
+    worldState,
+  )
+
+  return { worldState, persons: allPersons, calendar }
 }

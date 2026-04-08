@@ -16,6 +16,7 @@
 | [x] | `packages/engine/src/types/person.ts` |
 | [x] | `packages/engine/src/types/gameConfig.ts` |
 | [x] | `packages/engine/src/types/worldState.ts` |
+| [x] | `packages/engine/src/types/calendar.ts` |
 | [ ] | `packages/engine/src/types/fighter.ts` |
 | [ ] | `packages/engine/src/types/gym.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
@@ -27,6 +28,7 @@
 | State | File |
 |-------|------|
 | [x] | `packages/engine/src/types/data/index.ts` |
+| [x] | `packages/engine/src/types/data/boxing.ts` |
 | [x] | `packages/engine/src/types/data/meta.ts` |
 | [x] | `packages/engine/src/types/data/soulTraits.ts` |
 | [x] | `packages/engine/src/types/data/attributes.ts` |
@@ -53,6 +55,7 @@
 |-------|------|
 | [x] | `packages/engine/src/generation/person.ts` |
 | [x] | `packages/engine/src/generation/world.ts` |
+| [x] | `packages/engine/src/generation/calendar.ts` |
 
 ## Engine — Loop
 | State | File |

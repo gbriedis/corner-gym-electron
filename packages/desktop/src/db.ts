@@ -11,9 +11,8 @@ import { randomUUID } from 'crypto'
 import { join } from 'path'
 import { app } from 'electron'
 
-import type { WorldState } from '@corner-gym/engine'
-import type { Person } from '@corner-gym/engine'
-import type { GameConfig } from '@corner-gym/engine'
+import type { WorldState, Person, GameConfig } from '@corner-gym/engine'
+import type { CalendarEvent, EventStatus } from '@corner-gym/engine'
 
 export interface SaveSummary {
   id: string
@@ -72,6 +71,24 @@ export function openDb(): Database.Database {
       gymId TEXT,
       nationId TEXT NOT NULL,
       age INTEGER NOT NULL,
+      PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS calendar_events (
+      id TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      templateId TEXT NOT NULL,
+      circuitLevel TEXT NOT NULL,
+      label TEXT NOT NULL,
+      venueId TEXT NOT NULL,
+      cityId TEXT NOT NULL,
+      nationId TEXT NOT NULL,
+      year INTEGER NOT NULL,
+      week INTEGER NOT NULL,
+      weightClasses TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      boutIds TEXT NOT NULL DEFAULT '[]',
       PRIMARY KEY (id, saveId),
       FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
     );
@@ -188,4 +205,124 @@ export function listSaves(db: Database.Database): SaveSummary[] {
 // ON DELETE CASCADE handles the child rows automatically.
 export function deleteSave(db: Database.Database, saveId: string): void {
   db.prepare('DELETE FROM saves WHERE id = ?').run(saveId)
+}
+
+// saveCalendar inserts all calendar events for a save in a single transaction.
+// weightClasses and boutIds are serialised as JSON arrays — SQLite has no array type,
+// and JSON serialisation keeps reconstruction trivial without a join table.
+export function saveCalendar(
+  db: Database.Database,
+  saveId: string,
+  events: CalendarEvent[],
+): void {
+  const insert = db.prepare(`
+    INSERT INTO calendar_events
+      (id, saveId, templateId, circuitLevel, label, venueId, cityId, nationId,
+       year, week, weightClasses, status, boutIds)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  db.transaction(() => {
+    for (const e of events) {
+      insert.run(
+        e.id, saveId, e.templateId, e.circuitLevel, e.label,
+        e.venueId, e.cityId, e.nationId,
+        e.year, e.week,
+        JSON.stringify(e.weightClasses),
+        e.status,
+        JSON.stringify(e.boutIds),
+      )
+    }
+  })()
+}
+
+// loadCalendar returns all calendar events for a save ordered by year then week.
+export function loadCalendar(
+  db: Database.Database,
+  saveId: string,
+): CalendarEvent[] {
+  type Row = {
+    id: string; templateId: string; circuitLevel: string; label: string
+    venueId: string; cityId: string; nationId: string
+    year: number; week: number
+    weightClasses: string; status: string; boutIds: string
+  }
+  const rows = db
+    .prepare('SELECT * FROM calendar_events WHERE saveId = ? ORDER BY year, week')
+    .all(saveId) as Row[]
+
+  return rows.map(r => ({
+    id: r.id,
+    templateId: r.templateId,
+    circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
+    label: r.label,
+    venueId: r.venueId,
+    cityId: r.cityId,
+    nationId: r.nationId,
+    year: r.year,
+    week: r.week,
+    weightClasses: JSON.parse(r.weightClasses) as string[],
+    status: r.status as EventStatus,
+    boutIds: JSON.parse(r.boutIds) as string[],
+  }))
+}
+
+// getUpcomingEvents returns calendar events within weeksAhead of the current position.
+// Used by the Calendar screen to show a forward-looking event list.
+export function getUpcomingEvents(
+  db: Database.Database,
+  saveId: string,
+  currentWeek: number,
+  currentYear: number,
+  weeksAhead: number,
+): CalendarEvent[] {
+  // Convert week position to a comparable integer (year * 100 + week).
+  // This allows a simple numeric comparison across year boundaries without
+  // needing date arithmetic — the range [currentPos, currentPos + weeksAhead]
+  // is approximate but sufficient for the UI's forward-view window.
+  const currentPos = currentYear * 100 + currentWeek
+  const endYear = Math.floor((currentPos + weeksAhead) / 100)
+  const endWeek = (currentPos + weeksAhead) % 100
+
+  type Row = {
+    id: string; templateId: string; circuitLevel: string; label: string
+    venueId: string; cityId: string; nationId: string
+    year: number; week: number
+    weightClasses: string; status: string; boutIds: string
+  }
+
+  const rows = db.prepare(`
+    SELECT * FROM calendar_events
+    WHERE saveId = ?
+      AND ((year = ? AND week >= ?) OR (year > ? AND year < ?) OR (year = ? AND week <= ?))
+    ORDER BY year, week
+  `).all(saveId, currentYear, currentWeek, currentYear, endYear, endYear, endWeek) as Row[]
+
+  return rows.map(r => ({
+    id: r.id,
+    templateId: r.templateId,
+    circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
+    label: r.label,
+    venueId: r.venueId,
+    cityId: r.cityId,
+    nationId: r.nationId,
+    year: r.year,
+    week: r.week,
+    weightClasses: JSON.parse(r.weightClasses) as string[],
+    status: r.status as EventStatus,
+    boutIds: JSON.parse(r.boutIds) as string[],
+  }))
+}
+
+// updateEventStatus changes the status of a single calendar event.
+// Called by the simulation when an event transitions through its lifecycle.
+export function updateEventStatus(
+  db: Database.Database,
+  saveId: string,
+  eventId: string,
+  status: EventStatus,
+): void {
+  db.prepare(
+    'UPDATE calendar_events SET status = ? WHERE id = ? AND saveId = ?',
+  ).run(status, eventId, saveId)
 }

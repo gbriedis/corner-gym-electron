@@ -95,6 +95,7 @@ corner-gym/
     │       │   ├── event.ts           # GameEvent stub
     │       │   ├── bout.ts            # Bout stub
     │       │   ├── moment.ts          # Moment stub
+    │       │   ├── calendar.ts        # CalendarEvent, CalendarData, EventStatus
     │       │   ├── worldState.ts      # WorldState, GymState, CityState, NationState
     │       │   ├── gameConfig.ts      # GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings
     │       │   └── data/              # TypeScript interfaces for every data file
@@ -112,16 +113,19 @@ corner-gym/
     │       │       ├── economicStatuses.ts
     │       │       ├── reasonsForBoxing.ts
     │       │       ├── coachVoice.ts
-    │       │       └── developmentProfiles.ts
+    │       │       ├── developmentProfiles.ts
+    │       │       └── boxing.ts      # All boxing data types — sanctioning bodies, circuits, templates, venues
     │       ├── data/
-    │       │   └── loader.ts          # loadGameData() — loads all JSON at startup into typed GameData
+    │       │   └── loader.ts          # loadGameData() — GameData + NationBoxingData + InternationalData
     │       ├── utils/
     │       │   └── rng.ts             # Seeded deterministic RNG (mulberry32)
     │       ├── generation/
     │       │   ├── person.ts          # generatePerson — full Person from data + seed
     │       │   ├── person.test.ts     # 37 tests
-    │       │   ├── world.ts           # generateWorld — WorldState + Person[] from GameConfig + GameData
-    │       │   └── world.test.ts      # 16 tests — determinism, person count, player gym, tier population, empty modifiers
+    │       │   ├── world.ts           # generateWorld — WorldState + Person[] + CalendarEvent[]
+    │       │   ├── world.test.ts      # 16 tests
+    │       │   ├── calendar.ts        # generateCalendar — CalendarEvent[] from templates + world state
+    │       │   └── calendar.test.ts   # 12 tests — November constraint, Olympic gating, collision, determinism
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │
@@ -132,8 +136,8 @@ corner-gym/
     │   └── src/
     │       ├── main.ts                # BrowserWindow creation, opens DB, wires IPC
     │       ├── preload.cts            # contextBridge — exposes electronAPI to renderer (CJS forced via .cts)
-    │       ├── ipc.ts                 # IPC handlers: get-new-game-options, generate-and-save, load-save, list-saves, delete-save
-    │       └── db.ts                  # SQLite layer — openDb, createSave, loadSave, listSaves, deleteSave
+    │       ├── ipc.ts                 # IPC handlers: + get-upcoming-events
+    │       └── db.ts                  # SQLite layer — + calendar_events table, saveCalendar, loadCalendar, getUpcomingEvents, updateEventStatus
     │
     └── ui/                            # React renderer
         ├── package.json               # @corner-gym/ui — depends on engine + zustand
@@ -165,14 +169,16 @@ corner-gym/
             │   ├── Dropdown.tsx                       # Controlled dropdown, keyboard nav, outside-click close
             │   ├── Badge.tsx                          # 7 variants: easy/normal/hard/extreme/gift/flaw/neutral. Selectable
             │   ├── ProgressBar.tsx                    # Animated fill, CSS cubic-bezier transition
+            │   ├── Icon.tsx                           # Thin wrapper around @radix-ui/react-icons — size + colour
             │   └── layout/
             │       ├── TopBar.tsx                     # Fixed 44px bar — logotype, screen title, gym/year
-            │       ├── SideNav.tsx                    # Fixed left nav — 5 items, expand/collapse, active accent
-            │       └── GameShell.tsx                  # Composes TopBar + SideNav + scrollable main
+            │       ├── SideNav.tsx                    # Fixed left nav — 6 items with Radix icons, expand/collapse
+            │       └── GameShell.tsx                  # Composes TopBar + SideNav + scrollable main — controlled nav
             └── screens/
                 ├── MainMenu.tsx       # New Game / Load Game / Quit — grain overlay, Rock Bro title
                 ├── NewGame.tsx        # Player name, gym name, nation, city, difficulty, seed — two-column grid
                 ├── Loading.tsx        # ProgressBar + step/detail text + elapsed timer
                 ├── LoadGame.tsx       # Save list with load and delete (confirm step) actions
-                └── Game.tsx           # Placeholder in GameShell — proves load flow; shows player name, gym, year/week
+                ├── Game.tsx           # Placeholder in GameShell — proves load flow; shows player name, gym, year/week
+                └── Calendar.tsx       # Boxing calendar — events grouped by month, circuit badges, venue + date
 ```

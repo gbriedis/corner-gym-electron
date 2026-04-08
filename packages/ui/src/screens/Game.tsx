@@ -10,6 +10,13 @@ export default function Game(): JSX.Element {
   const clearWorld = useGameStore((s) => s.clearWorld)
   const setScreen = useGameStore((s) => s.setScreen)
 
+  function handleNavigate(id: string): void {
+    if (id === 'calendar') {
+      setScreen('calendar')
+    }
+    // Other nav items — screens not yet implemented are no-ops for now
+  }
+
   if (worldState === null) {
     return (
       <div
@@ -41,7 +48,7 @@ export default function Game(): JSX.Element {
   }
 
   return (
-    <GameShell>
+    <GameShell activeNav="gym" onNavigate={handleNavigate}>
       <div
         style={{
           display: 'flex',

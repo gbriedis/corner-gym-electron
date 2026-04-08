@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "Boxing venues located in Latvia, covering all domestic circuit tiers: club gyms and city sports halls for club-level tournaments, regional sports complexes for regional opens, and major arenas for the national championship. Venue ids share a global namespace with international/boxing/venues.json — all venue files are loaded together and ids must be unique across the set. Domestic event-templates reference ids from this file; international event-templates (Baltic Championship) may also reference Latvian arenas when Latvia hosts."
   },
   "venues": [

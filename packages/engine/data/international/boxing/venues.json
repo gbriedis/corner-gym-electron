@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "Non-Latvian boxing venues used for Baltic, European, World, and Olympic events. Capacities are real-world figures verified against public records. Latvian venues live in nations/latvia/boxing/venues.json. All venue files share a global id namespace — ids must be unique across the set. Venues are assigned to events at generation time by the engine picking from the eligible pool in event-templates.json. Adding a new venue requires only adding an entry to the appropriate file — no engine code changes needed."
   },
   "venues": [

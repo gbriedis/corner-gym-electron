@@ -1,7 +1,7 @@
 // Type declaration for window.electronAPI exposed by the Electron preload script.
 // The renderer never imports from Electron directly — it calls through this typed surface.
 
-import type { GameConfig, WorldState, Person } from '@corner-gym/engine'
+import type { GameConfig, WorldState, Person, CalendarEvent } from '@corner-gym/engine'
 
 export interface SaveSummary {
   id: string
@@ -66,6 +66,7 @@ declare global {
       listSaves(): Promise<SaveSummary[]>
       deleteSave(saveId: string): Promise<void>
       onGenerationProgress(callback: (data: ProgressEvent) => void): () => void
+      getUpcomingEvents(saveId: string, currentWeek: number, currentYear: number): Promise<CalendarEvent[]>
     }
   }
 }

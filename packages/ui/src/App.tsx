@@ -5,6 +5,7 @@ import NewGame from './screens/NewGame'
 import LoadGame from './screens/LoadGame'
 import Loading from './screens/Loading'
 import Game from './screens/Game'
+import Calendar from './screens/Calendar'
 
 export default function App(): JSX.Element {
   const screen = useGameStore((s) => s.currentScreen)
@@ -20,5 +21,7 @@ export default function App(): JSX.Element {
       return <Loading />
     case 'game':
       return <Game />
+    case 'calendar':
+      return <Calendar />
   }
 }

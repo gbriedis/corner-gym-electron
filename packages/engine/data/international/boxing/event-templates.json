@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "Templates for generating international boxing events on the calendar. Read by the event generation system to procedurally create scheduled events — real venues, exact dates, and fighter fields are assigned at generation time. venuePool lists venue ids eligible to host this event type. Club tournaments have no venue pool (city sports halls, not specific named venues). National championship and above draw from named venues. Event generation logic is not implemented here."
   },
   "eventTemplates": [

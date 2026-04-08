@@ -46,3 +46,24 @@ export type {
   CoachVoicePhysicalData,
   CoachVoiceGiftsFlawsData,
 } from './coachVoice.js'
+
+export type {
+  CircuitLevel,
+  EventFormat,
+  LocationScope,
+  SelectionMethod,
+  BodyLevel,
+  RankingSystem,
+  SanctioningBody,
+  SanctioningBodiesData,
+  CircuitLevelDefinition,
+  AmateurCircuitData,
+  InternationalCircuitsData,
+  BoutCountRange,
+  WeightClassRange,
+  FrequencyRange,
+  EventTemplate,
+  EventTemplatesData,
+  Venue,
+  VenuesData,
+} from './boxing.js'

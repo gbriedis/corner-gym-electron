@@ -3,7 +3,7 @@
 // from components so call sites are easy to stub in tests and easy to find when the
 // IPC contract changes.
 
-import type { GameConfig, WorldState, Person } from '@corner-gym/engine'
+import type { GameConfig, WorldState, Person, CalendarEvent } from '@corner-gym/engine'
 import type { SaveSummary, NewGameOptions, ProgressEvent } from '../electron'
 
 export async function generateAndSave(config: GameConfig): Promise<string> {
@@ -28,4 +28,12 @@ export async function getNewGameOptions(): Promise<NewGameOptions> {
 
 export function onGenerationProgress(callback: (data: ProgressEvent) => void): () => void {
   return window.electronAPI.onGenerationProgress(callback)
+}
+
+export async function getUpcomingEvents(
+  saveId: string,
+  currentWeek: number,
+  currentYear: number,
+): Promise<CalendarEvent[]> {
+  return window.electronAPI.getUpcomingEvents(saveId, currentWeek, currentYear)
 }

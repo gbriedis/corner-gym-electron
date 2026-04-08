@@ -31,4 +31,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('generation-progress', listener)
     }
   },
+
+  getUpcomingEvents: (saveId: string, currentWeek: number, currentYear: number) =>
+    ipcRenderer.invoke('get-upcoming-events', saveId, currentWeek, currentYear),
 })

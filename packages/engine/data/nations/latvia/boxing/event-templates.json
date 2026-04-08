@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "Templates for generating domestic Latvian boxing events on the calendar. These shapes are read by the event generation system to procedurally create events — real cities, dates, and fighter fields are assigned at generation time. Event generation logic is not implemented here. hostCityRotation on the national championship drives actual host city rotation; the current index is tracked in world state and advanced after each running of the event. venuePool lists eligible venue ids; the engine filters by the event's host city at generation time so only venues in the right city are considered."
   },
   "eventTemplates": [

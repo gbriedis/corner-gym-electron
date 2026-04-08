@@ -12,7 +12,7 @@ import type Database from 'better-sqlite3'
 import type { GameConfig } from '@corner-gym/engine'
 
 import { loadGameData, generateWorld } from '@corner-gym/engine'
-import { createSave, loadSave, listSaves, deleteSave } from './db.js'
+import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents } from './db.js'
 
 // ESM does not have __dirname — derive it from import.meta.url.
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -88,10 +88,11 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
     }
 
     emit('Generating world', 'Building gyms and world state…', startMs)
-    const { worldState, persons } = generateWorld(config, data)
+    const { worldState, persons, calendar } = generateWorld(config, data)
 
     emit('Saving to database', 'Writing save file…', startMs)
     const saveId = createSave(db, worldState, persons, config)
+    saveCalendar(db, saveId, calendar)
 
     emit('Done', `Save created in ${Date.now() - startMs}ms`, startMs)
 
@@ -115,5 +116,12 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
   // Removes a save and all associated data from the database.
   ipcMain.handle('delete-save', (_event, saveId: string) => {
     deleteSave(db, saveId)
+  })
+
+  // ipc: get-upcoming-events
+  // Returns calendar events for the next 52 weeks from the current position.
+  // Used by the Calendar screen to show a full-year forward view.
+  ipcMain.handle('get-upcoming-events', (_event, saveId: string, currentWeek: number, currentYear: number) => {
+    return getUpcomingEvents(db, saveId, currentWeek, currentYear, 52)
   })
 }

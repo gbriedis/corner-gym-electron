@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "Domestic Latvian amateur boxing circuit levels. This file covers domestic tiers only: club tournaments, regional opens, and the national championship. Baltic, European, World, and Olympic circuits live in international/boxing/circuits.json. minimumBouts is a soft matchmaking guide — the engine uses it to generate realistic competition fields but a coach can apply any eligible fighter to any sanctioned event. Selection events (national championship) use application-based entry — the LBF publishes the accepted fighters list; rejection arrives as a federation statement in the inbox.",
     "scope": "national",
     "nation": "latvia"

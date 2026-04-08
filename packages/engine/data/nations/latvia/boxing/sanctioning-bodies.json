@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "Domestic boxing sanctioning bodies in Latvia. This file covers national-level bodies only. International bodies (EUBC, IBA) live in international/boxing/sanctioning-bodies.json. LBF affiliates upward to EUBC, which affiliates to IBA.",
     "scope": "national",
     "nation": "latvia"

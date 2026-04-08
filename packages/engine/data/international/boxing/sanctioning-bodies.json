@@ -1,5 +1,5 @@
 {
-  "_meta": {
+  "meta": {
     "description": "International boxing sanctioning bodies shared across all nations. Any nation bundle can reference these ids without modifying this file. Adding a new nation to the game does not require editing this file — domestic nation files affiliate upward to the relevant body id here."
   },
   "sanctioningBodies": [

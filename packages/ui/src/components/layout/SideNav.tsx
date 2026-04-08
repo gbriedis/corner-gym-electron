@@ -1,17 +1,29 @@
 import { useState, type JSX } from 'react'
+import {
+  HomeIcon,
+  PersonIcon,
+  EnvelopeClosedIcon,
+  GlobeIcon,
+  BarChartIcon,
+  CalendarIcon,
+} from '@radix-ui/react-icons'
+import Icon from '../Icon'
+
+import type { IconProps } from '@radix-ui/react-icons/dist/types'
 
 type NavItem = {
   id: string
   label: string
-  icon: string
+  icon: React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'gym',      label: 'Gym',      icon: '⬡' },
-  { id: 'fighters', label: 'Fighters', icon: '◈' },
-  { id: 'inbox',    label: 'Inbox',    icon: '◻' },
-  { id: 'world',    label: 'World',    icon: '◎' },
-  { id: 'finances', label: 'Finances', icon: '◇' },
+  { id: 'gym',      label: 'Gym',      icon: HomeIcon },
+  { id: 'fighters', label: 'Fighters', icon: PersonIcon },
+  { id: 'inbox',    label: 'Inbox',    icon: EnvelopeClosedIcon },
+  { id: 'world',    label: 'World',    icon: GlobeIcon },
+  { id: 'finances', label: 'Finances', icon: BarChartIcon },
+  { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
 ]
 
 interface Props {
@@ -68,6 +80,9 @@ export default function SideNav({ activeItem, onNavigate }: Props): JSX.Element 
       {/* Nav items */}
       {NAV_ITEMS.map((item) => {
         const isActive = item.id === activeItem
+        const iconColor = isActive
+          ? 'var(--color-accent-amber)'
+          : 'var(--color-text-muted)'
         return (
           <button
             key={item.id}
@@ -81,7 +96,6 @@ export default function SideNav({ activeItem, onNavigate }: Props): JSX.Element 
               color: isActive ? 'var(--color-accent-amber)' : 'var(--color-text-muted)',
               backgroundColor: 'transparent',
               border: 'none',
-              // Left accent bar for active item
               borderLeft: isActive
                 ? '3px solid var(--color-accent-amber)'
                 : '3px solid transparent',
@@ -96,8 +110,8 @@ export default function SideNav({ activeItem, onNavigate }: Props): JSX.Element 
               width: '100%',
             }}
           >
-            <span style={{ fontSize: '14px', flexShrink: 0, width: '18px', textAlign: 'center' }}>
-              {item.icon}
+            <span style={{ flexShrink: 0, width: '18px', display: 'flex', justifyContent: 'center' }}>
+              <Icon icon={item.icon} size="md" color={iconColor} />
             </span>
             {expanded && <span>{item.label}</span>}
           </button>

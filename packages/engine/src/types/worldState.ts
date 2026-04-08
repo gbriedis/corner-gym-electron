@@ -36,4 +36,8 @@ export interface WorldState {
   cities: Record<string, CityState>
   gyms: Record<string, GymState>
   // persons stored separately in SQLite persons table — not embedded here
+  // rotationIndices tracks the current host-city rotation position for each
+  // event template that uses hostCityRotation (keyed by templateId).
+  // Stored in WorldState so the index survives save/load cycles.
+  rotationIndices: Record<string, number>
 }
