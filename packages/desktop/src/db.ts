@@ -13,6 +13,7 @@ import { app } from 'electron'
 
 import type { WorldState, Person, GameConfig } from '@corner-gym/engine'
 import type { CalendarEvent, EventStatus } from '@corner-gym/engine'
+import type { Bout, BoutResult, Card, TournamentBracket, MultiDayEvent } from '@corner-gym/engine'
 
 export interface SaveSummary {
   id: string
@@ -93,6 +94,56 @@ export function openDb(): Database.Database {
       status TEXT NOT NULL DEFAULT 'scheduled',
       boutIds TEXT NOT NULL DEFAULT '[]',
       PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS bouts (
+      id TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      eventId TEXT NOT NULL,
+      circuitLevel TEXT NOT NULL,
+      weightClassId TEXT NOT NULL,
+      ageCategoryId TEXT NOT NULL,
+      fighterAId TEXT NOT NULL,
+      fighterBId TEXT NOT NULL,
+      gymAId TEXT NOT NULL,
+      gymBId TEXT NOT NULL,
+      scheduledRounds INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      result TEXT,
+      PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS cards (
+      id TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      eventId TEXT NOT NULL,
+      boutIds TEXT NOT NULL DEFAULT '[]',
+      visibility TEXT NOT NULL DEFAULT 'private',
+      PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS tournament_brackets (
+      id TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      eventId TEXT NOT NULL,
+      weightClassId TEXT NOT NULL,
+      ageCategoryId TEXT NOT NULL,
+      entrants TEXT NOT NULL DEFAULT '[]',
+      rounds TEXT NOT NULL DEFAULT '[]',
+      winnerId TEXT,
+      status TEXT NOT NULL DEFAULT 'open',
+      PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS multi_day_events (
+      eventId TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      days TEXT NOT NULL DEFAULT '[]',
+      PRIMARY KEY (eventId, saveId),
       FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
     );
   `)
@@ -362,4 +413,122 @@ export function updateEventStatus(
   db.prepare(
     'UPDATE calendar_events SET status = ? WHERE id = ? AND saveId = ?',
   ).run(status, eventId, saveId)
+}
+
+// saveBout persists a single bout. result is serialised as JSON so the flexible
+// BoutResult shape can be stored without a separate table.
+export function saveBout(db: Database.Database, saveId: string, bout: Bout): void {
+  db.prepare(`
+    INSERT OR REPLACE INTO bouts
+      (id, saveId, eventId, circuitLevel, weightClassId, ageCategoryId,
+       fighterAId, fighterBId, gymAId, gymBId, scheduledRounds, status, result)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    bout.id, saveId, bout.eventId, bout.circuitLevel, bout.weightClassId,
+    bout.ageCategoryId, bout.fighterAId, bout.fighterBId, bout.gymAId, bout.gymBId,
+    bout.scheduledRounds, bout.status,
+    bout.result !== undefined ? JSON.stringify(bout.result) : null,
+  )
+}
+
+// getBout retrieves a single bout by id, deserialising result from JSON.
+export function getBout(db: Database.Database, saveId: string, boutId: string): Bout | null {
+  type Row = {
+    id: string; eventId: string; circuitLevel: string; weightClassId: string
+    ageCategoryId: string; fighterAId: string; fighterBId: string
+    gymAId: string; gymBId: string; scheduledRounds: number
+    status: string; result: string | null
+  }
+  const row = db
+    .prepare('SELECT * FROM bouts WHERE id = ? AND saveId = ?')
+    .get(boutId, saveId) as Row | undefined
+
+  if (row === undefined) return null
+
+  const bout: Bout = {
+    id: row.id,
+    eventId: row.eventId,
+    circuitLevel: row.circuitLevel,
+    weightClassId: row.weightClassId,
+    ageCategoryId: row.ageCategoryId,
+    fighterAId: row.fighterAId,
+    fighterBId: row.fighterBId,
+    gymAId: row.gymAId,
+    gymBId: row.gymBId,
+    scheduledRounds: row.scheduledRounds,
+    status: row.status as Bout['status'],
+  }
+  if (row.result !== null) {
+    bout.result = JSON.parse(row.result) as BoutResult
+  }
+  return bout
+}
+
+// saveCard persists a card. boutIds serialised as JSON array.
+export function saveCard(db: Database.Database, saveId: string, card: Card): void {
+  db.prepare(`
+    INSERT OR REPLACE INTO cards (id, saveId, eventId, boutIds, visibility)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(card.id, saveId, card.eventId, JSON.stringify(card.boutIds), card.visibility)
+}
+
+// saveTournamentBracket persists a bracket. entrants and rounds serialised as JSON.
+export function saveTournamentBracket(
+  db: Database.Database,
+  saveId: string,
+  bracket: TournamentBracket,
+): void {
+  db.prepare(`
+    INSERT OR REPLACE INTO tournament_brackets
+      (id, saveId, eventId, weightClassId, ageCategoryId, entrants, rounds, winnerId, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    bracket.id, saveId, bracket.eventId, bracket.weightClassId, bracket.ageCategoryId,
+    JSON.stringify(bracket.entrants), JSON.stringify(bracket.rounds),
+    bracket.winnerId ?? null, bracket.status,
+  )
+}
+
+// getTournamentBrackets returns all brackets for a given event, ordered by weightClassId.
+export function getTournamentBrackets(
+  db: Database.Database,
+  saveId: string,
+  eventId: string,
+): TournamentBracket[] {
+  type Row = {
+    id: string; eventId: string; weightClassId: string; ageCategoryId: string
+    entrants: string; rounds: string; winnerId: string | null; status: string
+  }
+  const rows = db
+    .prepare('SELECT * FROM tournament_brackets WHERE saveId = ? AND eventId = ? ORDER BY weightClassId')
+    .all(saveId, eventId) as Row[]
+
+  return rows.map(r => {
+    const bracket: TournamentBracket = {
+      id: r.id,
+      eventId: r.eventId,
+      weightClassId: r.weightClassId,
+      ageCategoryId: r.ageCategoryId,
+      entrants: JSON.parse(r.entrants) as TournamentBracket['entrants'],
+      rounds: JSON.parse(r.rounds) as TournamentBracket['rounds'],
+      status: r.status as TournamentBracket['status'],
+    }
+    if (r.winnerId !== null) {
+      bracket.winnerId = r.winnerId
+    }
+    return bracket
+  })
+}
+
+// saveMultiDayEvent persists the day structure for a multi-day event.
+// days is serialised as a JSON array of MultiDaySession objects.
+export function saveMultiDayEvent(
+  db: Database.Database,
+  saveId: string,
+  event: MultiDayEvent,
+): void {
+  db.prepare(`
+    INSERT OR REPLACE INTO multi_day_events (eventId, saveId, days)
+    VALUES (?, ?, ?)
+  `).run(event.eventId, saveId, JSON.stringify(event.days))
 }

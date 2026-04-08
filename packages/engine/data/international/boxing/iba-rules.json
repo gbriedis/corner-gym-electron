@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "description": "IBA rules govern World Championship and Olympic amateur boxing. Only senior (elite) divisions compete at this level. Headgear is not required for elite men — removed to align with professional standards. Olympic bouts use computerised scoring to reduce judge influence; World Championships use standard 10-point must scoring."
+  },
+  "sanctioningBodyId": "iba",
+  "ageCategories": [
+    { "id": "senior", "label": "Senior", "minAge": 18, "maxAge": 40 }
+  ],
+  "circuitRules": [
+    {
+      "circuitLevel": "world_championship",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": false,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "IBA elite senior rules for World Championships. No headgear. Standard 10-point must scoring with five ringside judges."
+    },
+    {
+      "circuitLevel": "olympics",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must_computerised",
+      "headgearRequired": false,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "IBA/IOC elite senior rules for the Olympic Games. No headgear. Computerised scoring system used to reduce the influence of individual judge decisions and increase scoring transparency under broadcast conditions."
+    }
+  ]
+}

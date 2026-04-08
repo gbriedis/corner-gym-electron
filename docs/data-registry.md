@@ -17,11 +17,12 @@
 | [x] | `packages/engine/src/types/gameConfig.ts` |
 | [x] | `packages/engine/src/types/worldState.ts` |
 | [x] | `packages/engine/src/types/calendar.ts` |
+| [x] | `packages/engine/src/types/competition.ts` |
+| [x] | `packages/engine/src/types/index.ts` |
 | [ ] | `packages/engine/src/types/fighter.ts` |
 | [ ] | `packages/engine/src/types/gym.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
 | [ ] | `packages/engine/src/types/event.ts` |
-| [ ] | `packages/engine/src/types/bout.ts` |
 | [ ] | `packages/engine/src/types/moment.ts` |
 
 ## Engine — Data Types
@@ -56,6 +57,7 @@
 | [x] | `packages/engine/src/generation/person.ts` |
 | [x] | `packages/engine/src/generation/world.ts` |
 | [x] | `packages/engine/src/generation/calendar.ts` |
+| [x] | `packages/engine/src/generation/bracket.ts` |
 
 ## Engine — Loop
 | State | File |
@@ -133,6 +135,7 @@
 | [x] | `packages/engine/data/nations/latvia/boxing/amateur-circuit.json` |
 | [x] | `packages/engine/data/nations/latvia/boxing/event-templates.json` |
 | [x] | `packages/engine/data/nations/latvia/boxing/venues.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/lbf-rules.json` |
 
 ## Data — Boxing: International
 | State | File |
@@ -141,6 +144,8 @@
 | [x] | `packages/engine/data/international/boxing/circuits.json` |
 | [x] | `packages/engine/data/international/boxing/event-templates.json` |
 | [x] | `packages/engine/data/international/boxing/venues.json` |
+| [x] | `packages/engine/data/international/boxing/eubc-rules.json` |
+| [x] | `packages/engine/data/international/boxing/iba-rules.json` |
 
 ## Desktop
 | State | File |
@@ -148,7 +153,7 @@
 | [x] | `packages/desktop/src/main.ts` |
 | [x] | `packages/desktop/src/preload.cts` |
 | [x] | `packages/desktop/src/ipc.ts` |
-| [x] | `packages/desktop/src/db.ts` |
+| [x] | `packages/desktop/src/db.ts` — bouts, cards, tournament_brackets, multi_day_events tables + typed functions |
 
 ## UI — Assets & Styles
 | State | File |

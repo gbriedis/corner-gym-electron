@@ -8,6 +8,13 @@ export type { WorldState, GymState, CityState, NationState } from './types/world
 export type { GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings } from './types/gameConfig.js'
 export { resolveModifiers } from './types/gameConfig.js'
 export type { CalendarEvent, CalendarData, EventStatus } from './types/calendar.js'
+export type {
+  Bout, BoutStatus, BoutMethod, BoutResult, JudgeScorecard,
+  Card, CardVisibility,
+  TournamentBracket, TournamentEntrant, TournamentRound,
+  MultiDayEvent, MultiDaySession,
+  RulesData, AgeCategory, CircuitRules, ScoringSystem,
+} from './types/competition.js'
 
 // Generation — exported so desktop can call generateWorld via IPC
 export { generateWorld } from './generation/world.js'

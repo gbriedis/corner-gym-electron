@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "description": "EUBC rules govern all continental amateur competition under the European Boxing Confederation. Rules vary by circuit level and age category. Headgear is not required for elite senior men — EUBC removed this requirement in 2013 to align with professional standards and increase Olympic broadcast appeal. Junior and youth categories retain headgear."
+  },
+  "sanctioningBodyId": "eubc",
+  "ageCategories": [
+    { "id": "junior", "label": "Junior", "minAge": 13, "maxAge": 14 },
+    { "id": "youth", "label": "Youth", "minAge": 15, "maxAge": 17 },
+    { "id": "senior", "label": "Senior", "minAge": 18, "maxAge": 40 }
+  ],
+  "circuitRules": [
+    {
+      "circuitLevel": "baltic_championship",
+      "ageCategory": "junior",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "EUBC junior rules for Baltic Championship. Headgear required for all junior competition."
+    },
+    {
+      "circuitLevel": "baltic_championship",
+      "ageCategory": "youth",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "EUBC youth rules for Baltic Championship. Headgear required for all youth competition."
+    },
+    {
+      "circuitLevel": "baltic_championship",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": false,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "EUBC elite senior rules for Baltic Championship. Headgear not required — EUBC removed this requirement for senior men in 2013."
+    },
+    {
+      "circuitLevel": "european_championship",
+      "ageCategory": "junior",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "EUBC junior rules for European Championships. Headgear required for all junior competition."
+    },
+    {
+      "circuitLevel": "european_championship",
+      "ageCategory": "youth",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "EUBC youth rules for European Championships. Headgear required for all youth competition."
+    },
+    {
+      "circuitLevel": "european_championship",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": false,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "EUBC elite senior rules for European Championships. Headgear not required for senior men."
+    }
+  ]
+}

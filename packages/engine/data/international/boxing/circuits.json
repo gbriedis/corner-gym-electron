@@ -9,6 +9,12 @@
       "prestige": 5,
       "sanctioningBody": "eubc",
       "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Quarterfinals", "roundNumber": 1 },
+        { "day": 2, "label": "Semifinals", "roundNumber": 2 },
+        { "day": 3, "label": "Finals", "roundNumber": 3 }
+      ],
       "typicalMonths": [3, 4, 5],
       "locationScope": "international",
       "minimumBouts": 10,
@@ -24,6 +30,13 @@
       "prestige": 8,
       "sanctioningBody": "eubc",
       "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Round of 16", "roundNumber": 1 },
+        { "day": 2, "label": "Quarterfinals", "roundNumber": 2 },
+        { "day": 3, "label": "Semifinals", "roundNumber": 3 },
+        { "day": 4, "label": "Finals", "roundNumber": 4 }
+      ],
       "typicalMonths": [3, 4, 5, 6],
       "locationScope": "international",
       "minimumBouts": 15,
@@ -39,6 +52,13 @@
       "prestige": 9,
       "sanctioningBody": "iba",
       "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Round of 16", "roundNumber": 1 },
+        { "day": 2, "label": "Quarterfinals", "roundNumber": 2 },
+        { "day": 3, "label": "Semifinals", "roundNumber": 3 },
+        { "day": 4, "label": "Finals", "roundNumber": 4 }
+      ],
       "typicalMonths": [4, 5, 6, 9, 10],
       "locationScope": "international",
       "minimumBouts": 20,
@@ -54,6 +74,13 @@
       "prestige": 10,
       "sanctioningBody": "iba",
       "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Round of 16", "roundNumber": 1 },
+        { "day": 2, "label": "Quarterfinals", "roundNumber": 2 },
+        { "day": 3, "label": "Semifinals", "roundNumber": 3 },
+        { "day": 4, "label": "Finals", "roundNumber": 4 }
+      ],
       "typicalMonths": [7, 8],
       "locationScope": "international",
       "minimumBouts": 25,

@@ -78,16 +78,21 @@ corner-gym/
     │   │   │           ├── sanctioning-bodies.json  # LBF — national body, affiliates to EUBC
     │   │   │           ├── amateur-circuit.json     # 3 domestic circuit levels
     │   │   │           ├── event-templates.json     # 3 event templates with venue pools
-    │   │   │           └── venues.json              # 16 Latvian venues — club gyms, regional halls, national arenas
+    │   │   │           ├── venues.json              # 16 Latvian venues — club gyms, regional halls, national arenas
+    │   │   │           └── lbf-rules.json           # LBF bout rules — 3 circuit levels × 3 age categories
     │   │   └── international/
     │   │       └── boxing/
     │   │           ├── sanctioning-bodies.json  # EUBC (continental) + IBA (international)
     │   │           ├── circuits.json            # Baltic, European, World, Olympics circuit levels
     │   │           ├── event-templates.json     # 4 international event templates with venue pools
-    │   │           └── venues.json              # 13 non-Latvian venues — Baltic, European, World/Olympic
+    │   │           ├── venues.json              # 13 non-Latvian venues — Baltic, European, World/Olympic
+    │   │       ├── eubc-rules.json          # EUBC rules — Baltic + European championship levels
+    │   │       └── iba-rules.json           # IBA rules — World Championship + Olympics
     │   └── src/
     │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + advanceWeek
     │       ├── types/
+    │       │   ├── competition.ts     # Bout, Card, TournamentBracket, MultiDayEvent, RulesData — structural containers, no simulation logic
+    │       │   ├── index.ts           # Barrel — re-exports all competition types
     │       │   ├── person.ts          # Person, PhysicalProfile, AttributeValue, HealthValue, GiftFlawAssignment
     │       │   ├── fighter.ts         # Fighter stub
     │       │   ├── gym.ts             # Gym stub
@@ -125,7 +130,9 @@ corner-gym/
     │       │   ├── world.ts           # generateWorld — WorldState + Person[] + CalendarEvent[]
     │       │   ├── world.test.ts      # 16 tests
     │       │   ├── calendar.ts        # generateCalendar — CalendarEvent[] from templates + world state
-    │       │   └── calendar.test.ts   # 12 tests — November constraint, Olympic gating, collision, determinism
+    │       │   ├── calendar.test.ts   # 12 tests — November constraint, Olympic gating, collision, determinism
+    │       │   ├── bracket.ts         # generateBracket — empty TournamentBracket from entrant list + days structure
+    │       │   └── bracket.test.ts    # 14 tests — structure, byes, determinism, seeding, days alignment
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │

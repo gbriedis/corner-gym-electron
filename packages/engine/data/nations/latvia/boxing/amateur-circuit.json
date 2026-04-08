@@ -10,7 +10,7 @@
       "label": "Club Tournament",
       "prestige": 1,
       "sanctioningBody": "lbf",
-      "format": "tournament_bracket",
+      "format": "card",
       "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
       "locationScope": "city",
       "minimumBouts": 0,
@@ -35,6 +35,12 @@
       "prestige": 7,
       "sanctioningBody": "lbf",
       "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Quarterfinals", "roundNumber": 1 },
+        { "day": 2, "label": "Semifinals", "roundNumber": 2 },
+        { "day": 3, "label": "Finals", "roundNumber": 3 }
+      ],
       "typicalMonths": [11],
       "locationScope": "national",
       "minimumBouts": 10,

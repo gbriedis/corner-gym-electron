@@ -70,6 +70,12 @@ export interface SanctioningBodiesData {
   sanctioningBodies: SanctioningBody[]
 }
 
+export interface EventDay {
+  day: number
+  label: string
+  roundNumber: number
+}
+
 export interface CircuitLevelDefinition {
   id: CircuitLevel
   label: string
@@ -85,6 +91,8 @@ export interface CircuitLevelDefinition {
   nextOccurrence?: number
   selectionMethod?: SelectionMethod
   participatingNations?: string[] | 'all'
+  multiDay?: boolean
+  daysStructure?: EventDay[]
   description: string
 }
 

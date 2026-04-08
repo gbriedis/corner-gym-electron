@@ -39,6 +39,7 @@ import type {
   VenuesData,
   InternationalCircuitsData,
 } from '../types/data/index.js'
+import type { RulesData } from '../types/competition.js'
 
 // DATA_ROOT resolves relative to this compiled file's location on disk.
 // From dist/data/loader.js the path ../../data reaches packages/engine/data/.
@@ -64,6 +65,10 @@ export interface NationBoxingData {
   amateurCircuit: AmateurCircuitData
   eventTemplates: EventTemplatesData
   venues: VenuesData
+  // rules is undefined when the nation has no *-rules.json file in boxing/.
+  // A nation can operate without explicit rules data — the engine falls back to
+  // defaults when rules are absent. Latvia uses lbf-rules.json.
+  rules?: RulesData
 }
 
 // NationBundle holds all data for a single loaded nation.
@@ -93,6 +98,8 @@ export interface InternationalData {
     circuits: InternationalCircuitsData
     eventTemplates: EventTemplatesData
     venues: VenuesData
+    eubcRules: RulesData
+    ibaRules: RulesData
   }
 }
 
@@ -134,11 +141,23 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
   const boxingDir = join(base, 'boxing')
   let boxing: NationBoxingData | undefined
   if (existsSync(boxingDir)) {
+    // Scan for a *-rules.json file. A nation may have exactly one rules file
+    // named after its sanctioning body (e.g. lbf-rules.json). If none is found,
+    // rules remains undefined — the engine will fall back to defaults.
+    const rulesFile = readdirSync(boxingDir).find(f => f.endsWith('-rules.json'))
+    const rulesData = rulesFile !== undefined
+      ? loadFile<RulesData>(`boxing/${rulesFile}`)
+      : undefined
+
     boxing = {
       sanctioningBodies: loadFile<SanctioningBodiesData>('boxing/sanctioning-bodies.json'),
       amateurCircuit: loadFile<AmateurCircuitData>('boxing/amateur-circuit.json'),
       eventTemplates: loadFile<EventTemplatesData>('boxing/event-templates.json'),
       venues: loadFile<VenuesData>('boxing/venues.json'),
+    }
+
+    if (rulesData !== undefined) {
+      boxing.rules = rulesData
     }
   }
 
@@ -213,6 +232,8 @@ export function loadGameData(): GameData {
         circuits: load<InternationalCircuitsData>('international/boxing/circuits.json'),
         eventTemplates: load<EventTemplatesData>('international/boxing/event-templates.json'),
         venues: load<VenuesData>('international/boxing/venues.json'),
+        eubcRules: load<RulesData>('international/boxing/eubc-rules.json'),
+        ibaRules: load<RulesData>('international/boxing/iba-rules.json'),
       },
     },
   }

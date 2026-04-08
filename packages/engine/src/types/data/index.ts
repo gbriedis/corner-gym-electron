@@ -50,6 +50,7 @@ export type {
 export type {
   CircuitLevel,
   EventFormat,
+  EventDay,
   LocationScope,
   SelectionMethod,
   BodyLevel,
