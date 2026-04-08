@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type JSX } from 'react'
 import { useGameStore } from '../store/gameStore'
-import { onGenerationProgress, loadSave } from '../ipc/client'
+import { onGenerationProgress, loadSave, getGameData } from '../ipc/client'
 import type { ProgressEvent } from '../electron'
 import ProgressBar from '../components/ProgressBar'
 
@@ -16,6 +16,7 @@ function stepToPercent(step: string): number {
 export default function Loading(): JSX.Element {
   const setScreen = useGameStore((s) => s.setScreen)
   const loadWorld = useGameStore((s) => s.loadWorld)
+  const setGameData = useGameStore((s) => s.setGameData)
   const pendingSaveId = useGameStore((s) => s.pendingSaveId)
 
   const [latest, setLatest] = useState<ProgressEvent | null>(null)
@@ -44,13 +45,16 @@ export default function Loading(): JSX.Element {
     if (pendingSaveId === null) return
     if (latest === null || latest.step !== 'Done') return
 
-    loadSave(pendingSaveId)
-      .then(({ worldState, persons }) => {
+    // Load the save and game data in parallel — both are needed before entering the game.
+    // gameData contains static JSON (venues, rules, circuits) used by detail pages.
+    Promise.all([loadSave(pendingSaveId), getGameData()])
+      .then(([{ worldState, persons }, gameData]) => {
         loadWorld(worldState, persons)
+        setGameData(gameData)
         setScreen('game')
       })
       .catch(console.error)
-  }, [pendingSaveId, latest, loadWorld, setScreen])
+  }, [pendingSaveId, latest, loadWorld, setScreen, setGameData])
 
   const percent = latest !== null ? stepToPercent(latest.step) : 5
   const elapsedSec = (elapsed / 1000).toFixed(1)

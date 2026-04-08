@@ -193,10 +193,13 @@ corner-gym/
             │       ├── SideNav.tsx                    # Fixed left nav — 6 items with Radix icons, expand/collapse
             │       └── GameShell.tsx                  # Composes TopBar + SideNav + scrollable main — controlled nav
             └── screens/
-                ├── MainMenu.tsx       # New Game / Load Game / Quit — grain overlay, Rock Bro title
-                ├── NewGame.tsx        # Player name, gym name, nation, city, difficulty, seed — two-column grid
-                ├── Loading.tsx        # ProgressBar + step/detail text + elapsed timer
-                ├── LoadGame.tsx       # Save list with load and delete (confirm step) actions
-                ├── Game.tsx           # Placeholder in GameShell — proves load flow; shows player name, gym, year/week
-                └── Calendar.tsx       # Boxing calendar — events grouped by month, circuit badges, venue + date
+                ├── MainMenu.tsx             # New Game / Load Game / Quit — grain overlay, Rock Bro title
+                ├── NewGame.tsx              # Player name, gym name, nation, city, difficulty, seed — two-column grid
+                ├── Loading.tsx              # ProgressBar + step/detail text + elapsed timer
+                ├── LoadGame.tsx             # Save list with load and delete (confirm step) actions
+                ├── Game.tsx                 # Placeholder in GameShell — proves load flow; shows player name, gym, year/week
+                ├── Calendar.tsx             # Boxing calendar — events grouped by month, circuit badges, venue + date
+                ├── SanctioningBodyPage.tsx  # Sanctioning body detail — rules table, titles, governed events
+                ├── VenuePage.tsx            # Venue detail — image, description, eligibility, upcoming/past events
+                └── EventFullPage.tsx        # Event full detail — venue feature, schedule, bracket placeholder, why it matters
 ```

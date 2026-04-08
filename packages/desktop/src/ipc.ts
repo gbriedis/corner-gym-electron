@@ -132,4 +132,12 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
   ipcMain.handle('get-all-events', (_event, saveId: string) => {
     return loadCalendar(db, saveId)
   })
+
+  // ipc: get-game-data
+  // Returns the full loaded GameData. Called once after a save loads so the
+  // UI can cache static game data (venues, rules, circuits) in the Zustand store
+  // and pages can read it without per-navigation IPC calls.
+  ipcMain.handle('get-game-data', () => {
+    return loadGameData()
+  })
 }

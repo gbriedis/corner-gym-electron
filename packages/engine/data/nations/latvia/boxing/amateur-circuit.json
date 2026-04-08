@@ -7,7 +7,7 @@
   "circuitLevels": [
     {
       "id": "club_card",
-      "label": "Club Tournament",
+      "label": "Club Card",
       "prestige": 1,
       "sanctioningBody": "lbf",
       "format": "card",
@@ -32,6 +32,7 @@
       "prestige": 3,
       "sanctioningBody": "lbf",
       "format": "tournament_bracket",
+      "multiDay": false,
       "typicalMonths": [
         2,
         3,

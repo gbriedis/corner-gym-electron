@@ -188,7 +188,10 @@
 | [x] | `packages/ui/src/screens/Loading.tsx` |
 | [x] | `packages/ui/src/screens/LoadGame.tsx` |
 | [x] | `packages/ui/src/screens/Game.tsx` |
-| [x] | `packages/ui/src/screens/Calendar.tsx` — multi-day D1/N pills, event detail panel with schedule, format indicator, circuit rename |
+| [x] | `packages/ui/src/screens/Calendar.tsx` — QoL: cell colour split, click-outside, nav limit, future landmarks, sanctioning body + venue links, View Full Details |
+| [x] | `packages/ui/src/screens/SanctioningBodyPage.tsx` — rules table, titles, governed events; reads from gameData store |
+| [x] | `packages/ui/src/screens/VenuePage.tsx` — hero image, description, eligibility, upcoming/past events via IPC |
+| [x] | `packages/ui/src/screens/EventFullPage.tsx` — venue feature, schedule, bracket placeholder, why it matters |
 | [ ] | `packages/ui/src/screens/Gym.tsx` |
 | [ ] | `packages/ui/src/screens/Inbox.tsx` |
 | [ ] | `packages/ui/src/screens/Fighters.tsx` |

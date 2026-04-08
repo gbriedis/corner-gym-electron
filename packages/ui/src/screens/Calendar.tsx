@@ -18,8 +18,48 @@ import Icon from '../components/Icon'
 import { useGameStore } from '../store/gameStore'
 import { getAllEvents } from '../ipc/client'
 
-import type { CalendarEvent } from '@corner-gym/engine'
+import type { CalendarEvent, GameData } from '@corner-gym/engine'
 import type { BadgeVariant } from '../components/Badge'
+
+// Cell background colours at 20% opacity — used for the day cell colour split (2a).
+// Each circuit level tints the cell background to signal event type at a glance.
+function circuitCellBgColor(level: CalendarEvent['circuitLevel']): string {
+  switch (level) {
+    case 'club_card':             return 'rgba(218,212,201,0.06)'
+    case 'regional_tournament':   return 'rgba(90,139,222,0.2)'
+    case 'national_championship': return 'rgba(238,178,74,0.2)'
+    case 'baltic_championship':   return 'rgba(85,146,127,0.2)'
+    case 'european_championship': return 'rgba(33,82,165,0.2)'
+    case 'world_championship':    return 'rgba(255,209,131,0.2)'
+    case 'olympics':              return 'rgba(255,209,131,0.25)'
+  }
+}
+
+// cellGradientBackground builds a CSS linear-gradient splitting cell background
+// equally between the circuit level colours of all events on that day.
+// Single event: solid tint. Multiple events: vertical strips, equal weight.
+function cellGradientBackground(slots: Array<{ event: CalendarEvent }>): string {
+  // Deduplicate by circuit level — same event appearing on multiple days
+  // counts once per level for background colouring.
+  const seen = new Set<CalendarEvent['circuitLevel']>()
+  const levels: CalendarEvent['circuitLevel'][] = []
+  for (const { event } of slots) {
+    if (!seen.has(event.circuitLevel)) {
+      seen.add(event.circuitLevel)
+      levels.push(event.circuitLevel)
+    }
+  }
+  if (levels.length === 0) return 'transparent'
+  if (levels.length === 1) return circuitCellBgColor(levels[0]!)
+  const pct = 100 / levels.length
+  const stops = levels.map((level, i) => {
+    const color = circuitCellBgColor(level)
+    const from = Math.round(i * pct)
+    const to = Math.round((i + 1) * pct)
+    return `${color} ${from}% ${to}%`
+  })
+  return `linear-gradient(to bottom, ${stops.join(', ')})`
+}
 
 // All venue images pre-loaded as URL strings by Vite at build time.
 // Only files that exist in assets/venues/ appear in this map.
@@ -314,6 +354,22 @@ function governingBody(level: CalendarEvent['circuitLevel']): string {
   }
 }
 
+// governingBodyId returns the sanctioning body id for navigation to body page.
+function governingBodyId(level: CalendarEvent['circuitLevel']): string {
+  switch (level) {
+    case 'club_card':
+    case 'regional_tournament':
+    case 'national_championship':
+      return 'lbf'
+    case 'baltic_championship':
+    case 'european_championship':
+      return 'eubc'
+    case 'world_championship':
+    case 'olympics':
+      return 'iba'
+  }
+}
+
 // participatingNations returns a display string for international events.
 function participatingNations(level: CalendarEvent['circuitLevel']): string | null {
   switch (level) {
@@ -423,10 +479,38 @@ function circuitAccentColor(level: CalendarEvent['circuitLevel']): string {
   }
 }
 
+// HoverLink renders text that underlines on hover — used for sanctioning body + venue links.
+function HoverLink({ label, onClick }: { label: string; onClick: () => void }): JSX.Element {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        fontFamily: 'var(--font-body)',
+        fontSize: '11px',
+        color: 'var(--color-text-primary)',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        textDecoration: hovered ? 'underline' : 'none',
+        textAlign: 'left',
+      }}
+    >
+      {label}
+    </button>
+  )
+}
+
 // EventDetailPanel renders the right-side panel when an event is selected.
-function EventDetailPanel({ event, onClose }: {
+function EventDetailPanel({ event, onClose, onViewFull, onBodyClick, onVenueClick }: {
   event: CalendarEvent
   onClose: () => void
+  onViewFull: (event: CalendarEvent) => void
+  onBodyClick: (bodyId: string) => void
+  onVenueClick: (venueId: string) => void
 }): JSX.Element {
   const isOlympics = event.circuitLevel === 'olympics'
   const isNational = event.circuitLevel === 'national_championship'
@@ -564,17 +648,10 @@ function EventDetailPanel({ event, onClose }: {
               marginBottom: '3px',
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '12px',
-                fontWeight: 600,
-                color: 'var(--color-text-primary)',
-                lineHeight: 1.3,
-              }}
-            >
-              {displayVenueName(event)}
-            </span>
+            <HoverLink
+              label={displayVenueName(event)}
+              onClick={() => onVenueClick(event.venueId)}
+            />
             <span
               style={{
                 fontFamily: 'var(--font-body)',
@@ -615,14 +692,18 @@ function EventDetailPanel({ event, onClose }: {
                 ? 'Card · One bout per fighter · Results same night'
                 : isMultiDay
                   ? `Tournament · Single Elimination · ${totalDays} Days`
-                  : 'Tournament · Single Elimination'
+                  : 'Single Day Tournament · Single Elimination'
             }
           />
         </div>
 
-        {/* Governing body */}
+        {/* Governing body — hover-underline link navigates to sanctioning body page */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
-          <Row label="Sanctioned by" value={governingBody(event.circuitLevel)} />
+          <SectionLabel label="Sanctioned by" />
+          <HoverLink
+            label={governingBody(event.circuitLevel)}
+            onClick={() => onBodyClick(governingBodyId(event.circuitLevel))}
+          />
         </div>
 
         {/* Multi-day competition schedule */}
@@ -754,6 +835,27 @@ function EventDetailPanel({ event, onClose }: {
           </div>
         </div>
 
+        {/* View full details link */}
+        <div style={{ marginBottom: 'var(--space-3)', paddingTop: 'var(--space-2)', borderTop: 'var(--border-subtle)' }}>
+          <button
+            onClick={() => onViewFull(event)}
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: accentColor,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              textDecoration: 'none',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'underline' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'none' }}
+          >
+            View Full Details →
+          </button>
+        </div>
+
         {/* Entry slots — heavy to light; activation comes with roster system */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
           <SectionLabel label="Entry Slots" />
@@ -811,11 +913,13 @@ function EventDetailPanel({ event, onClose }: {
 
 // UpcomingEventsPanel shows next events in the right sidebar when no event is selected.
 // Compact 2-line rows: circuit pill + event name on top, date + venue below.
-function UpcomingEventsPanel({ events, currentYear, currentWeek, onSelect }: {
+// Also shows Future Landmarks — events beyond the calendar window from circuit data.
+function UpcomingEventsPanel({ events, currentYear, currentWeek, onSelect, gameData }: {
   events: CalendarEvent[]
   currentYear: number
   currentWeek: number
   onSelect: (event: CalendarEvent) => void
+  gameData: GameData | null
 }): JSX.Element {
   const upcoming = events
     .filter(e =>
@@ -933,6 +1037,80 @@ function UpcomingEventsPanel({ events, currentYear, currentWeek, onSelect }: {
           })}
         </div>
       )}
+
+      {/* Future Landmarks — aspirational events beyond the generated calendar window.
+          Pulled from international circuit nextOccurrence for Olympics and Worlds. */}
+      <FutureLandmarks gameData={gameData} calendarEvents={events} />
+    </div>
+  )
+}
+
+// FutureLandmarks shows circuit events scheduled beyond the generated calendar window.
+// Only shows events that have a nextOccurrence that is NOT already in calendarEvents.
+function FutureLandmarks({ gameData, calendarEvents }: {
+  gameData: GameData | null
+  calendarEvents: CalendarEvent[]
+}): JSX.Element | null {
+  if (gameData === null) return null
+
+  const generatedYears = new Set(calendarEvents.map(e => `${e.circuitLevel}-${e.year}`))
+
+  // Collect landmarks: international circuits with nextOccurrence not already generated.
+  const landmarks = gameData.international.boxing.circuits.circuitLevels
+    .filter(c => c.nextOccurrence !== undefined && !generatedYears.has(`${c.id}-${c.nextOccurrence}`))
+    .map(c => ({ id: c.id, label: c.label, year: c.nextOccurrence!, selectionMethod: c.selectionMethod }))
+
+  if (landmarks.length === 0) return null
+
+  return (
+    <div
+      style={{
+        borderTop: 'var(--border-subtle)',
+        padding: 'var(--space-2) var(--space-3)',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '9px',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          color: 'rgba(218,212,201,0.35)',
+          marginBottom: 'var(--space-2)',
+        }}
+      >
+        Future Landmarks
+      </div>
+      {landmarks.map(lm => {
+        const isOlympics = lm.id === 'olympics'
+        return (
+          <div
+            key={lm.id}
+            style={{
+              padding: 'var(--space-2) 0',
+              borderBottom: 'var(--border-subtle)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+              {isOlympics && <span style={{ fontSize: '11px' }}>🥇</span>}
+              <span
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  fontWeight: isOlympics ? 700 : 600,
+                  color: isOlympics ? 'var(--color-accent-gold)' : 'var(--color-text-primary)',
+                }}
+              >
+                {lm.label.split(' ').slice(0, 3).join(' ')} {lm.year}
+              </span>
+            </div>
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.4)' }}>
+              {lm.selectionMethod === 'federation_selection' ? 'Selection via federation' : 'Open entry'}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -971,6 +1149,7 @@ function Row({ label, value }: { label: string; value: string }): JSX.Element {
 export default function Calendar(): JSX.Element {
   const worldState = useGameStore(s => s.worldState)
   const setScreen = useGameStore(s => s.setScreen)
+  const gameData = useGameStore(s => s.gameData)
 
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
@@ -1008,7 +1187,22 @@ export default function Calendar(): JSX.Element {
     setSelectedEvent(null)
   }, [viewMonth])
 
+  // maxNavigableMonth/Year caps navigation at the last month that has a generated event.
+  // Prevents navigating into empty months beyond the generated calendar window.
+  const maxNavYear = events.length > 0
+    ? Math.max(...events.map(e => e.year))
+    : viewYear
+  const maxNavMonth = events.length > 0
+    ? Math.max(...events.filter(e => e.year === maxNavYear).map(e => weekToMonth(e.week)))
+    : viewMonth
+
+  const atNavLimit =
+    viewYear > maxNavYear ||
+    (viewYear === maxNavYear && viewMonth >= maxNavMonth)
+
   const navigateNextMonth = useCallback((): void => {
+    // Never navigate past the last month that has generated events.
+    if (atNavLimit) return
     if (viewMonth === 12) {
       setViewMonth(1)
       setViewYear(y => y + 1)
@@ -1016,7 +1210,7 @@ export default function Calendar(): JSX.Element {
       setViewMonth(m => m + 1)
     }
     setSelectedEvent(null)
-  }, [viewMonth])
+  }, [viewMonth, atNavLimit])
 
   const navigateToday = useCallback((): void => {
     if (worldState === null) return
@@ -1035,6 +1229,23 @@ export default function Calendar(): JSX.Element {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [navigatePrevMonth, navigateNextMonth])
+
+  // Navigation helpers for the new detail pages (Part 2g / Part 6).
+  function navigateToEventFull(event: CalendarEvent): void {
+    setScreen('eventFull', {
+      calendarEvent: event,
+      returnMonth: viewMonth,
+      returnYear: viewYear,
+    })
+  }
+
+  function navigateToBody(bodyId: string): void {
+    setScreen('sanctioningBody', { bodyId })
+  }
+
+  function navigateToVenue(venueId: string): void {
+    setScreen('venue', { venueId })
+  }
 
   function handleNavigate(id: string): void {
     if (id !== 'calendar') setScreen('game')
@@ -1133,20 +1344,28 @@ export default function Calendar(): JSX.Element {
           </span>
           <button
             onClick={navigateNextMonth}
+            disabled={atNavLimit}
             aria-label="Next month"
             style={{
               background: 'none',
               border: 'none',
               padding: '4px',
-              cursor: 'pointer',
+              cursor: atNavLimit ? 'not-allowed' : 'pointer',
               color: 'var(--color-text-muted)',
               display: 'flex',
               alignItems: 'center',
+              opacity: atNavLimit ? 0.3 : 1,
             }}
           >
             <ChevronRightIcon width={16} height={16} />
           </button>
         </div>
+        {/* Calendar limit note — only visible when at the edge of generated data */}
+        {atNavLimit && (
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.35)' }}>
+            Calendar generated to {MONTH_NAMES[maxNavMonth]} {maxNavYear}
+          </span>
+        )}
       </div>
 
       {loading ? (
@@ -1157,7 +1376,21 @@ export default function Calendar(): JSX.Element {
         // Two-column layout: calendar grid left, right panel always present.
         // The right column is a fixed width — switching between upcoming list and
         // event detail doesn't change any heights, so the calendar never shifts down.
-        <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
+        // When a detail panel is open, a transparent overlay sits in front of the grid
+        // so clicking outside the panel closes it (Part 2c).
+        <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start', position: 'relative' }}>
+          {/* Click-outside overlay — covers the grid when detail panel is open */}
+          {selectedEvent !== null && (
+            <div
+              onClick={() => setSelectedEvent(null)}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 1,
+                cursor: 'default',
+              }}
+            />
+          )}
           {/* Calendar grid — takes remaining width */}
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Day-of-week headers */}
@@ -1208,16 +1441,23 @@ export default function Calendar(): JSX.Element {
                   todaySat.getMonth() + 1 === viewMonth &&
                   todaySat.getDate() === day
 
+                // Cell background: events tint it with their circuit level colours.
+                // Today overrides with amber tint. Empty cells are transparent.
+                const cellBg = day === null
+                  ? 'transparent'
+                  : isToday
+                    ? 'rgba(238,178,74,0.05)'
+                    : daySlots.length > 0
+                      ? cellGradientBackground(daySlots)
+                      : 'rgba(218,212,201,0.02)'
+
                 return (
                   <div
                     key={idx}
+                    onClick={daySlots.length === 1 ? () => setSelectedEvent(daySlots[0]!.event) : undefined}
                     style={{
                       minHeight: '72px',
-                      background: day === null
-                        ? 'transparent'
-                        : isToday
-                          ? 'rgba(238,178,74,0.05)'
-                          : 'rgba(218,212,201,0.02)',
+                      background: cellBg,
                       border: day === null
                         ? 'none'
                         : isToday
@@ -1226,6 +1466,7 @@ export default function Calendar(): JSX.Element {
                       borderRadius: 'var(--radius-sm)',
                       padding: '4px',
                       overflow: 'hidden',
+                      cursor: daySlots.length === 1 ? 'pointer' : 'default',
                     }}
                   >
                     {day !== null && (
@@ -1309,12 +1550,16 @@ export default function Calendar(): JSX.Element {
 
           {/* Right column — fixed 280px, always rendered.
               Shows the event detail panel when an event is selected,
-              upcoming events list otherwise. No vertical layout shift. */}
-          <div style={{ width: '280px', flexShrink: 0 }}>
+              upcoming events list otherwise. No vertical layout shift.
+              zIndex 2 ensures this sits above the click-outside overlay. */}
+          <div style={{ width: '280px', flexShrink: 0, position: 'relative', zIndex: 2 }}>
             {selectedEvent !== null ? (
               <EventDetailPanel
                 event={selectedEvent}
                 onClose={() => setSelectedEvent(null)}
+                onViewFull={navigateToEventFull}
+                onBodyClick={navigateToBody}
+                onVenueClick={navigateToVenue}
               />
             ) : (
               <UpcomingEventsPanel
@@ -1322,6 +1567,7 @@ export default function Calendar(): JSX.Element {
                 currentYear={worldState.currentYear}
                 currentWeek={worldState.currentWeek}
                 onSelect={setSelectedEvent}
+                gameData={gameData}
               />
             )}
           </div>

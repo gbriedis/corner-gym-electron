@@ -70,3 +70,9 @@ button {
 input, select, textarea {
   font-family: var(--font-body);
 }
+
+/* Thin, barely visible scrollbar — functional but unobtrusive in Electron/Chromium */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-bg-mid); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }

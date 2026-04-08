@@ -37,4 +37,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getAllEvents: (saveId: string) =>
     ipcRenderer.invoke('get-all-events', saveId),
+
+  getGameData: () =>
+    ipcRenderer.invoke('get-game-data'),
 })

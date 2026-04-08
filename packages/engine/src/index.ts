@@ -21,6 +21,17 @@ export { generateWorld } from './generation/world.js'
 
 // Data loading — exported so desktop can call loadGameData at startup
 export { loadGameData } from './data/loader.js'
+export type { GameData, NationBundle, NationBoxingData, InternationalData } from './data/loader.js'
+
+// Boxing data types — needed by UI pages for venue/sanctioning body/circuit display
+export type {
+  CircuitLevel,
+  SanctioningBody,
+  CircuitLevelDefinition,
+  Venue,
+  EventTemplate,
+  EventDay,
+} from './types/data/boxing.js'
 
 // advanceWeek — the single entry point the desktop calls each week tick.
 // Takes current world state, returns updated world state + surfaces for the inbox/popups.
