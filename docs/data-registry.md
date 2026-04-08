@@ -129,6 +129,7 @@
 | [x] | `packages/engine/data/nations/latvia/boxing/sanctioning-bodies.json` |
 | [x] | `packages/engine/data/nations/latvia/boxing/amateur-circuit.json` |
 | [x] | `packages/engine/data/nations/latvia/boxing/event-templates.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/venues.json` |
 
 ## Data — Boxing: International
 | State | File |

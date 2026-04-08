@@ -1,41 +1,67 @@
 {
   "_meta": {
-    "description": "Templates for generating domestic Latvian boxing events on the calendar. These shapes are read by the event generation system to procedurally create events — real cities, dates, and fighter fields are assigned at generation time. Event generation logic is not implemented here. hostCityRotation on the national championship drives actual host city rotation; the current index is tracked in world state and advanced after each running of the event."
+    "description": "Templates for generating domestic Latvian boxing events on the calendar. These shapes are read by the event generation system to procedurally create events — real cities, dates, and fighter fields are assigned at generation time. Event generation logic is not implemented here. hostCityRotation on the national championship drives actual host city rotation; the current index is tracked in world state and advanced after each running of the event. venuePool lists eligible venue ids; the engine filters by the event's host city at generation time so only venues in the right city are considered."
   },
   "eventTemplates": [
     {
       "id": "club_tournament_small",
       "circuitLevel": "club_tournament",
       "label": "Club Tournament",
-      "boutCount": { "min": 6, "max": 12 },
+      "boutCount": { "min": 6 },
       "weightClassCount": { "min": 3, "max": 6 },
       "locationScope": "city",
       "frequencyPerYear": { "min": 4, "max": 8 },
       "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
-      "description": "Small club-run amateur tournament sanctioned by the LBF. Held in the host club's home gym or a local sports hall. Weight classes offered vary by entrant demand — the organiser confirms which classes run based on registrations received. Serves as the primary entry point into competitive boxing for new fighters in the city."
+      "venuePool": [
+        "riga_boksa_klubs",
+        "imanta_sporta_halle",
+        "daugavpils_boksa_klubs",
+        "liepajas_boksa_klubs",
+        "jelgavas_boksa_klubs",
+        "valmieras_boksa_klubs",
+        "rezeknes_sporta_halle",
+        "jurmala_sporta_halle"
+      ],
+      "description": "Small club-run amateur tournament sanctioned by the LBF. Held in the host club's gym or a local city sports hall. Weight classes offered vary by entrant demand — the organiser confirms which run based on registrations. The entry point into competitive boxing for any fighter, from debut to mid-career. Fields are drawn from the host city and clubs within easy travelling distance."
     },
     {
       "id": "regional_open_standard",
       "circuitLevel": "regional_open",
       "label": "Regional Open",
-      "boutCount": { "min": 12, "max": 24 },
+      "boutCount": { "min": 12 },
       "weightClassCount": { "min": 5, "max": 8 },
       "locationScope": "regional",
       "frequencyPerYear": { "min": 2, "max": 4 },
       "typicalMonths": [2, 3, 9, 10],
-      "description": "Multi-club regional tournament drawing from across a Latvian region. Hosted by a regional sports complex or the largest gym in the region. Attracts fighters from multiple cities seeking to build their ranking ahead of the national championship. A strong result here is the standard marker the LBF weighs when evaluating national championship applications."
+      "venuePool": [
+        "riga_sporta_nams",
+        "latgales_olimpiskais_centrs",
+        "zemgales_olimpiskais_centrs",
+        "vidzemes_olimpiskais_centrs",
+        "liepajas_olimpiskais_centrs",
+        "daugavpils_sports_palace"
+      ],
+      "description": "Multi-club regional tournament drawing from across a Latvian region (Riga, Vidzeme, Kurzeme, Latgale, Zemgale). Hosted by the main regional sports complex. Stronger competition than club level, significantly more LBF ranking points. A podium result here is the standard marker the LBF weighs when evaluating national championship applications."
     },
     {
       "id": "national_championship_annual",
       "circuitLevel": "national_championship",
       "label": "Latvian National Championship",
-      "boutCount": { "min": 30, "max": 50 },
+      "boutCount": { "min": 30 },
       "weightClassCount": 10,
       "locationScope": "national",
       "frequencyPerYear": 1,
       "typicalMonths": [11],
       "hostCityRotation": ["riga", "daugavpils", "liepaja", "jelgava", "valmiera"],
-      "description": "Annual national championship, always held in November. Crowns a Latvian National Champion in all 10 weight classes. The host city rotates on a fixed schedule tracked in world state — the engine reads the current rotation index, selects the host city, then increments the index. The LBF selects a venue appropriate to the host city from the eligible venue pool. Entry is application-based: coaches apply, the federation evaluates and publishes the accepted list before the event is finalised on the calendar."
+      "venuePool": [
+        "arena_riga",
+        "olimpiskais_sporta_centrs_riga",
+        "daugavpils_sports_palace",
+        "liepajas_olimpiskais_centrs",
+        "zemgales_olimpiskais_centrs",
+        "vidzemes_olimpiskais_centrs"
+      ],
+      "description": "Annual national championship, always held in November. Crowns a Latvian National Champion in all 10 weight classes. The host city rotates on a fixed schedule tracked in world state — the engine reads the current rotation index, selects the host city, then increments the index. The engine then filters venuePool to venues matching the host city. Entry is application-based: coaches apply, the federation evaluates and publishes the accepted list before the event is finalised on the calendar."
     }
   ]
 }

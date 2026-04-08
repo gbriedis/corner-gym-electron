@@ -1,56 +1,8 @@
 {
   "_meta": {
-    "description": "Real boxing venues used for significant events. Capacities are real-world figures verified against public records. Venues are assigned to events at generation time by the engine picking from the eligible pool defined in event-templates.json. Adding a new venue requires only adding an entry here — no engine code changes needed."
+    "description": "Non-Latvian boxing venues used for Baltic, European, World, and Olympic events. Capacities are real-world figures verified against public records. Latvian venues live in nations/latvia/boxing/venues.json. All venue files share a global id namespace — ids must be unique across the set. Venues are assigned to events at generation time by the engine picking from the eligible pool in event-templates.json. Adding a new venue requires only adding an entry to the appropriate file — no engine code changes needed."
   },
   "venues": [
-    {
-      "id": "arena_riga",
-      "name": "Xiaomi Arena",
-      "formerName": "Arena Riga",
-      "city": "riga",
-      "country": "latvia",
-      "capacity": 11200,
-      "description": "Latvia's largest multipurpose arena, located in the centre of Riga. Has hosted WBA continental bouts, KOK World Series kickboxing and boxing events, and Latvian national championship boxing. Primary venue for any major boxing card staged in the capital.",
-      "eligibleFor": [
-        "national_championship",
-        "baltic_championship",
-        "european_championship"
-      ]
-    },
-    {
-      "id": "olimpiskais_sporta_centrs_riga",
-      "name": "Olimpiskais sporta centrs",
-      "city": "riga",
-      "country": "latvia",
-      "capacity": 3500,
-      "description": "Riga's Olympic Sports Centre, a multi-sport complex housing a main competition hall used for combat sports, gymnastics, and team sports. Smaller than Arena Riga but well-equipped for national-level boxing events and a regular host for Latvian national championship preliminaries.",
-      "eligibleFor": [
-        "national_championship",
-        "baltic_championship"
-      ]
-    },
-    {
-      "id": "daugavpils_sports_palace",
-      "name": "Daugavpils Sporta pils",
-      "city": "daugavpils",
-      "country": "latvia",
-      "capacity": 2500,
-      "description": "The main indoor sports venue in Daugavpils, Latvia's second-largest city. Used for regional and national-level competitions including boxing, wrestling, and team sports. When the Latvian National Championship rotation reaches Daugavpils, this venue hosts the event.",
-      "eligibleFor": [
-        "national_championship"
-      ]
-    },
-    {
-      "id": "liepajas_olimpiskais_centrs",
-      "name": "Liepājas Olimpiskais centrs",
-      "city": "liepaja",
-      "country": "latvia",
-      "capacity": 3000,
-      "description": "Multi-sport complex in Liepāja, Latvia's third-largest city and a historically active boxing region. Hosts national championship rotation events and regional boxing competitions along the Baltic coast.",
-      "eligibleFor": [
-        "national_championship"
-      ]
-    },
     {
       "id": "twinsbet_arena_vilnius",
       "name": "Twinsbet Arena",
@@ -59,9 +11,7 @@
       "country": "lithuania",
       "capacity": 12500,
       "description": "Lithuania's largest arena and the primary venue for major events in the Baltic region. Capacity up to 12,500 for combat sports configurations. A natural host for Baltic Championship editions held in Lithuania.",
-      "eligibleFor": [
-        "baltic_championship"
-      ]
+      "eligibleFor": ["baltic_championship"]
     },
     {
       "id": "unibet_arena_tallinn",
@@ -70,10 +20,8 @@
       "city": "tallinn",
       "country": "estonia",
       "capacity": 7200,
-      "description": "Estonia's largest indoor arena, located in Tallinn. Seats up to 7,200 in standard configuration with flexible layout options. Serves as the primary major event venue in Estonia and the designated Baltic Championship host when Estonia holds the rotation.",
-      "eligibleFor": [
-        "baltic_championship"
-      ]
+      "description": "Estonia's largest indoor arena, located in Tallinn. Seats up to 7,200 in standard configuration with flexible layout options. The designated Baltic Championship host when Estonia holds the rotation.",
+      "eligibleFor": ["baltic_championship"]
     },
     {
       "id": "ovo_arena_wembley",
@@ -82,11 +30,8 @@
       "city": "london",
       "country": "england",
       "capacity": 12500,
-      "description": "One of the UK's premier boxing venues with a long history of major professional title fights. Matchroom Boxing has used it extensively for world title cards. Capacity of approximately 12,500 for boxing. Has hosted Oleksandr Usyk, Anthony Joshua, and multiple world title events. A regular candidate for hosting European Amateur Boxing Championships.",
-      "eligibleFor": [
-        "european_championship",
-        "world_championship"
-      ]
+      "description": "One of the UK's premier boxing venues. Matchroom Boxing has used it extensively for world title cards. Has hosted Oleksandr Usyk, Anthony Joshua, and multiple world title events. A regular candidate for European Amateur Boxing Championships.",
+      "eligibleFor": ["european_championship", "world_championship"]
     },
     {
       "id": "wizink_center_madrid",
@@ -95,11 +40,8 @@
       "city": "madrid",
       "country": "spain",
       "capacity": 15000,
-      "description": "Madrid's premier indoor arena seating up to 15,000 for boxing events. Spain has a strong amateur boxing tradition and the WiZink Center has hosted European-level combat sports events. A flagship venue for continental championships in southern Europe.",
-      "eligibleFor": [
-        "european_championship",
-        "world_championship"
-      ]
+      "description": "Madrid's premier indoor arena seating up to 15,000 for boxing events. Spain has a strong amateur boxing tradition and the WiZink Center has hosted European-level combat sports events.",
+      "eligibleFor": ["european_championship", "world_championship"]
     },
     {
       "id": "accor_arena_paris",
@@ -108,11 +50,8 @@
       "city": "paris",
       "country": "france",
       "capacity": 16000,
-      "description": "Paris's largest indoor arena with a boxing configuration capacity around 16,000. One of Europe's most prominent event venues, used for major international boxing cards. France's strong amateur boxing heritage makes this a natural host for EUBC championships.",
-      "eligibleFor": [
-        "european_championship",
-        "world_championship"
-      ]
+      "description": "Paris's largest indoor arena with a boxing configuration capacity around 16,000. France's strong amateur boxing heritage makes this a natural host for EUBC championships.",
+      "eligibleFor": ["european_championship", "world_championship"]
     },
     {
       "id": "belgrade_arena",
@@ -121,11 +60,8 @@
       "city": "belgrade",
       "country": "serbia",
       "capacity": 18386,
-      "description": "The largest arena in the Western Balkans with a total seated capacity of 18,386. Has hosted European Boxing Championships. Serbia has a strong tradition in amateur combat sports and the arena has hosted major international boxing events. Frequently used for continental and world-level amateur championships.",
-      "eligibleFor": [
-        "european_championship",
-        "world_championship"
-      ]
+      "description": "The largest arena in the Western Balkans with a total seated capacity of 18,386. Has hosted European Boxing Championships. Serbia has a strong tradition in amateur combat sports and the arena is a frequent host for continental and world-level championships.",
+      "eligibleFor": ["european_championship", "world_championship"]
     },
     {
       "id": "hallenstadion_zurich",
@@ -133,10 +69,8 @@
       "city": "zurich",
       "country": "switzerland",
       "capacity": 11200,
-      "description": "Zurich's Hallenstadion is one of Switzerland's most versatile arenas, seating around 11,200 for standard events. A respected European multi-sport venue used for boxing along with tennis, concerts, and team sports. Its central European location makes it a neutral-ground option for EUBC events.",
-      "eligibleFor": [
-        "european_championship"
-      ]
+      "description": "Zurich's Hallenstadion, seating around 11,200 for standard events. A respected European multi-sport venue used for boxing along with tennis, concerts, and team sports. Its central European location makes it a neutral-ground option for EUBC events.",
+      "eligibleFor": ["european_championship"]
     },
     {
       "id": "ziggo_dome_amsterdam",
@@ -144,10 +78,8 @@
       "city": "amsterdam",
       "country": "netherlands",
       "capacity": 17000,
-      "description": "Amsterdam's premier large-scale indoor venue seating up to 17,000. Used for major entertainment and sports events. The Netherlands has hosted European-level boxing events and the Ziggo Dome provides one of the largest European boxing venues outside the UK.",
-      "eligibleFor": [
-        "european_championship"
-      ]
+      "description": "Amsterdam's premier large-scale indoor venue seating up to 17,000. The Netherlands has hosted European-level boxing events and the Ziggo Dome provides one of the largest European boxing venues outside the UK.",
+      "eligibleFor": ["european_championship"]
     },
     {
       "id": "mgm_grand_garden_arena",
@@ -155,10 +87,8 @@
       "city": "las_vegas",
       "country": "usa",
       "capacity": 17000,
-      "description": "The spiritual home of world championship boxing, seating approximately 17,000. Has hosted the most significant professional title fights of the modern era including Floyd Mayweather Jr. vs Manny Pacquiao, and fights featuring Mike Tyson, Evander Holyfield, and Oscar De La Hoya. An iconic venue synonymous with big-fight atmosphere.",
-      "eligibleFor": [
-        "world_championship"
-      ]
+      "description": "The spiritual home of world championship boxing, seating approximately 17,000. Has hosted Floyd Mayweather Jr. vs Manny Pacquiao and fights featuring Mike Tyson, Evander Holyfield, and Oscar De La Hoya. An iconic venue synonymous with big-fight atmosphere.",
+      "eligibleFor": ["world_championship"]
     },
     {
       "id": "madison_square_garden",
@@ -166,11 +96,8 @@
       "city": "new_york",
       "country": "usa",
       "capacity": 20000,
-      "description": "The most storied boxing arena in history, seating approximately 20,000. Has hosted Muhammad Ali, Joe Frazier, Rocky Marciano, and virtually every great fighter of the twentieth century. The 'Mecca of Boxing' — a venue whose history gives any event held there additional weight and meaning.",
-      "eligibleFor": [
-        "world_championship",
-        "olympics"
-      ]
+      "description": "The most storied boxing arena in history, seating approximately 20,000. Has hosted Muhammad Ali, Joe Frazier, Rocky Marciano, and virtually every great fighter of the twentieth century. The 'Mecca of Boxing'.",
+      "eligibleFor": ["world_championship", "olympics"]
     },
     {
       "id": "kokugikan_tokyo",
@@ -178,11 +105,8 @@
       "city": "tokyo",
       "country": "japan",
       "capacity": 7300,
-      "description": "Japan's premier combat sports arena, primarily home to sumo wrestling but converted for Olympic boxing at the 2020 Tokyo Games (held 2021). Seats approximately 7,300 for boxing. Its history as an Olympic boxing venue and its unique cultural identity make it one of the most distinctive venues in international boxing.",
-      "eligibleFor": [
-        "world_championship",
-        "olympics"
-      ]
+      "description": "Japan's premier combat sports arena, primarily home to sumo wrestling but converted for Olympic boxing at the 2020 Tokyo Games (held 2021). Its history as an Olympic boxing venue and unique cultural identity make it one of the most distinctive venues in international boxing.",
+      "eligibleFor": ["world_championship", "olympics"]
     },
     {
       "id": "crypto_com_arena",
@@ -191,11 +115,8 @@
       "city": "los_angeles",
       "country": "usa",
       "capacity": 19395,
-      "description": "Los Angeles's premier sports and entertainment arena, seating up to 19,395 for boxing events. Scheduled to host boxing finals at the 2028 Summer Olympics. Has hosted major world title boxing nights alongside its role as home of the Lakers and Kings. One of the defining arenas of contemporary sport.",
-      "eligibleFor": [
-        "world_championship",
-        "olympics"
-      ]
+      "description": "Los Angeles's premier sports and entertainment arena, seating up to 19,395 for boxing events. Scheduled to host boxing finals at the 2028 Summer Olympics. Has hosted major world title boxing nights alongside its role as home of the Lakers and Kings.",
+      "eligibleFor": ["world_championship", "olympics"]
     },
     {
       "id": "excel_london",
@@ -203,10 +124,8 @@
       "city": "london",
       "country": "england",
       "capacity": 8000,
-      "description": "Exhibition and convention centre in east London converted into a boxing arena for the 2012 Summer Olympics, where it hosted all Olympic boxing competition from 28 July to 12 August. Purpose-built temporary boxing halls seated approximately 8,000 for bouts. One of the few venues with direct Olympic boxing pedigree in Europe.",
-      "eligibleFor": [
-        "olympics"
-      ]
+      "description": "Exhibition and convention centre in east London converted into a boxing arena for the 2012 Summer Olympics, hosting all Olympic boxing competition from 28 July to 12 August. One of the few venues with direct Olympic boxing pedigree in Europe.",
+      "eligibleFor": ["olympics"]
     }
   ]
 }

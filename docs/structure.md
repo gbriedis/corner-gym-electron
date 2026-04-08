@@ -77,13 +77,14 @@ corner-gym/
     │   │   │       └── boxing/
     │   │   │           ├── sanctioning-bodies.json  # LBF — national body, affiliates to EUBC
     │   │   │           ├── amateur-circuit.json     # 3 domestic circuit levels
-    │   │   │           └── event-templates.json     # 3 event templates for calendar generation
+    │   │   │           ├── event-templates.json     # 3 event templates with venue pools
+    │   │   │           └── venues.json              # 16 Latvian venues — club gyms, regional halls, national arenas
     │   │   └── international/
     │   │       └── boxing/
     │   │           ├── sanctioning-bodies.json  # EUBC (continental) + IBA (international)
     │   │           ├── circuits.json            # Baltic, European, World, Olympics circuit levels
     │   │           ├── event-templates.json     # 4 international event templates with venue pools
-    │   │           └── venues.json              # 17 real venues — Latvian, Baltic, European, World/Olympic
+    │   │           └── venues.json              # 13 non-Latvian venues — Baltic, European, World/Olympic
     │   └── src/
     │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + advanceWeek
     │       ├── types/
