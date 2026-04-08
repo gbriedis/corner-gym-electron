@@ -1,275 +1,145 @@
 # Current Task
 
-## Task: Fix JSONs + Fonts + CSS Variables + Component Library + Nav + Restyle
+## Task: Boxing Infrastructure Data Files
 
 ### What To Build
-Fix two broken JSON files, wire fonts, establish the design system, build the component library, add navigation, restyle all existing screens. Do in order — JSON fixes first, then design system, then components, then screens.
+Boxing infrastructure data files. Domestic Latvia files, international shared files, and venues. No engine logic, no matchmaking, no simulation. Data only.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
-`.claude/skills/public/frontend-design/SKILL.md`
+`.claude/rules/data.md`
 
 ---
 
-## Part 1 — Fix JSON Files
+## Folder Structure To Create
 
-**Fix `packages/engine/data/universal/game-config-defaults.json`**
-
-`populationPerCity` must be tier-based — a flat number ignores city size entirely. Replace:
-```json
-"populationPerCity": 200
 ```
-With:
-```json
-"populationPerCity": {
-  "small_town": 150,
-  "mid_city": 400,
-  "capital": 1200
-}
-```
-
-Update the type in `src/types/gameConfig.ts` — `worldSettings.populationPerCity` changes from `number` to `Record<string, number>`.
-
-Update `generateWorld()` to look up population by city population type when generating persons per city.
-
----
-
-**Fix `packages/engine/data/universal/difficulties.json`**
-
-Normal difficulty must not list modifiers at 1.0 — those are the defaults, listing them is noise. The engine applies 1.0 when a field is absent.
-
-Rule: only list modifiers that differ from 1.0. Normal difficulty has zero modifiers — empty object.
-
-```json
-{
-  "id": "normal",
-  "label": "Normal",
-  "modifiers": {}
-}
+packages/engine/data/
+├── nations/latvia/boxing/
+│   ├── sanctioning-bodies.json
+│   ├── amateur-circuit.json
+│   └── event-templates.json
+└── international/
+    └── boxing/
+        ├── sanctioning-bodies.json
+        ├── circuits.json
+        ├── event-templates.json
+        └── venues.json
 ```
 
-Easy, hard, extreme keep their modifiers but review them — only fields that genuinely differ from baseline belong here.
+---
 
-Update `DifficultyModifiers` type to make all fields optional: `Partial<DifficultyModifiers>`. Update the engine's difficulty merge function to use 1.0 as fallback for any absent field.
+## Files To Create
+
+### `nations/latvia/boxing/sanctioning-bodies.json`
+
+Latvian Boxing Federation only. LBF governs all domestic amateur boxing in Latvia.
+
+Fields per body: `id`, `label`, `level` (`"national"`), `affiliation` (references international body id), `description`, `titlesPerWeightClass` (array of title ids this body awards), `rankingSystem`.
+
+Meta must explain: this file covers domestic bodies only. International bodies live in `international/boxing/sanctioning-bodies.json`. LBF affiliates upward to EUBC.
 
 ---
 
-## Part 2 — Fonts
+### `nations/latvia/boxing/amateur-circuit.json`
 
-**Move fonts from root `/fonts` to `packages/ui/src/assets/fonts/`**
+Domestic Latvian circuit levels only: `club_tournament`, `regional_open`, `national_championship`.
 
-Two fonts are in the root fonts folder. Move them to the correct location.
+Fields per level: `id`, `label`, `prestige` (1-7 scale), `sanctioningBody`, `format` (`"tournament_bracket"` or `"card"`), `typicalMonths` (array of month numbers), `locationScope` (`"city"`, `"regional"`, `"national"`), `minimumBouts` (soft guide only — not a hard engine block), `frequencyPerYear`, `description`.
 
-- Rock Bro — display font, used for the Corner Gym logotype only
-- Inconsolata — body font, used for all UI text
-
-Wire both into the project:
-- Add `@font-face` declarations in `packages/ui/src/index.css`
-- Inconsolata also available via Google Fonts as fallback
+Meta must explain: this file covers domestic circuit levels only. Baltic, European, World, Olympics live in `international/boxing/circuits.json`. minimumBouts is a soft guide for matchmaking — the engine uses it to generate realistic fields but a coach can apply for any event. Selection events (nationals) use application-based selection — the federation publishes the accepted fighters list, rejection arrives as a federation statement in the inbox.
 
 ---
 
-## Part 3 — Design System
+### `nations/latvia/boxing/event-templates.json`
 
-**`packages/ui/src/styles/theme.css`**
+Templates for generating domestic Latvian events on the calendar.
 
-CSS custom properties. Single source of truth. Every colour, spacing, and typography value in the UI comes from here. Never use raw hex values in components.
+Templates to include:
+- `club_tournament_small` — 6-12 bouts, 3-6 weight classes, city scope, 4-8 times per year
+- `regional_open_standard` — 12-24 bouts, 5-8 weight classes, regional scope, 2-4 times per year
+- `national_championship_annual` — 30-50 bouts, 10 weight classes, national scope, once per year, always November, host city rotation: `["riga", "daugavpils", "liepaja", "jelgava", "valmiera"]`, rotation index tracked in world state
 
-```css
-:root {
-  /* Palette — nostalgOS 12 */
-  --color-bg-dark:     #272a32;
-  --color-bg-mid:      #21525a;
-  --color-bg-light:    #dad4c9;
-  --color-text-primary: #dad4c9;
-  --color-text-muted:  #deada5;
-  --color-accent-red:  #dc6250;
-  --color-accent-gold: #ffd183;
-  --color-accent-amber:#eeb24a;
-  --color-accent-green:#55927f;
-  --color-accent-blue: #5a8bde;
-  --color-accent-blue-dark: #2152a5;
-  --color-accent-purple: #b89ce9;
-  --color-accent-purple-dark: #844790;
+Fields per template: `id`, `circuitLevel`, `label`, `boutCount` (`{ min, max }`), `weightClassCount`, `locationScope`, `frequencyPerYear`, `typicalMonths`, `hostCityRotation` (array, only on national_championship), `description`.
 
-  /* Typography */
-  --font-display: 'Rock Bro', serif;
-  --font-body: 'Inconsolata', monospace;
-
-  /* Spacing scale */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-
-  /* Border radius */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-
-  /* Transitions */
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
-}
-```
-
-Import `theme.css` in `main.tsx` before anything else.
+Meta must explain: these templates are read by the event generation system to procedurally create events on the calendar. Actual events are generated from these shapes — real cities, dates, and fighters are assigned at generation time. Event generation logic is not implemented here.
 
 ---
 
-## Part 4 — Component Library
+### `international/boxing/sanctioning-bodies.json`
 
-**`packages/ui/src/components/`**
+EUBC and IBA.
 
-Build these components. Every component uses CSS variables only — no raw hex values, no Tailwind colour classes that bypass the theme.
+Same structure as the Latvia file. `level` values: `"continental"` for EUBC, `"international"` for IBA. `affiliation`: EUBC affiliates to IBA, IBA has null.
 
-Each component must handle all relevant states. No half-built components.
-
----
-
-**`Button.tsx`**
-
-Variants: `primary`, `secondary`, `danger`, `ghost`
-Sizes: `sm`, `md`, `lg`
-States: default, hover, active, disabled, loading
-
-Primary uses `--color-accent-amber` background, dark text.
-Secondary uses `--color-bg-mid` background, `--color-text-primary` text.
-Danger uses `--color-accent-red`.
-Ghost is transparent with border.
-
-Loading state shows a subtle pulse animation — no spinner, just opacity pulse on the text.
+Meta must explain: international bodies are shared across all nations. Any nation bundle can reference these ids. Adding a new nation does not require editing this file.
 
 ---
 
-**`Input.tsx`**
+### `international/boxing/circuits.json`
 
-States: default, focused, error, disabled
-Background `--color-bg-dark`, border `--color-bg-mid`, focused border `--color-accent-amber`.
-Error border `--color-accent-red` with optional error message below.
-Label above input. Monospace font throughout.
+International circuit levels: `baltic_championship`, `european_championship`, `world_championship`, `olympics`.
 
----
+Same fields as domestic circuit levels plus:
 
-**`Card.tsx`**
+- `frequencyYears` — how often this event occurs. Baltic: 1. European: 2. World: 2. Olympics: 4.
+- `nextOccurrence` — next year this event runs. Baltic: 2027. European: 2026. World: 2027. Olympics: 2028.
+- `selectionMethod` — `"open"` (anyone eligible can enter) or `"federation_selection"` (federation publishes accepted fighters, rejection via inbox statement)
+- `participatingNations` — for Baltic: `["latvia", "lithuania", "estonia"]`. For European/World/Olympics: `"all"`.
 
-Variants: `default`, `active`, `muted`
-Background `--color-bg-mid`. Subtle border. Padding variants sm/md/lg.
-Active variant has left border accent in `--color-accent-amber`.
+Olympics and World Championship use `selectionMethod: "federation_selection"`. Baltic and European use `"open"` with federation eligibility requirements.
 
----
-
-**`Dropdown.tsx`**
-
-Controlled component. Open/closed state. Options list. Selected state highlighted in `--color-accent-amber`.
-Keyboard navigable. Closes on outside click.
+Meta must explain: frequencyYears drives when the engine generates this event. nextOccurrence is the next scheduled year — after the event runs the engine adds frequencyYears to get the next. Selection events work via application — fighter applies, federation evaluates all applicants against the field, publishes accepted list. Rejection arrives as federation news in the player inbox, not a direct notification.
 
 ---
 
-**`Badge.tsx`**
+### `international/boxing/event-templates.json`
 
-For difficulty labels, status indicators, small tags.
-Variants map to semantic colours: `easy` → green, `normal` → blue, `hard` → amber, `extreme` → red, `gift` → purple, `flaw` → purple-dark.
+Templates for international events.
 
----
+Templates:
+- `baltic_championship_annual` — 20-35 bouts, 10 weight classes, international scope, frequencyYears 1
+- `european_championship_biennial` — 60-100 bouts, 10 weight classes, international scope, frequencyYears 2
+- `world_championship_biennial` — 100-150 bouts, 10 weight classes, international scope, frequencyYears 2
+- `olympics_quadrennial` — 80-120 bouts, 10 weight classes, international scope, frequencyYears 4
 
-**`ProgressBar.tsx`**
-
-Used on loading screen. Animated fill. Label and percentage optional.
-Fill colour `--color-accent-green`. Track `--color-bg-mid`.
-
----
-
-## Part 5 — Navigation
-
-**`packages/ui/src/components/layout/TopBar.tsx`**
-
-Fixed top bar. Dark background `--color-bg-dark`. Subtle bottom border.
-
-Left side: Corner Gym logotype in Rock Bro font. Small, not dominant.
-Centre: current screen title.
-Right side: gym name + year/week display (once in game). Greyed out on menu screens.
+Add `venuePool` field — array of venue ids from `venues.json` eligible to host this event type. Club tournaments have no venue pool (city sports halls, not specific venues). National championship and above use named venues.
 
 ---
 
-**`packages/ui/src/components/layout/SideNav.tsx`**
+### `international/boxing/venues.json`
 
-Visible only in-game. Left side, fixed.
-Navigation items: Gym, Fighters, Inbox, World, Finances.
-Active item has left accent bar in `--color-accent-amber`.
-Collapsed by default on smaller windows — icon only. Expanded shows label.
-Items use `--font-body`. Uppercase, tracked letter-spacing.
+Real boxing venues used for significant events. Claude Code researches and populates real venues with accurate details.
 
----
+Fields per venue: `id`, `name`, `city`, `country`, `capacity`, `description`, `eligibleFor` (array of circuit level ids this venue is suitable for).
 
-**`packages/ui/src/components/layout/GameShell.tsx`**
+Cover:
+- Major Latvian venues — arenas in Riga, Daugavpils, Liepāja capable of hosting national events
+- Baltic region venues — venues in Vilnius, Tallinn for Baltic championships
+- European venues — 8-10 major European boxing arenas used for continental events
+- World/Olympic venues — 5-6 historically significant world boxing venues
 
-Wraps in-game screens. Renders TopBar + SideNav + main content area.
-Main content area fills remaining space. Scrollable.
+Each venue must have accurate real-world capacity. Description should note what makes this venue significant to boxing.
 
----
-
-## Part 6 — Restyle Existing Screens
-
-Using the component library and design system, restyle all five existing screens. No new functionality — just apply the design system properly.
-
-**MainMenu.tsx**
-- Full screen, `--color-bg-dark` background
-- Corner Gym in Rock Bro, large, centred, `--color-accent-amber`
-- Subtitle in Inconsolata, muted
-- Three Button components stacked, variant `primary` for New Game, `secondary` for Load Game, `ghost` for Quit
-- Subtle grain texture or noise overlay for atmosphere — CSS only
-
-**NewGame.tsx**
-- Use Input components for player name, gym name, seed
-- Use Dropdown for nation and city
-- Use Badge components for difficulty selection — four in a row, clicking selects that difficulty
-- Start Game uses Button variant `primary`, large
-- Layout: two-column on wider screens, single column on narrow
-
-**Loading.tsx**
-- Dark screen, centred
-- ProgressBar component
-- Current step in `--color-text-primary`, detail in `--color-text-muted`
-- Elapsed time small, bottom right
-- Subtle animation — the progress bar fill should feel alive, not mechanical
-
-**LoadGame.tsx**
-- List of Card components — one per save
-- Each card: gym name bold, player name + city muted, difficulty Badge, year/week, last played
-- Delete button variant `danger`, small
-- Load button variant `primary`, small
-- Empty state: centred message in muted text
-
-**Game.tsx** (placeholder)
-- Wrapped in GameShell
-- Centred welcome message using design system typography
-- Year/week display
+Meta must explain: venues are assigned to events at generation time by the engine picking from the eligible pool. Adding a new venue requires only adding an entry here — no engine code changes.
 
 ---
 
 ### Definition Of Done
-- [ ] `game-config-defaults.json` — populationPerCity is tier-based
-- [ ] `difficulties.json` — normal has empty modifiers, all types updated to Partial
-- [ ] `generateWorld()` uses tier-based population lookup
-- [ ] Fonts moved to `packages/ui/src/assets/fonts/`
-- [ ] `theme.css` created, imported in `main.tsx`
-- [ ] All 6 components built with all states
-- [ ] TopBar, SideNav, GameShell layout components built
-- [ ] All 5 screens restyled using component library
-- [ ] No raw hex values in any component — CSS variables only
-- [ ] `pnpm dev` — full flow looks correct, fonts load, palette applied
-- [ ] `pnpm typecheck` clean
+- [ ] All 7 files created and valid JSON
+- [ ] All files have meta blocks
+- [ ] `nations/latvia/boxing/` folder exists with 3 files
+- [ ] `international/boxing/` folder exists with 4 files
+- [ ] frequencyYears and nextOccurrence on all international circuit levels
+- [ ] Venue capacities are real and accurate — research before writing
 - [ ] `docs/structure.md` updated
+- [ ] `docs/data-registry.md` — all 7 files marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: design system, component library, nav, restyle`
+- [ ] Committed: `feat: boxing infrastructure data — domestic + international`
 
 ### Notes
-- Read the frontend-design skill fully before writing a single component
-- The aesthetic direction: retro-utilitarian. Feels like old terminal software that was designed with care. Not flashy. Not modern SaaS. Something with character and weight.
-- Rock Bro is display only — logotype and major headings. Everything else is Inconsolata.
-- CSS variables only — never bypass the theme with raw values
-- Components come before screens — build all components first, then assemble screens from them
-- The grain/noise texture on MainMenu is CSS only — no image files
+- Data only — no TypeScript types, no engine logic this session
+- minimumBouts is always a soft guide — never a hard engine block
+- Latvia domestic files must not reference EUBC or IBA directly in circuit levels — those live in international/
+- Venue research: use real arena names, real cities, real capacities — do not invent venues
+- hostCityRotation on national_championship drives actual rotation — engine tracks current index in world state
