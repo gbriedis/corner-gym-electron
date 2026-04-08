@@ -37,3 +37,7 @@ export async function getUpcomingEvents(
 ): Promise<CalendarEvent[]> {
   return window.electronAPI.getUpcomingEvents(saveId, currentWeek, currentYear)
 }
+
+export async function getAllEvents(saveId: string): Promise<CalendarEvent[]> {
+  return window.electronAPI.getAllEvents(saveId)
+}

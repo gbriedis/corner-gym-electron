@@ -67,6 +67,7 @@ declare global {
       deleteSave(saveId: string): Promise<void>
       onGenerationProgress(callback: (data: ProgressEvent) => void): () => void
       getUpcomingEvents(saveId: string, currentWeek: number, currentYear: number): Promise<CalendarEvent[]>
+      getAllEvents(saveId: string): Promise<CalendarEvent[]>
     }
   }
 }

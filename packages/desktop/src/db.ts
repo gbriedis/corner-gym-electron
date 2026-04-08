@@ -82,7 +82,10 @@ export function openDb(): Database.Database {
       circuitLevel TEXT NOT NULL,
       label TEXT NOT NULL,
       venueId TEXT NOT NULL,
+      venueName TEXT NOT NULL DEFAULT '',
+      venueCapacity INTEGER NOT NULL DEFAULT 0,
       cityId TEXT NOT NULL,
+      countryDisplay TEXT,
       nationId TEXT NOT NULL,
       year INTEGER NOT NULL,
       week INTEGER NOT NULL,
@@ -93,6 +96,21 @@ export function openDb(): Database.Database {
       FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
     );
   `)
+
+  // Schema migrations — each ALTER TABLE is wrapped in try/catch so the operation
+  // is idempotent on existing databases. SQLite does not support ADD COLUMN IF NOT EXISTS.
+  const migrations = [
+    `ALTER TABLE calendar_events ADD COLUMN venueName TEXT NOT NULL DEFAULT ''`,
+    `ALTER TABLE calendar_events ADD COLUMN venueCapacity INTEGER NOT NULL DEFAULT 0`,
+    `ALTER TABLE calendar_events ADD COLUMN countryDisplay TEXT`,
+  ]
+  for (const sql of migrations) {
+    try {
+      db.exec(sql)
+    } catch {
+      // Column already exists — no action needed.
+    }
+  }
 
   return db
 }
@@ -217,16 +235,17 @@ export function saveCalendar(
 ): void {
   const insert = db.prepare(`
     INSERT INTO calendar_events
-      (id, saveId, templateId, circuitLevel, label, venueId, cityId, nationId,
-       year, week, weightClasses, status, boutIds)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (id, saveId, templateId, circuitLevel, label, venueId, venueName, venueCapacity,
+       cityId, countryDisplay, nationId, year, week, weightClasses, status, boutIds)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   db.transaction(() => {
     for (const e of events) {
       insert.run(
         e.id, saveId, e.templateId, e.circuitLevel, e.label,
-        e.venueId, e.cityId, e.nationId,
+        e.venueId, e.venueName, e.venueCapacity,
+        e.cityId, e.countryDisplay ?? null, e.nationId,
         e.year, e.week,
         JSON.stringify(e.weightClasses),
         e.status,
@@ -243,7 +262,8 @@ export function loadCalendar(
 ): CalendarEvent[] {
   type Row = {
     id: string; templateId: string; circuitLevel: string; label: string
-    venueId: string; cityId: string; nationId: string
+    venueId: string; venueName: string; venueCapacity: number
+    cityId: string; countryDisplay: string | null; nationId: string
     year: number; week: number
     weightClasses: string; status: string; boutIds: string
   }
@@ -251,20 +271,28 @@ export function loadCalendar(
     .prepare('SELECT * FROM calendar_events WHERE saveId = ? ORDER BY year, week')
     .all(saveId) as Row[]
 
-  return rows.map(r => ({
-    id: r.id,
-    templateId: r.templateId,
-    circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
-    label: r.label,
-    venueId: r.venueId,
-    cityId: r.cityId,
-    nationId: r.nationId,
-    year: r.year,
-    week: r.week,
-    weightClasses: JSON.parse(r.weightClasses) as string[],
-    status: r.status as EventStatus,
-    boutIds: JSON.parse(r.boutIds) as string[],
-  }))
+  return rows.map(r => {
+    const event: CalendarEvent = {
+      id: r.id,
+      templateId: r.templateId,
+      circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
+      label: r.label,
+      venueId: r.venueId,
+      venueName: r.venueName,
+      venueCapacity: r.venueCapacity,
+      cityId: r.cityId,
+      nationId: r.nationId,
+      year: r.year,
+      week: r.week,
+      weightClasses: JSON.parse(r.weightClasses) as string[],
+      status: r.status as EventStatus,
+      boutIds: JSON.parse(r.boutIds) as string[],
+    }
+    if (r.countryDisplay !== null) {
+      event.countryDisplay = r.countryDisplay
+    }
+    return event
+  })
 }
 
 // getUpcomingEvents returns calendar events within weeksAhead of the current position.
@@ -286,7 +314,8 @@ export function getUpcomingEvents(
 
   type Row = {
     id: string; templateId: string; circuitLevel: string; label: string
-    venueId: string; cityId: string; nationId: string
+    venueId: string; venueName: string; venueCapacity: number
+    cityId: string; countryDisplay: string | null; nationId: string
     year: number; week: number
     weightClasses: string; status: string; boutIds: string
   }
@@ -298,20 +327,28 @@ export function getUpcomingEvents(
     ORDER BY year, week
   `).all(saveId, currentYear, currentWeek, currentYear, endYear, endYear, endWeek) as Row[]
 
-  return rows.map(r => ({
-    id: r.id,
-    templateId: r.templateId,
-    circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
-    label: r.label,
-    venueId: r.venueId,
-    cityId: r.cityId,
-    nationId: r.nationId,
-    year: r.year,
-    week: r.week,
-    weightClasses: JSON.parse(r.weightClasses) as string[],
-    status: r.status as EventStatus,
-    boutIds: JSON.parse(r.boutIds) as string[],
-  }))
+  return rows.map(r => {
+    const event: CalendarEvent = {
+      id: r.id,
+      templateId: r.templateId,
+      circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
+      label: r.label,
+      venueId: r.venueId,
+      venueName: r.venueName,
+      venueCapacity: r.venueCapacity,
+      cityId: r.cityId,
+      nationId: r.nationId,
+      year: r.year,
+      week: r.week,
+      weightClasses: JSON.parse(r.weightClasses) as string[],
+      status: r.status as EventStatus,
+      boutIds: JSON.parse(r.boutIds) as string[],
+    }
+    if (r.countryDisplay !== null) {
+      event.countryDisplay = r.countryDisplay
+    }
+    return event
+  })
 }
 
 // updateEventStatus changes the status of a single calendar event.

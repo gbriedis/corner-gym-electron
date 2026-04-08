@@ -13,7 +13,13 @@ export interface CalendarEvent {
   circuitLevel: CircuitLevel
   label: string
   venueId: string
+  venueName: string
+  venueCapacity: number
+  // For domestic events: the full city id (e.g. "latvia-riga").
+  // For international events: venue.city display string (e.g. "london").
   cityId: string
+  // Only set on international events — venue.country display string (e.g. "england").
+  countryDisplay?: string
   nationId: string
   year: number
   week: number       // ISO week number 1–52

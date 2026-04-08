@@ -136,7 +136,7 @@ corner-gym/
     │   └── src/
     │       ├── main.ts                # BrowserWindow creation, opens DB, wires IPC
     │       ├── preload.cts            # contextBridge — exposes electronAPI to renderer (CJS forced via .cts)
-    │       ├── ipc.ts                 # IPC handlers: + get-upcoming-events
+    │       ├── ipc.ts                 # IPC handlers: get-upcoming-events, get-all-events
     │       └── db.ts                  # SQLite layer — + calendar_events table, saveCalendar, loadCalendar, getUpcomingEvents, updateEventStatus
     │
     └── ui/                            # React renderer
@@ -153,13 +153,14 @@ corner-gym/
             ├── store/
             │   └── gameStore.ts       # Zustand store — worldState, persons, currentScreen, pendingSaveId
                 ├── assets/
-            │   └── fonts/
-            │       ├── RockBro.otf                    # Display font — logotype and headings
-            │       ├── Inconsolata-Light.ttf
-            │       ├── Inconsolata-Regular.ttf
-            │       ├── Inconsolata-Medium.ttf
-            │       ├── Inconsolata-SemiBold.ttf
-            │       └── Inconsolata-Bold.ttf
+            │   ├── fonts/
+            │   │   ├── RockBro.otf                    # Display font — logotype and headings
+            │   │   ├── Inconsolata-Light.ttf
+            │   │   ├── Inconsolata-Regular.ttf
+            │   │   ├── Inconsolata-Medium.ttf
+            │   │   ├── Inconsolata-SemiBold.ttf
+            │   │   └── Inconsolata-Bold.ttf
+            │   └── venues/                            # Venue images — {venueId}.jpg/png; missing → styled placeholder
             ├── styles/
             │   └── theme.css                          # All CSS custom properties — palette, spacing, typography, borders
             ├── components/

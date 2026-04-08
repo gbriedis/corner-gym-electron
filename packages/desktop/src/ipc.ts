@@ -12,7 +12,7 @@ import type Database from 'better-sqlite3'
 import type { GameConfig } from '@corner-gym/engine'
 
 import { loadGameData, generateWorld } from '@corner-gym/engine'
-import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents } from './db.js'
+import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar } from './db.js'
 
 // ESM does not have __dirname — derive it from import.meta.url.
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -123,5 +123,13 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
   // Used by the Calendar screen to show a full-year forward view.
   ipcMain.handle('get-upcoming-events', (_event, saveId: string, currentWeek: number, currentYear: number) => {
     return getUpcomingEvents(db, saveId, currentWeek, currentYear, 52)
+  })
+
+  // ipc: get-all-events
+  // Returns every calendar event for a save ordered by year then week.
+  // Used by the Calendar month grid which needs the full generated window
+  // (start year + next year) without a recency filter.
+  ipcMain.handle('get-all-events', (_event, saveId: string) => {
+    return loadCalendar(db, saveId)
   })
 }

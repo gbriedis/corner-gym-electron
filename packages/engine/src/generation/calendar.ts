@@ -11,12 +11,17 @@
 // 5. Host city rotation for national championship tracks current index in WorldState.
 // 6. No two major events (national_championship or above) in the same week.
 // 7. Club tournaments and regional opens can overlap — they run in different cities.
+// 8. Regional opens are staggered across cities — no two land in the same week.
+// 9. Event frequency for domestic events comes from city data, not template defaults.
+// 10. Weight classes use real ids from data, with lighter classes biased for club events.
 
 import type { GameData, NationBoxingData } from '../data/loader.js'
 import type { GameConfig } from '../types/gameConfig.js'
 import type { WorldState } from '../types/worldState.js'
 import type { CalendarEvent } from '../types/calendar.js'
-import type { EventTemplate, Venue, CircuitLevel, FrequencyRange } from '../types/data/boxing.js'
+import type { EventTemplate, Venue, CircuitLevel } from '../types/data/boxing.js'
+import type { CitiesData, City } from '../types/data/cities.js'
+import type { WeightClass } from '../types/data/weightClasses.js'
 import type { RNG } from '../utils/rng.js'
 
 // MAJOR_LEVELS are circuit levels that cannot share a week.
@@ -65,12 +70,6 @@ function cityShortId(cityId: string): string {
 function pickWeekInMonth(month: number, rng: RNG): number {
   const [lo, hi] = MONTH_WEEK_RANGES[month] ?? [1, 52]
   return rng.nextInt(lo, hi)
-}
-
-// resolveFrequency returns a concrete count from a fixed number or range.
-function resolveFrequency(freq: number | FrequencyRange, rng: RNG): number {
-  if (typeof freq === 'number') return freq
-  return rng.nextInt(freq.min, freq.max)
 }
 
 // buildVenueMap merges all venue lists (national + international) into one lookup.
@@ -127,11 +126,57 @@ function makeEventId(templateId: string, cityId: string, year: number, week: num
   return `${templateId}--${cityId}--${year}w${week.toString().padStart(2, '0')}`
 }
 
+// pickWeightClasses selects weight class ids for an event.
+// For club tournaments, lighter weight classes are biased more heavily —
+// they dominate grassroots boxing, where smaller fighters are most common.
+// For other events, selection is uniform across all classes.
+function pickWeightClasses(
+  template: EventTemplate,
+  allWeightClasses: WeightClass[],
+  rng: RNG,
+): string[] {
+  const count = typeof template.weightClassCount === 'number'
+    ? template.weightClassCount
+    : rng.nextInt(template.weightClassCount.min, template.weightClassCount.max)
+
+  const n = allWeightClasses.length
+  if (count >= n) {
+    // All classes — no selection needed.
+    return allWeightClasses.map(wc => wc.id)
+  }
+
+  // Lighter classes dominate club-level boxing — assign descending weights
+  // so flyweight is n× more likely than super_heavyweight to be included.
+  const isClub = template.circuitLevel === 'club_tournament'
+  const baseWeights = isClub
+    ? allWeightClasses.map((_, i) => n - i)  // 10, 9, 8 … 1 for n=10
+    : allWeightClasses.map(() => 1)           // equal probability
+
+  // Weighted sampling without replacement: pick one class at a time, remove it
+  // from the pool so each class appears at most once in the result.
+  const remaining = allWeightClasses.map(wc => wc.id)
+  const weights = [...baseWeights]
+  const selected: string[] = []
+
+  for (let i = 0; i < count; i++) {
+    if (remaining.length === 0) break
+    const picked = rng.weightedPick(remaining, weights)
+    selected.push(picked)
+    const idx = remaining.indexOf(picked)
+    remaining.splice(idx, 1)
+    weights.splice(idx, 1)
+  }
+
+  return selected
+}
+
 // generateDomesticEvents generates all events for one nation's boxing templates.
 // Returns new events and mutates worldState.rotationIndices for host city rotation.
 function generateDomesticEvents(
   nationId: string,
   boxing: NationBoxingData,
+  citiesData: CitiesData,
+  allWeightClasses: WeightClass[],
   startYear: number,
   startWeek: number,
   yearsToGenerate: number[],
@@ -141,6 +186,14 @@ function generateDomesticEvents(
   rng: RNG,
 ): CalendarEvent[] {
   const events: CalendarEvent[] = []
+
+  // Build a city lookup map for fast per-city frequency access.
+  // Frequency comes from city.eventHostingFrequency rather than template defaults —
+  // this ensures Riga generates 5-7 club tournaments while Valmiera generates 2-3.
+  const cityLookup = new Map<string, City>()
+  for (const city of citiesData.cities) {
+    cityLookup.set(city.id, city)
+  }
 
   for (const template of boxing.eventTemplates.eventTemplates) {
     if (template.frequencyYears !== undefined) continue // international template, skip
@@ -171,7 +224,7 @@ function generateDomesticEvents(
         if (MAJOR_LEVELS.has(circuitLevel)) occupiedMajorWeeks.add(weekKey)
 
         const venue = pickVenue(template, circuitLevel, hostCityShort, venueMap, rng)
-        const weightClasses = data_weightClasses(template)
+        const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
 
         events.push({
           id: makeEventId(template.id, hostCityId, year, week),
@@ -179,6 +232,8 @@ function generateDomesticEvents(
           circuitLevel,
           label: template.label,
           venueId: venue.id,
+          venueName: venue.name,
+          venueCapacity: venue.capacity,
           cityId: hostCityId,
           nationId,
           year,
@@ -190,29 +245,33 @@ function generateDomesticEvents(
 
       } else if (template.locationScope === 'city') {
         // Club tournaments — one set of events per city that has eligible venues.
-        // Each city generates its own events independently.
-        const freq = template.frequencyPerYear !== undefined
-          ? resolveFrequency(template.frequencyPerYear, rng)
-          : 6
-
+        // Frequency comes from city data; falls back to conservative 2 if data is absent.
         const eligibleCities = findCitiesWithVenues(
           nationId, template, circuitLevel, venueMap,
         )
 
         for (const cityId of eligibleCities) {
           const cityShort = cityShortId(cityId)
+          const cityData = cityLookup.get(cityId)
+          const cityFreq = cityData?.eventHostingFrequency?.club_tournament
+          const freq = cityFreq !== undefined
+            ? rng.nextInt(cityFreq.min, cityFreq.max)
+            : 2  // conservative fallback if city data is missing
+
           const distributed = distributeAcrossMonths(
             freq, template.typicalMonths, weekFloor, rng,
           )
           for (const week of distributed) {
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
-            const weightClasses = data_weightClasses(template)
+            const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
             events.push({
               id: makeEventId(template.id, cityId, year, week),
               templateId: template.id,
               circuitLevel,
               label: template.label,
               venueId: venue.id,
+              venueName: venue.name,
+              venueCapacity: venue.capacity,
               cityId,
               nationId,
               year,
@@ -226,29 +285,48 @@ function generateDomesticEvents(
 
       } else if (template.locationScope === 'regional') {
         // Regional opens — one event per city that has a regional-eligible venue.
-        // Each region is represented by its host city's main venue.
-        const freq = template.frequencyPerYear !== undefined
-          ? resolveFrequency(template.frequencyPerYear, rng)
-          : 3
-
+        // Frequency comes from city data. Events are staggered across cities so
+        // no two regional opens in the same year land on the same week — simultaneous
+        // events across every region kills the sense of a real boxing calendar.
         const eligibleCities = findCitiesWithVenues(
           nationId, template, circuitLevel, venueMap,
         )
 
+        // Track occupied weeks for regional opens within this year and template.
+        // Reset per year so staggering is applied within a year, not across years.
+        const regionOpenWeeks = new Set<number>()
+
         for (const cityId of eligibleCities) {
           const cityShort = cityShortId(cityId)
+          const cityData = cityLookup.get(cityId)
+          const cityFreq = cityData?.eventHostingFrequency?.regional_open
+          const freq = cityFreq !== undefined
+            ? rng.nextInt(cityFreq.min, cityFreq.max)
+            : 2  // conservative fallback if city data is missing
+
           const distributed = distributeAcrossMonths(
             freq, template.typicalMonths, weekFloor, rng,
           )
-          for (const week of distributed) {
+          for (const rawWeek of distributed) {
+            // Stagger: if another regional open already occupies this week, shift
+            // forward until we find an open slot or run out of year.
+            let week = rawWeek
+            while (regionOpenWeeks.has(week) && week <= 52) {
+              week += rng.nextInt(1, 2)
+            }
+            if (week > 52) continue
+            regionOpenWeeks.add(week)
+
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
-            const weightClasses = data_weightClasses(template)
+            const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
             events.push({
               id: makeEventId(template.id, cityId, year, week),
               templateId: template.id,
               circuitLevel,
               label: template.label,
               venueId: venue.id,
+              venueName: venue.name,
+              venueCapacity: venue.capacity,
               cityId,
               nationId,
               year,
@@ -270,6 +348,7 @@ function generateDomesticEvents(
 // Uses frequencyYears + nextOccurrence to determine which years to generate.
 function generateInternationalEvents(
   data: GameData,
+  allWeightClasses: WeightClass[],
   config: GameConfig,
   yearsToGenerate: number[],
   venueMap: Map<string, Venue>,
@@ -316,6 +395,10 @@ function generateInternationalEvents(
       const week = pickWeekInMonth(month, rng)
       const weekKey = `${year}-${week}`
 
+      // International events use venue.city and venue.country as direct display values.
+      // No mapping to game city ids — international venues are not part of the city graph.
+      const nationId = config.renderedNations[0] ?? 'international'
+
       if (MAJOR_LEVELS.has(circuitLevel) && occupiedMajorWeeks.has(weekKey)) {
         // Try adjacent weeks to avoid collision before giving up.
         const alt = week < 52 ? week + 1 : week - 1
@@ -323,16 +406,17 @@ function generateInternationalEvents(
         if (occupiedMajorWeeks.has(altKey)) continue
         occupiedMajorWeeks.add(altKey)
         const venue = pickVenue(template, circuitLevel, null, venueMap, rng)
-        const weightClasses = data_weightClasses(template)
-        // International events have no single nation host — use the first rendered nation.
-        const nationId = config.renderedNations[0] ?? 'international'
+        const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
         events.push({
           id: makeEventId(template.id, nationId, year, alt),
           templateId: template.id,
           circuitLevel,
           label: template.label,
           venueId: venue.id,
+          venueName: venue.name,
+          venueCapacity: venue.capacity,
           cityId: venue.city,
+          countryDisplay: venue.country,
           nationId,
           year,
           week: alt,
@@ -346,8 +430,7 @@ function generateInternationalEvents(
       if (MAJOR_LEVELS.has(circuitLevel)) occupiedMajorWeeks.add(weekKey)
 
       const venue = pickVenue(template, circuitLevel, null, venueMap, rng)
-      const weightClasses = data_weightClasses(template)
-      const nationId = config.renderedNations[0] ?? 'international'
+      const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
 
       events.push({
         id: makeEventId(template.id, nationId, year, week),
@@ -355,7 +438,10 @@ function generateInternationalEvents(
         circuitLevel,
         label: template.label,
         venueId: venue.id,
+        venueName: venue.name,
+        venueCapacity: venue.capacity,
         cityId: venue.city,
+        countryDisplay: venue.country,
         nationId,
         year,
         week,
@@ -415,27 +501,6 @@ function distributeAcrossMonths(
   return weeks
 }
 
-// data_weightClasses resolves the weight classes for an event.
-// All 10 weight classes are used when weightClassCount is a fixed 10.
-// When it is a range, we pick randomly; when it is a smaller fixed number
-// we take the first N classes. Placeholder returns string indices until
-// the weight class selection system is implemented.
-function data_weightClasses(template: EventTemplate): string[] {
-  const count = typeof template.weightClassCount === 'number'
-    ? template.weightClassCount
-    : rng_placeholder_count(template.weightClassCount.min, template.weightClassCount.max)
-  // Placeholder: weight class ids will come from data.weightClasses in a future pass.
-  // Using index strings keeps this self-contained without a circular dependency.
-  return Array.from({ length: count }, (_, i) => `weight_class_${i + 1}`)
-}
-
-// rng_placeholder_count is used only by data_weightClasses above.
-// A proper RNG is not available at module scope — this uses the midpoint.
-// When full weight-class selection is implemented this function will be removed.
-function rng_placeholder_count(min: number, max: number): number {
-  return Math.floor((min + max) / 2)
-}
-
 export function generateCalendar(
   startYear: number,
   startWeek: number,
@@ -460,6 +525,8 @@ export function generateCalendar(
     const domestic = generateDomesticEvents(
       nationId,
       bundle.boxing,
+      bundle.cities,
+      data.weightClasses.weightClasses,
       startYear,
       startWeek,
       yearsToGenerate,
@@ -474,6 +541,7 @@ export function generateCalendar(
   // International events (Baltic, European, World, Olympics).
   const international = generateInternationalEvents(
     data,
+    data.weightClasses.weightClasses,
     config,
     yearsToGenerate,
     venueMap,

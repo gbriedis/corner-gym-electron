@@ -34,4 +34,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getUpcomingEvents: (saveId: string, currentWeek: number, currentYear: number) =>
     ipcRenderer.invoke('get-upcoming-events', saveId, currentWeek, currentYear),
+
+  getAllEvents: (saveId: string) =>
+    ipcRenderer.invoke('get-all-events', saveId),
 })
