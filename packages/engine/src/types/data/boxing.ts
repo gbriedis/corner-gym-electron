@@ -26,6 +26,33 @@ export interface RankingSystem {
   resetMonth: number | null
 }
 
+// calendarRules on a national sanctioning body defines when and how often domestic
+// events may be scheduled. The engine reads this to drive nation-level slot distribution
+// rather than per-city round-robin, which would cluster all events at the start of
+// typicalMonths. Only national bodies need calendar rules; continental/international
+// bodies schedule events through the international circuits data.
+export interface ClubTournamentRules {
+  minWeeksBetweenEvents: number
+}
+
+export interface RegionalOpenWindow {
+  months: number[]
+  label: string
+}
+
+export interface RegionalOpenRules {
+  minWeeksBetweenEvents: number
+  windows: RegionalOpenWindow[]
+}
+
+export interface NationalCalendarRules {
+  // Months that make up the competition season — events only land in these months.
+  // Ordered list, can span the year boundary (e.g. [9,10,11,1,2,3,4,5]).
+  competitionSeasonMonths: number[]
+  clubTournament: ClubTournamentRules
+  regionalOpen: RegionalOpenRules
+}
+
 export interface SanctioningBody {
   id: string
   label: string
@@ -34,6 +61,7 @@ export interface SanctioningBody {
   description: string
   titlesPerWeightClass: string[]
   rankingSystem: RankingSystem
+  calendarRules?: NationalCalendarRules
 }
 
 // JSON top-level key: "sanctioningBodies"

@@ -45,6 +45,22 @@ const MONTH_NAMES = [
 ]
 const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Weight classes in descending weight order (super_heavyweight first, flyweight last).
+// Used for consistent heavy-to-light display in weight class lists and entry slots.
+const WEIGHT_CLASS_DISPLAY_ORDER = [
+  'super_heavyweight', 'heavyweight', 'cruiserweight', 'light_heavyweight',
+  'middleweight', 'welterweight', 'lightweight', 'featherweight', 'bantamweight', 'flyweight',
+]
+
+function sortWeightClassesHeavyFirst(ids: string[]): string[] {
+  return [...ids].sort((a, b) => {
+    const ai = WEIGHT_CLASS_DISPLAY_ORDER.indexOf(a)
+    const bi = WEIGHT_CLASS_DISPLAY_ORDER.indexOf(b)
+    // Unknown ids go last
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+  })
+}
+
 // weekToMonth converts an ISO week number to its approximate calendar month.
 // Used to determine the starting view month from the current in-game week.
 function weekToMonth(week: number): number {
@@ -269,17 +285,25 @@ function VenueImage({ venueId, venueName, isOlympics }: {
 }): JSX.Element {
   const [imgError, setImgError] = useState(false)
   const src = getVenueImageSrc(venueId)
-  const height = isOlympics ? '160px' : '120px'
+
+  // 16:9 aspect ratio enforced on the container — objectFit cover then center-crops
+  // whatever the source dimensions are. Fixed height alone on a square image would
+  // show the full square; aspect ratio gives the expected widescreen crop.
+  const containerStyle: React.CSSProperties = {
+    width: '100%',
+    aspectRatio: isOlympics ? '21 / 9' : '16 / 9',
+    borderRadius: 'var(--radius-md)',
+    overflow: 'hidden',
+    position: 'relative',
+  }
 
   if (src === null || imgError) {
     return (
       <div
         style={{
-          width: '100%',
-          height,
+          ...containerStyle,
           backgroundColor: '#0d0f13',
           border: 'var(--border-subtle)',
-          borderRadius: 'var(--radius-md)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -301,18 +325,20 @@ function VenueImage({ venueId, venueName, isOlympics }: {
   }
 
   return (
-    <img
-      src={src}
-      alt={venueName}
-      onError={() => setImgError(true)}
-      style={{
-        width: '100%',
-        height,
-        objectFit: 'cover',
-        borderRadius: 'var(--radius-md)',
-        display: 'block',
-      }}
-    />
+    <div style={containerStyle}>
+      <img
+        src={src}
+        alt={venueName}
+        onError={() => setImgError(true)}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          display: 'block',
+        }}
+      />
+    </div>
   )
 }
 
@@ -328,10 +354,13 @@ function EventDetailPanel({ event, onClose }: {
   ].includes(event.circuitLevel)
 
   const sat = isoWeekSaturday(event.year, event.week)
-  const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
   const nations = participatingNations(event.circuitLevel)
   const entryMethod = selectionMethod(event.circuitLevel)
+
+  // Weight classes sorted heavy → light for consistent top-down display.
+  const sortedWeightClasses = sortWeightClassesHeavyFirst(event.weightClasses)
 
   // Olympics gets a gold panel accent; national gets an amber one; others get default.
   const accentColor = isOlympics
@@ -347,8 +376,7 @@ function EventDetailPanel({ event, onClose }: {
   return (
     <div
       style={{
-        width: '320px',
-        flexShrink: 0,
+        width: '100%',
         backgroundColor: 'rgba(10,10,14,0.6)',
         border: `1px solid ${borderColor}`,
         borderRadius: 'var(--radius-md)',
@@ -435,38 +463,58 @@ function EventDetailPanel({ event, onClose }: {
           <VenueImage venueId={event.venueId} venueName={displayVenueName(event)} isOlympics={isOlympics} />
         </div>
 
-        {/* Location */}
+        {/* Venue name + Date on the same row; City + Capacity below */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
           <div
             style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: 'var(--color-text-primary)',
-              marginBottom: '2px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: 'var(--space-2)',
+              marginBottom: '3px',
             }}
           >
-            {displayVenueName(event)}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-            <SewingPinIcon width={11} height={11} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-              {formatCityDisplay(event)}
+            <span
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--color-text-primary)',
+                lineHeight: 1.3,
+              }}
+            >
+              {displayVenueName(event)}
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '10px',
+                color: 'var(--color-text-muted)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                paddingTop: '1px',
+              }}
+            >
+              {dateStr}
             </span>
           </div>
-        </div>
-
-        {/* Date */}
-        <div style={{ marginBottom: 'var(--space-3)' }}>
-          <Row label="Date" value={dateStr} />
-        </div>
-
-        {/* Capacity */}
-        {event.venueCapacity > 0 && (
-          <div style={{ marginBottom: 'var(--space-3)' }}>
-            <Row label="Capacity" value={event.venueCapacity.toLocaleString()} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+              <SewingPinIcon width={10} height={10} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                {formatCityDisplay(event)}
+              </span>
+            </div>
+            {event.venueCapacity > 0 && (
+              <>
+                <span style={{ color: 'rgba(218,212,201,0.2)', fontSize: '9px' }}>·</span>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.4)' }}>
+                  {event.venueCapacity.toLocaleString()} seats
+                </span>
+              </>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Governing body */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
@@ -519,11 +567,11 @@ function EventDetailPanel({ event, onClose }: {
           </div>
         )}
 
-        {/* Weight classes */}
+        {/* Weight classes — heavy to light */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
           <SectionLabel label="Weight Classes" />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: 'var(--space-1)' }}>
-            {event.weightClasses.map(wc => (
+            {sortedWeightClasses.map(wc => (
               <span
                 key={wc}
                 style={{
@@ -542,7 +590,7 @@ function EventDetailPanel({ event, onClose }: {
           </div>
         </div>
 
-        {/* Entry slots — structure exists but activation comes with roster system */}
+        {/* Entry slots — heavy to light; activation comes with roster system */}
         <div style={{ marginBottom: 'var(--space-3)' }}>
           <SectionLabel label="Entry Slots" />
           <div
@@ -557,7 +605,7 @@ function EventDetailPanel({ event, onClose }: {
             Fighter entry available once gym roster is set up.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-            {event.weightClasses.map(wc => (
+            {sortedWeightClasses.map(wc => (
               <div
                 key={wc}
                 style={{
@@ -593,6 +641,134 @@ function EventDetailPanel({ event, onClose }: {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// UpcomingEventsPanel shows next events in the right sidebar when no event is selected.
+// Compact 2-line rows: circuit pill + event name on top, date + venue below.
+function UpcomingEventsPanel({ events, currentYear, currentWeek, onSelect }: {
+  events: CalendarEvent[]
+  currentYear: number
+  currentWeek: number
+  onSelect: (event: CalendarEvent) => void
+}): JSX.Element {
+  const upcoming = events
+    .filter(e =>
+      e.year > currentYear ||
+      (e.year === currentYear && e.week >= currentWeek),
+    )
+    .slice(0, 12)
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        backgroundColor: 'rgba(10,10,14,0.4)',
+        border: 'var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          padding: 'var(--space-2) var(--space-3)',
+          borderBottom: 'var(--border-subtle)',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '9px',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color: 'rgba(218,212,201,0.35)',
+          }}
+        >
+          Upcoming Events
+        </span>
+      </div>
+      {upcoming.length === 0 ? (
+        <div style={{ padding: 'var(--space-4) var(--space-3)', textAlign: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(218,212,201,0.3)' }}>
+            No upcoming events
+          </span>
+        </div>
+      ) : (
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {upcoming.map((event, i) => {
+            const sat = isoWeekSaturday(event.year, event.week)
+            const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+            const isLast = i === upcoming.length - 1
+            return (
+              <button
+                key={event.id}
+                onClick={() => onSelect(event)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: 'var(--space-2) var(--space-3)',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: isLast ? 'none' : 'var(--border-subtle)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                {/* Top row: circuit pill + event label */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '2px' }}>
+                  <span style={{ ...pillStyle(event.circuitLevel), display: 'inline-block', width: 'auto', marginBottom: 0, flexShrink: 0 }}>
+                    {circuitLabel(event.circuitLevel)}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '11px',
+                      color: 'var(--color-text-primary)',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      flex: 1,
+                    }}
+                  >
+                    {event.label}
+                  </span>
+                </div>
+                {/* Bottom row: date + venue · city */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '9px',
+                      color: 'rgba(218,212,201,0.35)',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {dateStr} {event.year}
+                  </span>
+                  <span style={{ color: 'rgba(218,212,201,0.2)', fontSize: '9px', flexShrink: 0 }}>·</span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '9px',
+                      color: 'rgba(218,212,201,0.35)',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {formatCityDisplay(event)}
+                  </span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -656,26 +832,27 @@ export default function Calendar(): JSX.Element {
   }, [worldState])
 
   const navigatePrevMonth = useCallback((): void => {
-    setViewMonth(m => {
-      if (m === 1) {
-        setViewYear(y => y - 1)
-        return 12
-      }
-      return m - 1
-    })
+    // Read viewMonth from closure, not from inside setViewMonth updater.
+    // Calling setViewYear inside a setViewMonth updater fires twice in React Strict Mode,
+    // causing the year to jump by 2 instead of 1.
+    if (viewMonth === 1) {
+      setViewMonth(12)
+      setViewYear(y => y - 1)
+    } else {
+      setViewMonth(m => m - 1)
+    }
     setSelectedEvent(null)
-  }, [])
+  }, [viewMonth])
 
   const navigateNextMonth = useCallback((): void => {
-    setViewMonth(m => {
-      if (m === 12) {
-        setViewYear(y => y + 1)
-        return 1
-      }
-      return m + 1
-    })
+    if (viewMonth === 12) {
+      setViewMonth(1)
+      setViewYear(y => y + 1)
+    } else {
+      setViewMonth(m => m + 1)
+    }
     setSelectedEvent(null)
-  }, [])
+  }, [viewMonth])
 
   const navigateToday = useCallback((): void => {
     if (worldState === null) return
@@ -719,15 +896,6 @@ export default function Calendar(): JSX.Element {
   }
 
   const cells = buildMonthCells(viewYear, viewMonth)
-
-  // Upcoming events — starting from the current in-game week, up to 10.
-  // Events are already sorted year+week ascending from the DB.
-  const upcomingEvents = events
-    .filter(e =>
-      e.year > worldState.currentYear ||
-      (e.year === worldState.currentYear && e.week >= worldState.currentWeek),
-    )
-    .slice(0, 10)
 
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
@@ -822,8 +990,11 @@ export default function Calendar(): JSX.Element {
           Loading calendar…
         </p>
       ) : (
+        // Two-column layout: calendar grid left, right panel always present.
+        // The right column is a fixed width — switching between upcoming list and
+        // event detail doesn't change any heights, so the calendar never shifts down.
         <div style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
-          {/* Calendar grid */}
+          {/* Calendar grid — takes remaining width */}
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Day-of-week headers */}
             <div
@@ -961,105 +1132,23 @@ export default function Calendar(): JSX.Element {
             </div>
           </div>
 
-          {/* Event detail panel */}
-          {selectedEvent !== null && (
-            <EventDetailPanel
-              event={selectedEvent}
-              onClose={() => setSelectedEvent(null)}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Upcoming events list */}
-      {!loading && upcomingEvents.length > 0 && (
-        <div style={{ marginTop: 'var(--space-6)' }}>
-          <div
-            style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '9px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              color: 'rgba(218,212,201,0.35)',
-              marginBottom: 'var(--space-2)',
-            }}
-          >
-            Upcoming Events
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-            {upcomingEvents.map(event => {
-              const sat = isoWeekSaturday(event.year, event.week)
-              const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-              const isSelected = selectedEvent?.id === event.id
-              return (
-                <button
-                  key={event.id}
-                  onClick={() => setSelectedEvent(event)}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '60px 80px 1fr auto',
-                    gap: 'var(--space-3)',
-                    alignItems: 'center',
-                    padding: '6px var(--space-3)',
-                    background: isSelected
-                      ? 'rgba(218,212,201,0.06)'
-                      : 'rgba(218,212,201,0.02)',
-                    border: isSelected
-                      ? 'var(--border-mid)'
-                      : 'var(--border-subtle)',
-                    borderRadius: 'var(--radius-sm)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    fontFamily: 'var(--font-body)',
-                  }}
-                >
-                  {/* Date */}
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      color: 'rgba(218,212,201,0.45)',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {dateStr} {event.year}
-                  </span>
-
-                  {/* Circuit badge */}
-                  <span style={{ ...pillStyle(event.circuitLevel), marginBottom: 0, width: 'auto' }}>
-                    {circuitLabel(event.circuitLevel)}
-                  </span>
-
-                  {/* Event name */}
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      color: 'var(--color-text-primary)',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {event.label}
-                  </span>
-
-                  {/* Venue + city */}
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      color: 'rgba(218,212,201,0.4)',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: '180px',
-                      textAlign: 'right',
-                    }}
-                  >
-                    {displayVenueName(event)} · {formatCityDisplay(event)}
-                  </span>
-                </button>
-              )
-            })}
+          {/* Right column — fixed 280px, always rendered.
+              Shows the event detail panel when an event is selected,
+              upcoming events list otherwise. No vertical layout shift. */}
+          <div style={{ width: '280px', flexShrink: 0 }}>
+            {selectedEvent !== null ? (
+              <EventDetailPanel
+                event={selectedEvent}
+                onClose={() => setSelectedEvent(null)}
+              />
+            ) : (
+              <UpcomingEventsPanel
+                events={events}
+                currentYear={worldState.currentYear}
+                currentWeek={worldState.currentWeek}
+                onSelect={setSelectedEvent}
+              />
+            )}
           </div>
         </div>
       )}

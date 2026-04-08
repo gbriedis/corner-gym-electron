@@ -10,8 +10,13 @@
 // 4. Olympics and World Championship respect frequencyYears and nextOccurrence.
 // 5. Host city rotation for national championship tracks current index in WorldState.
 // 6. No two major events (national_championship or above) in the same week.
-// 7. Club tournaments and regional opens can overlap — they run in different cities.
-// 8. Regional opens are staggered across cities — no two land in the same week.
+// 7. Club tournaments use nation-level slot distribution:
+//    all cities' events are spread across the full competition season first,
+//    then assigned to cities in round-robin order so each city's events
+//    fall in different parts of the year.
+// 8. Regional opens use window-based distribution: events land only in the
+//    spring or autumn windows defined by the national body's calendarRules.
+//    No two regional opens share a week.
 // 9. Event frequency for domestic events comes from city data, not template defaults.
 // 10. Weight classes use real ids from data, with lighter classes biased for club events.
 
@@ -19,7 +24,7 @@ import type { GameData, NationBoxingData } from '../data/loader.js'
 import type { GameConfig } from '../types/gameConfig.js'
 import type { WorldState } from '../types/worldState.js'
 import type { CalendarEvent } from '../types/calendar.js'
-import type { EventTemplate, Venue, CircuitLevel } from '../types/data/boxing.js'
+import type { EventTemplate, Venue, CircuitLevel, NationalCalendarRules } from '../types/data/boxing.js'
 import type { CitiesData, City } from '../types/data/cities.js'
 import type { WeightClass } from '../types/data/weightClasses.js'
 import type { RNG } from '../utils/rng.js'
@@ -189,11 +194,17 @@ function generateDomesticEvents(
 
   // Build a city lookup map for fast per-city frequency access.
   // Frequency comes from city.eventHostingFrequency rather than template defaults —
-  // this ensures Riga generates 5-7 club tournaments while Valmiera generates 2-3.
+  // this ensures Riga generates more events than Jēkabpils.
   const cityLookup = new Map<string, City>()
   for (const city of citiesData.cities) {
     cityLookup.set(city.id, city)
   }
+
+  // Extract the national calendar rules from the sanctioning body if available.
+  // These rules define the competition season and minimum spacing between events.
+  // Without rules the engine falls back to template typicalMonths and hardcoded gaps.
+  const calendarRules: NationalCalendarRules | undefined =
+    boxing.sanctioningBodies.sanctioningBodies.find(b => b.calendarRules !== undefined)?.calendarRules
 
   for (const template of boxing.eventTemplates.eventTemplates) {
     if (template.frequencyYears !== undefined) continue // international template, skip
@@ -244,47 +255,132 @@ function generateDomesticEvents(
         })
 
       } else if (template.locationScope === 'city') {
-        // Club tournaments — one set of events per city that has eligible venues.
-        // Frequency comes from city data; falls back to conservative 2 if data is absent.
-        // Events are staggered so no two clubs share the same week nationally —
-        // Latvia is small enough that simultaneous events split the fighter pool.
-        const eligibleCities = findCitiesWithVenues(
-          nationId, template, circuitLevel, venueMap,
-        )
+        // Club tournaments — nation-level slot distribution.
+        //
+        // Old approach (broken): per-city round-robin from typicalMonths[0] → all cities
+        // picked January first, February second — every event in the first 3 months.
+        //
+        // New approach: collect all events needed across all cities, build season slots
+        // spread evenly across the full competition season, assign to cities in
+        // round-robin order so each city's events fall in different parts of the year.
+        const eligibleCities = findCitiesWithVenues(nationId, template, circuitLevel, venueMap)
 
-        // Track occupied weeks within this year and template — reset per year.
-        const clubTournamentWeeks = new Set<number>()
-
+        // Build (city, freq) pairs — zero-freq cities are excluded.
+        const cityFreqs: Array<{ cityId: string; freq: number }> = []
         for (const cityId of eligibleCities) {
-          const cityShort = cityShortId(cityId)
           const cityData = cityLookup.get(cityId)
           const cityFreq = cityData?.eventHostingFrequency?.club_tournament
           const freq = cityFreq !== undefined
             ? rng.nextInt(cityFreq.min, cityFreq.max)
-            : 2  // conservative fallback if city data is missing
+            : 1  // conservative fallback
+          if (freq > 0) cityFreqs.push({ cityId, freq })
+        }
 
-          const distributed = distributeAcrossMonths(
-            freq, template.typicalMonths, weekFloor, rng,
+        const total = cityFreqs.reduce((sum, cf) => sum + cf.freq, 0)
+        if (total === 0) continue
+
+        // Season slot pool: full competition season from calendar rules, or
+        // fall back to template typicalMonths. Minimum 2-week gap between events.
+        const seasonMonths = calendarRules?.competitionSeasonMonths ?? template.typicalMonths
+        const minGap = calendarRules?.clubTournament.minWeeksBetweenEvents ?? 2
+        const slots = buildSeasonSlots(seasonMonths, total, minGap, weekFloor, rng)
+
+        // Interleave cities round-robin by event index.
+        // Riga (freq=2) gets slots[0] and slots[3]; Daugavpils (freq=1) gets slots[1], etc.
+        // This spreads each city across the year rather than grouping all Riga events together.
+        const interleaved = interleaveCity(cityFreqs)
+
+        for (let i = 0; i < interleaved.length && i < slots.length; i++) {
+          const entry = interleaved[i]
+          const week = slots[i]
+          if (entry === undefined || week === undefined) continue
+
+          const cityShort = cityShortId(entry.cityId)
+          const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
+          const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+
+          events.push({
+            id: makeEventId(template.id, entry.cityId, year, week),
+            templateId: template.id,
+            circuitLevel,
+            label: template.label,
+            venueId: venue.id,
+            venueName: venue.name,
+            venueCapacity: venue.capacity,
+            cityId: entry.cityId,
+            nationId,
+            year,
+            week,
+            weightClasses,
+            status: 'scheduled',
+            boutIds: [],
+          })
+        }
+
+      } else if (template.locationScope === 'regional') {
+        // Regional opens — window-based nation-level slot distribution.
+        //
+        // Events land only within defined seasonal windows (spring: Feb/Mar, autumn: Sep/Oct).
+        // Cities are interleaved across windows so no window is monopolised by one city.
+        // Within each window, events are spread with minimum 4-week gaps.
+        const eligibleCities = findCitiesWithVenues(nationId, template, circuitLevel, venueMap)
+
+        const cityFreqs: Array<{ cityId: string; freq: number }> = []
+        for (const cityId of eligibleCities) {
+          const cityData = cityLookup.get(cityId)
+          const cityFreq = cityData?.eventHostingFrequency?.regional_open
+          const freq = cityFreq !== undefined
+            ? rng.nextInt(cityFreq.min, cityFreq.max)
+            : 0
+          if (freq > 0) cityFreqs.push({ cityId, freq })
+        }
+
+        const total = cityFreqs.reduce((sum, cf) => sum + cf.freq, 0)
+        if (total === 0) continue
+
+        const minGap = calendarRules?.regionalOpen.minWeeksBetweenEvents ?? 4
+        const windows = calendarRules?.regionalOpen.windows
+
+        if (windows !== undefined && windows.length > 0) {
+          // Distribute events evenly across seasonal windows.
+          // If total is odd, the first window gets the extra slot.
+          const eventsPerWindow = windows.map((_, i) => {
+            const base = Math.floor(total / windows.length)
+            return base + (i < total % windows.length ? 1 : 0)
+          })
+
+          // Build a slot pool for each window independently.
+          const windowSlotPools = windows.map((w, i) =>
+            buildSeasonSlots(w.months, eventsPerWindow[i] ?? 0, minGap, weekFloor, rng),
           )
-          for (const rawWeek of distributed) {
-            let week = rawWeek
-            while (clubTournamentWeeks.has(week) && week <= 52) {
-              week += rng.nextInt(1, 2)
-            }
-            if (week > 52) continue
-            clubTournamentWeeks.add(week)
 
+          // Assign interleaved cities to windows round-robin.
+          const interleaved = interleaveCity(cityFreqs)
+          const windowCounters = windows.map(() => 0)
+
+          for (let i = 0; i < interleaved.length; i++) {
+            const entry = interleaved[i]
+            if (entry === undefined) continue
+
+            const windowIdx = i % windows.length
+            const counterIdx = windowCounters[windowIdx] ?? 0
+            const week = windowSlotPools[windowIdx]?.[counterIdx]
+            if (week === undefined) continue
+            windowCounters[windowIdx] = counterIdx + 1
+
+            const cityShort = cityShortId(entry.cityId)
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+
             events.push({
-              id: makeEventId(template.id, cityId, year, week),
+              id: makeEventId(template.id, entry.cityId, year, week),
               templateId: template.id,
               circuitLevel,
               label: template.label,
               venueId: venue.id,
               venueName: venue.name,
               venueCapacity: venue.capacity,
-              cityId,
+              cityId: entry.cityId,
               nationId,
               year,
               week,
@@ -293,53 +389,29 @@ function generateDomesticEvents(
               boutIds: [],
             })
           }
-        }
+        } else {
+          // No windows defined — fall back to spreading across typicalMonths
+          const slots = buildSeasonSlots(template.typicalMonths, total, minGap, weekFloor, rng)
+          const interleaved = interleaveCity(cityFreqs)
 
-      } else if (template.locationScope === 'regional') {
-        // Regional opens — one event per city that has a regional-eligible venue.
-        // Frequency comes from city data. Events are staggered across cities so
-        // no two regional opens in the same year land on the same week — simultaneous
-        // events across every region kills the sense of a real boxing calendar.
-        const eligibleCities = findCitiesWithVenues(
-          nationId, template, circuitLevel, venueMap,
-        )
+          for (let i = 0; i < interleaved.length && i < slots.length; i++) {
+            const entry = interleaved[i]
+            const week = slots[i]
+            if (entry === undefined || week === undefined) continue
 
-        // Track occupied weeks for regional opens within this year and template.
-        // Reset per year so staggering is applied within a year, not across years.
-        const regionOpenWeeks = new Set<number>()
-
-        for (const cityId of eligibleCities) {
-          const cityShort = cityShortId(cityId)
-          const cityData = cityLookup.get(cityId)
-          const cityFreq = cityData?.eventHostingFrequency?.regional_open
-          const freq = cityFreq !== undefined
-            ? rng.nextInt(cityFreq.min, cityFreq.max)
-            : 2  // conservative fallback if city data is missing
-
-          const distributed = distributeAcrossMonths(
-            freq, template.typicalMonths, weekFloor, rng,
-          )
-          for (const rawWeek of distributed) {
-            // Stagger: if another regional open already occupies this week, shift
-            // forward until we find an open slot or run out of year.
-            let week = rawWeek
-            while (regionOpenWeeks.has(week) && week <= 52) {
-              week += rng.nextInt(1, 2)
-            }
-            if (week > 52) continue
-            regionOpenWeeks.add(week)
-
+            const cityShort = cityShortId(entry.cityId)
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+
             events.push({
-              id: makeEventId(template.id, cityId, year, week),
+              id: makeEventId(template.id, entry.cityId, year, week),
               templateId: template.id,
               circuitLevel,
               label: template.label,
               venueId: venue.id,
               venueName: venue.name,
               venueCapacity: venue.capacity,
-              cityId,
+              cityId: entry.cityId,
               nationId,
               year,
               week,
@@ -489,28 +561,77 @@ function findCitiesWithVenues(
   return Array.from(eligibleCities)
 }
 
-// distributeAcrossMonths spreads `count` events across the given months,
-// returning a list of week numbers. Events are distributed evenly across
-// typicalMonths — if count > months, some months get multiple events.
-// weeks that fall before weekFloor (already past in the start year) are skipped.
-function distributeAcrossMonths(
+// buildSeasonSlots spreads `count` week slots evenly across the given months.
+// The available weeks are collected, sorted, then divided into `count` equal sections.
+// One week is picked randomly within each section, so events are distributed
+// throughout the season rather than clustered at its start.
+// minGap enforces a lower bound between consecutive slots within the same section pass.
+// Slots before weekFloor are excluded (current-year truncation).
+function buildSeasonSlots(
+  months: number[],
   count: number,
-  typicalMonths: number[],
+  minGap: number,
   weekFloor: number,
   rng: RNG,
 ): number[] {
-  if (typicalMonths.length === 0) return []
+  if (count <= 0 || months.length === 0) return []
 
-  const weeks: number[] = []
-  for (let i = 0; i < count; i++) {
-    const month = typicalMonths[i % typicalMonths.length]
-    if (month === undefined) continue
-    const week = pickWeekInMonth(month, rng)
-    // Skip events that have already passed in the start year.
-    if (week < weekFloor) continue
-    weeks.push(week)
+  // Collect all weeks belonging to the given months, sorted ascending.
+  // Set deduplicates in case month ranges overlap.
+  const seen = new Set<number>()
+  for (const month of months) {
+    const [lo, hi] = MONTH_WEEK_RANGES[month] ?? [1, 52]
+    for (let w = lo; w <= hi; w++) {
+      if (w >= weekFloor) seen.add(w)
+    }
   }
-  return weeks
+  const available = Array.from(seen).sort((a, b) => a - b)
+
+  if (available.length === 0) return []
+
+  // Cap count so we never try to fit more events than the season allows with minGap spacing.
+  const maxFeasible = Math.floor((available.length + minGap - 1) / minGap)
+  const actual = Math.min(count, maxFeasible)
+
+  // Divide available weeks into `actual` equal sections.
+  // Picking one week per section guarantees events spread across the whole season.
+  const sectionSize = available.length / actual
+  const slots: number[] = []
+
+  for (let i = 0; i < actual; i++) {
+    const lo = Math.floor(i * sectionSize)
+    const hi = Math.min(Math.floor((i + 1) * sectionSize) - 1, available.length - 1)
+    const pickIdx = lo <= hi ? rng.nextInt(lo, hi) : lo
+    const candidate = available[pickIdx] ?? available[lo] ?? available[0]
+    if (candidate === undefined) continue
+
+    // Enforce minimum gap from the previous slot to prevent adjacent-week clustering
+    // within a single section (can happen when sectionSize ≈ minGap).
+    const prev = slots.length > 0 ? slots[slots.length - 1]! : -Infinity
+    const week = Math.max(candidate, prev + minGap)
+
+    if (week <= 52) slots.push(week)
+  }
+
+  return slots
+}
+
+// interleaveCity builds an ordered list of city assignments for a set of events.
+// Cities are interleaved round-robin by event index rather than grouped —
+// so Riga's two events land in different sections of the season slot pool
+// rather than back-to-back. This is the mechanism that prevents one city
+// from monopolising the start or end of the year.
+function interleaveCity(
+  cityFreqs: ReadonlyArray<{ readonly cityId: string; readonly freq: number }>,
+): Array<{ cityId: string }> {
+  const maxFreq = cityFreqs.reduce((m, cf) => Math.max(m, cf.freq), 0)
+  const result: Array<{ cityId: string }> = []
+  for (let i = 0; i < maxFreq; i++) {
+    for (const cf of cityFreqs) {
+      if (i < cf.freq) result.push({ cityId: cf.cityId })
+    }
+  }
+  return result
 }
 
 export function generateCalendar(

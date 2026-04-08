@@ -18,6 +18,19 @@
         "id": "lbf_national_rankings",
         "description": "Points-based system. Points awarded per win at sanctioned events weighted by circuit level. National Championship final counts highest. Rankings reset annually after the National Championship.",
         "resetMonth": 11
+      },
+      "calendarRules": {
+        "competitionSeasonMonths": [9, 10, 11, 1, 2, 3, 4, 5],
+        "clubTournament": {
+          "minWeeksBetweenEvents": 2
+        },
+        "regionalOpen": {
+          "minWeeksBetweenEvents": 4,
+          "windows": [
+            { "months": [2, 3], "label": "spring" },
+            { "months": [9, 10], "label": "autumn" }
+          ]
+        }
       }
     }
   ]
