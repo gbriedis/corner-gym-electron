@@ -1,21 +1,19 @@
 // VenuePage — full detail view for a boxing venue.
-// Shows venue image, description, capacity, eligible circuit levels,
+// Shows full-bleed hero image, stat row, description, circuit eligibility,
 // and upcoming/past events at this venue queried from SQLite.
+// Styled as a worn boxing programme: no web-UI cards, stamp labels, divider rules.
 
-import { useState, useEffect, type JSX } from 'react'
-import { ArrowLeftIcon, SewingPinIcon } from '@radix-ui/react-icons'
+import { useState, useEffect, type JSX, type ReactNode } from 'react'
 import GameShell from '../components/layout/GameShell'
 import Badge from '../components/Badge'
 import { useGameStore } from '../store/gameStore'
 import { getAllEvents } from '../ipc/client'
 
-import type { Venue, CircuitLevel } from '@corner-gym/engine'
-import type { CalendarEvent } from '@corner-gym/engine'
+import type { Venue, CircuitLevel, CalendarEvent } from '@corner-gym/engine'
 import type { BadgeVariant } from '../components/Badge'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-// Pre-loaded venue images via Vite glob import — same pattern as Calendar.tsx.
 const VENUE_IMAGES = import.meta.glob('../assets/venues/*.{jpg,png,jpeg,webp}', {
   eager: true,
   import: 'default',
@@ -55,6 +53,14 @@ function circuitBadgeVariant(id: CircuitLevel): BadgeVariant {
   }
 }
 
+function eventCircuitBadgeVariant(id: string): BadgeVariant {
+  return circuitBadgeVariant(id as CircuitLevel)
+}
+
+function eventCircuitDisplayLabel(id: string): string {
+  return circuitDisplayLabel(id as CircuitLevel)
+}
+
 function isoWeekSaturday(year: number, week: number): Date {
   const jan4 = new Date(year, 0, 4)
   const dow = (jan4.getDay() + 6) % 7
@@ -67,95 +73,208 @@ function isoWeekSaturday(year: number, week: number): Date {
   return sat
 }
 
-function SectionLabel({ label }: { label: string }): JSX.Element {
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+// SectionBlock — stamp label (1px rule above, 10px tracked uppercase, content below).
+function SectionBlock({
+  label,
+  children,
+  style,
+}: {
+  label: string
+  children: ReactNode
+  style?: React.CSSProperties
+}): JSX.Element {
   return (
     <div
       style={{
-        fontFamily: 'var(--font-body)',
-        fontSize: '9px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.1em',
-        color: 'rgba(218,212,201,0.35)',
-        marginBottom: 'var(--space-2)',
+        borderTop: 'var(--border-subtle)',
+        paddingTop: 'var(--space-4)',
+        marginBottom: 'var(--space-6)',
+        ...style,
       }}
     >
-      {label}
+      <div
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '10px',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'rgba(218,212,201,0.35)',
+          marginBottom: 'var(--space-2)',
+        }}
+      >
+        {label}
+      </div>
+      {children}
     </div>
   )
 }
 
-// VenueHeroImage renders the 21:9 venue image or a styled placeholder.
-function VenueHeroImage({ venueId, venueName }: { venueId: string; venueName: string }): JSX.Element {
+// StatBlock — label above, value below. Used in the stat bar.
+function StatBlock({ label, value }: { label: string; value: string }): JSX.Element {
+  return (
+    <div>
+      <div
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '10px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'rgba(218,212,201,0.55)',
+          marginBottom: '3px',
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-text-primary)' }}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
+// StatBar — full-bleed horizontal strip of stat blocks directly below the hero.
+function StatBar({
+  blocks,
+}: {
+  blocks: Array<{ label: string; value: string }>
+}): JSX.Element {
+  return (
+    <div
+      style={{
+        marginLeft: 'calc(-1 * var(--space-6))',
+        marginRight: 'calc(-1 * var(--space-6))',
+        width: 'calc(100% + 2 * var(--space-6))',
+        backgroundColor: 'var(--color-bg-mid)',
+        display: 'flex',
+        gap: 'var(--space-8)',
+        padding: 'var(--space-3) var(--space-6)',
+        marginBottom: 'var(--space-6)',
+      }}
+    >
+      {blocks.map((b, i) => (
+        <StatBlock key={i} label={b.label} value={b.value} />
+      ))}
+    </div>
+  )
+}
+
+// VenueHero — full-bleed 21:9 image with gradient scrim.
+// Venue name (Rock Bro), city · country, capacity pill overlaid on scrim.
+function VenueHero({
+  venueId,
+  venueName,
+  cityLine,
+  capacity,
+}: {
+  venueId: string
+  venueName: string
+  cityLine: string
+  capacity: string
+}): JSX.Element {
   const [imgError, setImgError] = useState(false)
   const src = getVenueImageSrc(venueId)
 
-  const containerStyle: React.CSSProperties = {
-    width: '100%',
+  const bleed: React.CSSProperties = {
+    marginLeft: 'calc(-1 * var(--space-6))',
+    marginRight: 'calc(-1 * var(--space-6))',
+    width: 'calc(100% + 2 * var(--space-6))',
     aspectRatio: '21 / 9',
-    borderRadius: 'var(--radius-md)',
-    overflow: 'hidden',
     position: 'relative',
-    marginBottom: 'var(--space-4)',
+    overflow: 'hidden',
+    marginTop: 'var(--space-2)',
   }
+
+  const scrim: React.CSSProperties = {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 'var(--space-6)',
+    paddingTop: '72px',
+    background: 'linear-gradient(to top, var(--color-bg-dark) 0%, transparent 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-1)',
+  }
+
+  const overlay = (
+    <div style={scrim}>
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '28px',
+          color: 'var(--color-text-primary)',
+          lineHeight: 1.1,
+        }}
+      >
+        {venueName}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+          {cityLine}
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '10px',
+            color: 'var(--color-text-primary)',
+            border: '1px solid rgba(218,212,201,0.35)',
+            padding: '2px 6px',
+            flexShrink: 0,
+            marginLeft: 'var(--space-4)',
+          }}
+        >
+          {capacity}
+        </span>
+      </div>
+    </div>
+  )
 
   if (src === null || imgError) {
     return (
       <div
         style={{
-          ...containerStyle,
+          ...bleed,
           backgroundColor: '#0d0f13',
-          border: 'var(--border-subtle)',
           display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'flex-start',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <span
           style={{
             fontFamily: 'var(--font-body)',
-            fontSize: '18px',
-            fontWeight: 700,
-            color: 'var(--color-text-primary)',
-            padding: 'var(--space-4)',
+            fontSize: '11px',
+            color: 'rgba(218,212,201,0.3)',
+            textAlign: 'center',
           }}
         >
           {venueName}
         </span>
+        {overlay}
       </div>
     )
   }
 
   return (
-    <div style={containerStyle}>
+    <div style={bleed}>
       <img
         src={src}
         alt={venueName}
         onError={() => setImgError(true)}
         style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
       />
-      {/* Name overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: 'var(--space-4)',
-          background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
-        }}
-      >
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '18px', fontWeight: 700, color: '#fff' }}>
-          {venueName}
-        </div>
-      </div>
+      {overlay}
     </div>
   )
 }
 
-// EventListRow renders a compact event row for upcoming/past event lists.
-function EventListRow({ event }: { event: CalendarEvent }): JSX.Element {
-  const sat = isoWeekSaturday(event.year, event.week)
+// EventListRow — compact single-row event entry for upcoming/past lists.
+function EventListRow({ event, isLast }: { event: CalendarEvent; isLast: boolean }): JSX.Element {
+  const sat     = isoWeekSaturday(event.year, event.week)
   const dateStr = sat.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
   return (
@@ -165,14 +284,31 @@ function EventListRow({ event }: { event: CalendarEvent }): JSX.Element {
         alignItems: 'center',
         gap: 'var(--space-3)',
         padding: 'var(--space-2) 0',
-        borderBottom: 'var(--border-subtle)',
+        borderBottom: isLast ? 'none' : 'var(--border-subtle)',
       }}
     >
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.4)', minWidth: '90px', flexShrink: 0 }}>
+      <span
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '10px',
+          color: 'rgba(218,212,201,0.4)',
+          minWidth: '90px',
+          flexShrink: 0,
+        }}
+      >
         {dateStr}
       </span>
-      <Badge variant={circuitBadgeVariant(event.circuitLevel)} label={circuitDisplayLabel(event.circuitLevel)} />
-      <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-primary)', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+      <Badge variant={eventCircuitBadgeVariant(event.circuitLevel)} label={eventCircuitDisplayLabel(event.circuitLevel)} />
+      <span
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '11px',
+          color: 'var(--color-text-primary)',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+        }}
+      >
         {event.label}
       </span>
     </div>
@@ -182,16 +318,15 @@ function EventListRow({ event }: { event: CalendarEvent }): JSX.Element {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function VenuePage(): JSX.Element {
-  const gameData = useGameStore(s => s.gameData)
+  const gameData   = useGameStore(s => s.gameData)
   const worldState = useGameStore(s => s.worldState)
-  const params = useGameStore(s => s.navigationParams)
-  const setScreen = useGameStore(s => s.setScreen)
+  const params     = useGameStore(s => s.navigationParams)
+  const setScreen  = useGameStore(s => s.setScreen)
 
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>([])
 
   const venueId = params?.venueId ?? ''
 
-  // Load calendar events for this venue from SQLite.
   useEffect(() => {
     if (worldState === null) return
     getAllEvents(worldState.saveId)
@@ -199,7 +334,6 @@ export default function VenuePage(): JSX.Element {
       .catch(() => setAllEvents([]))
   }, [worldState])
 
-  // Find venue across all venue lists.
   let venue: Venue | undefined
   if (gameData !== null) {
     for (const bundle of Object.values(gameData.nations)) {
@@ -213,10 +347,10 @@ export default function VenuePage(): JSX.Element {
     }
   }
 
-  const currentYear  = worldState?.currentYear ?? 9999
-  const currentWeek  = worldState?.currentWeek  ?? 99
+  const currentYear = worldState?.currentYear ?? 9999
+  const currentWeek = worldState?.currentWeek  ?? 99
 
-  const venueEvents = allEvents.filter(e => e.venueId === venueId)
+  const venueEvents    = allEvents.filter(e => e.venueId === venueId)
   const upcomingEvents = venueEvents.filter(
     e => e.year > currentYear || (e.year === currentYear && e.week >= currentWeek),
   )
@@ -236,7 +370,9 @@ export default function VenuePage(): JSX.Element {
   if (gameData === null) {
     return (
       <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-text-muted)' }}>Loading data…</p>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+          Loading data…
+        </p>
       </GameShell>
     )
   }
@@ -251,15 +387,14 @@ export default function VenuePage(): JSX.Element {
     )
   }
 
+  const cityLine = `${venue.city.replace(/\b\w/g, c => c.toUpperCase())} · ${venue.country.replace(/\b\w/g, c => c.toUpperCase())}`
+
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-      {/* Back button */}
+      {/* Back — text only, above the hero */}
       <button
         onClick={handleBack}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-1)',
           fontFamily: 'var(--font-body)',
           fontSize: '11px',
           color: 'var(--color-text-muted)',
@@ -267,106 +402,86 @@ export default function VenuePage(): JSX.Element {
           border: 'none',
           padding: 0,
           cursor: 'pointer',
-          marginBottom: 'var(--space-4)',
         }}
       >
-        <ArrowLeftIcon width={12} height={12} />
-        Back to Calendar
+        ← Back
       </button>
 
-      {/* Hero image with venue name overlay */}
-      <VenueHeroImage venueId={venueId} venueName={venue.name} />
+      {/* Full-bleed hero: name, city, capacity */}
+      <VenueHero
+        venueId={venueId}
+        venueName={venue.name}
+        cityLine={cityLine}
+        capacity={`${venue.capacity.toLocaleString()} seats`}
+      />
 
-      {/* Venue meta below image */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)', flexWrap: 'wrap' }}>
-        <SewingPinIcon width={12} height={12} style={{ color: 'var(--color-text-muted)' }} />
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-          {venue.city.replace(/\b\w/g, c => c.toUpperCase())}, {venue.country.replace(/\b\w/g, c => c.toUpperCase())}
-        </span>
-        <span style={{ color: 'rgba(218,212,201,0.2)', fontSize: '10px' }}>·</span>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-text-muted)' }}>
-          {venue.capacity.toLocaleString()} seats
-        </span>
-        {venue.formerName !== undefined && (
-          <>
-            <span style={{ color: 'rgba(218,212,201,0.2)', fontSize: '10px' }}>·</span>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(218,212,201,0.4)', fontStyle: 'italic' }}>
-              fmr. {venue.formerName}
-            </span>
-          </>
-        )}
-      </div>
+      {/* Stat bar: CITY · COUNTRY · CAPACITY */}
+      <StatBar
+        blocks={[
+          { label: 'City',     value: venue.city.replace(/\b\w/g, c => c.toUpperCase()) },
+          { label: 'Country',  value: venue.country.replace(/\b\w/g, c => c.toUpperCase()) },
+          { label: 'Capacity', value: `${venue.capacity.toLocaleString()} seats` },
+        ]}
+      />
 
-      <div style={{ display: 'flex', gap: 'var(--space-6)', alignItems: 'flex-start', maxWidth: '900px' }}>
-        {/* Left column — description + eligible circuits */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* About */}
-          <div style={{ marginBottom: 'var(--space-5)' }}>
-            <SectionLabel label="About" />
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.7, margin: 0 }}>
-              {venue.description}
+      {/* Content — single column, max 900px */}
+      <div style={{ maxWidth: '900px' }}>
+
+        {/* ABOUT */}
+        <SectionBlock label="About">
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '12px',
+              color: 'var(--color-text-muted)',
+              lineHeight: 1.7,
+              margin: 0,
+            }}
+          >
+            {venue.description}
+            {venue.formerName !== undefined && (
+              <span style={{ display: 'block', marginTop: 'var(--space-2)', color: 'rgba(218,212,201,0.4)', fontStyle: 'italic', fontSize: '11px' }}>
+                Formerly known as {venue.formerName}.
+              </span>
+            )}
+          </p>
+        </SectionBlock>
+
+        {/* HOSTS — eligibleFor circuit badges */}
+        <SectionBlock label="Hosts">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+            {venue.eligibleFor.map(level => (
+              <Badge key={level} variant={circuitBadgeVariant(level)} label={circuitDisplayLabel(level)} />
+            ))}
+          </div>
+        </SectionBlock>
+
+        {/* UPCOMING EVENTS — compact divider list */}
+        <SectionBlock label="Upcoming Events">
+          {upcomingEvents.length === 0 ? (
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(218,212,201,0.35)', margin: 0 }}>
+              No upcoming events scheduled.
             </p>
-          </div>
+          ) : (
+            upcomingEvents.map((event, i) => (
+              <EventListRow key={event.id} event={event} isLast={i === upcomingEvents.length - 1} />
+            ))
+          )}
+        </SectionBlock>
 
-          {/* Eligible for */}
-          <div style={{ marginBottom: 'var(--space-5)' }}>
-            <SectionLabel label="Eligible Circuit Levels" />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {venue.eligibleFor.map(level => (
-                <Badge key={level} variant={circuitBadgeVariant(level)} label={circuitDisplayLabel(level)} />
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* PAST EVENTS — compact divider list */}
+        <SectionBlock label="Past Events">
+          {pastEvents.length === 0 ? (
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(218,212,201,0.35)', margin: 0 }}>
+              No recorded events yet.
+            </p>
+          ) : (
+            pastEvents.map((event, i) => (
+              <EventListRow key={event.id} event={event} isLast={i === pastEvents.length - 1} />
+            ))
+          )}
+        </SectionBlock>
 
-        {/* Right column — upcoming + past events */}
-        <div style={{ width: '340px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          {/* Upcoming events */}
-          <div
-            style={{
-              background: 'rgba(10,10,14,0.4)',
-              border: 'var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ padding: 'var(--space-2) var(--space-3)', borderBottom: 'var(--border-subtle)' }}>
-              <SectionLabel label="Upcoming Events Here" />
-            </div>
-            <div style={{ padding: 'var(--space-2) var(--space-3)' }}>
-              {upcomingEvents.length === 0 ? (
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.35)', margin: 0, fontStyle: 'italic' }}>
-                  No upcoming events scheduled at this venue.
-                </p>
-              ) : (
-                upcomingEvents.map(event => <EventListRow key={event.id} event={event} />)
-              )}
-            </div>
-          </div>
-
-          {/* Past events */}
-          <div
-            style={{
-              background: 'rgba(10,10,14,0.4)',
-              border: 'var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ padding: 'var(--space-2) var(--space-3)', borderBottom: 'var(--border-subtle)' }}>
-              <SectionLabel label="Past Events Here" />
-            </div>
-            <div style={{ padding: 'var(--space-2) var(--space-3)' }}>
-              {pastEvents.length === 0 ? (
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.35)', margin: 0, fontStyle: 'italic' }}>
-                  No recorded events yet — this fills as the game progresses.
-                </p>
-              ) : (
-                pastEvents.map(event => <EventListRow key={event.id} event={event} />)
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </GameShell>
   )

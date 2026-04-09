@@ -1,17 +1,14 @@
 // SanctioningBodyPage — full detail view for a sanctioning body.
 // Navigated to by clicking a sanctioning body name anywhere in the app.
-// Shows rules table per circuit level + age category, titles controlled, governed events.
+// Styled as an official document: dense rule specs, age category tabs, no web-UI cards.
 
-import type { JSX } from 'react'
-import {
-  ArrowLeftIcon,
-  ExternalLinkIcon,
-} from '@radix-ui/react-icons'
+import { useState, type JSX, type ReactNode } from 'react'
 import GameShell from '../components/layout/GameShell'
 import Badge from '../components/Badge'
 import { useGameStore } from '../store/gameStore'
 
-import type { SanctioningBody, CircuitLevelDefinition, RulesData } from '@corner-gym/engine'
+import type { SanctioningBody, CircuitLevelDefinition, RulesData, CircuitRules } from '@corner-gym/engine'
+import type { BadgeVariant } from '../components/Badge'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -37,6 +34,19 @@ function circuitDisplayLabel(id: string): string {
   }
 }
 
+function circuitBadgeVariant(id: string): BadgeVariant {
+  switch (id) {
+    case 'club_card':             return 'neutral'
+    case 'regional_tournament':   return 'normal'
+    case 'national_championship': return 'hard'
+    case 'baltic_championship':   return 'easy'
+    case 'european_championship': return 'normal'
+    case 'world_championship':    return 'hard'
+    case 'olympics':              return 'hard'
+    default:                      return 'neutral'
+  }
+}
+
 function ageCategoryLabel(id: string): string {
   switch (id) {
     case 'junior': return 'Junior'
@@ -46,76 +56,172 @@ function ageCategoryLabel(id: string): string {
   }
 }
 
-// SectionLabel renders a small all-caps label for detail sections.
-function SectionLabel({ label }: { label: string }): JSX.Element {
+// bodyAccentColor — the circuit-level colour most associated with this body.
+// LBF: amber (national championship). EUBC: blue-dark. IBA: gold (world/olympics).
+function bodyAccentColor(id: string): string {
+  switch (id) {
+    case 'lbf':  return 'var(--color-accent-amber)'
+    case 'eubc': return 'var(--color-accent-blue-dark)'
+    case 'iba':  return 'var(--color-accent-gold)'
+    default:     return 'var(--color-text-muted)'
+  }
+}
+
+// formatRuleLine — compresses a CircuitRules record into one dense specification line.
+// Reads like a technical spec, not a form.
+function formatRuleLine(rule: CircuitRules): string {
+  const headgear = rule.headgearRequired ? 'Headgear req.' : 'No headgear'
+  const scoring  = rule.scoringSystem.replace(/_/g, ' ')
+  const bouts    = rule.maxBoutsPerDay === 1 ? '1 bout/day' : `Max ${rule.maxBoutsPerDay} bouts/day`
+  return `${rule.rounds} rounds · ${rule.roundDurationMinutes} min · ${scoring} · ${headgear} · ${rule.gloveWeightOz} oz · ${bouts}`
+}
+
+// AGE_CATEGORIES — canonical order for tab display.
+const AGE_CATEGORY_ORDER = ['junior', 'youth', 'senior'] as const
+type AgeCategoryKey = typeof AGE_CATEGORY_ORDER[number]
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+// SectionBlock — stamp label (1px rule above, 10px tracked uppercase, content below).
+function SectionBlock({
+  label,
+  children,
+  style,
+}: {
+  label: string
+  children: ReactNode
+  style?: React.CSSProperties
+}): JSX.Element {
   return (
     <div
       style={{
-        fontFamily: 'var(--font-body)',
-        fontSize: '9px',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.1em',
-        color: 'rgba(218,212,201,0.35)',
-        marginBottom: 'var(--space-2)',
+        borderTop: 'var(--border-subtle)',
+        paddingTop: 'var(--space-4)',
+        marginBottom: 'var(--space-6)',
+        ...style,
       }}
     >
-      {label}
+      <div
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '10px',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'rgba(218,212,201,0.35)',
+          marginBottom: 'var(--space-2)',
+        }}
+      >
+        {label}
+      </div>
+      {children}
     </div>
   )
 }
 
-// RulesTable renders a table of circuit rules grouped by age category.
-function RulesTable({ rules, circuitId }: {
+// RulesSpecSection — age category tabs + per-circuit dense spec lines.
+// Rendered inside the COMPETITION RULES section block.
+function RulesSpecSection({
+  rules,
+  governedCircuits,
+}: {
   rules: RulesData
-  circuitId: string
+  governedCircuits: CircuitLevelDefinition[]
 }): JSX.Element {
-  const circuitRules = rules.circuitRules.filter(r => r.circuitLevel === circuitId)
-  if (circuitRules.length === 0) {
+  // Collect only age categories that have rules for at least one governed circuit.
+  const availableCategories = AGE_CATEGORY_ORDER.filter(cat =>
+    governedCircuits.some(c => rules.circuitRules.some(r => r.circuitLevel === c.id && r.ageCategory === cat)),
+  )
+
+  const defaultCat: AgeCategoryKey = availableCategories.includes('senior')
+    ? 'senior'
+    : (availableCategories[0] ?? 'senior')
+
+  const [activeTab, setActiveTab] = useState<AgeCategoryKey>(defaultCat)
+
+  if (availableCategories.length === 0) {
     return (
-      <p style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.35)', fontStyle: 'italic' }}>
-        No rules defined for this circuit level.
+      <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(218,212,201,0.35)', margin: 0 }}>
+        No rules defined.
       </p>
     )
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {circuitRules.map(rule => (
-        <div
-          key={`${rule.circuitLevel}-${rule.ageCategory}`}
-          style={{
-            background: 'rgba(218,212,201,0.03)',
-            border: 'var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: 'var(--space-2) var(--space-3)',
-          }}
-        >
-          <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '6px' }}>
-            {ageCategoryLabel(rule.ageCategory)}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px' }}>
-            <RuleRow label="Rounds" value={String(rule.rounds)} />
-            <RuleRow label="Round duration" value={`${rule.roundDurationMinutes} min`} />
-            <RuleRow label="Scoring" value={rule.scoringSystem.replace(/_/g, ' ')} />
-            <RuleRow label="Gloves" value={`${rule.gloveWeightOz} oz`} />
-            <RuleRow label="Headgear" value={rule.headgearRequired ? 'Required' : 'Not required'} />
-            <RuleRow label="Max bouts/day" value={String(rule.maxBoutsPerDay)} />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
+  // Rules for the active tab, grouped by circuit level.
+  const activeRules = governedCircuits
+    .map(c => ({
+      circuit: c,
+      rule: rules.circuitRules.find(r => r.circuitLevel === c.id && r.ageCategory === activeTab),
+    }))
+    .filter((entry): entry is { circuit: CircuitLevelDefinition; rule: CircuitRules } => entry.rule !== undefined)
 
-function RuleRow({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.35)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        {label}
-      </div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-        {value}
+      {/* Age category tabs */}
+      {availableCategories.length > 1 && (
+        <div style={{ display: 'flex', gap: 0, marginBottom: 'var(--space-4)', borderBottom: 'var(--border-subtle)' }}>
+          {availableCategories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveTab(cat)}
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '10px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: activeTab === cat ? 'var(--color-text-primary)' : 'rgba(218,212,201,0.4)',
+                background: 'none',
+                border: 'none',
+                borderBottom: activeTab === cat
+                  ? '1px solid var(--color-text-primary)'
+                  : '1px solid transparent',
+                padding: 'var(--space-1) var(--space-3)',
+                marginBottom: '-1px',
+                cursor: 'pointer',
+              }}
+            >
+              {ageCategoryLabel(cat)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Circuit level spec rows */}
+      <div>
+        {activeRules.map(({ circuit, rule }, i) => (
+          <div
+            key={circuit.id}
+            style={{
+              padding: 'var(--space-3) 0',
+              borderBottom: i < activeRules.length - 1 ? 'var(--border-subtle)' : 'none',
+              background: i % 2 === 1 ? 'rgba(255,255,255,0.02)' : 'transparent',
+            }}
+          >
+            <div
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '9px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: 'rgba(218,212,201,0.45)',
+                marginBottom: '4px',
+              }}
+            >
+              {circuitDisplayLabel(circuit.id)}
+            </div>
+            <div
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '11px',
+                color: 'var(--color-text-muted)',
+                lineHeight: 1.5,
+              }}
+            >
+              {formatRuleLine(rule)}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -124,14 +230,13 @@ function RuleRow({ label, value }: { label: string; value: string }): JSX.Elemen
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function SanctioningBodyPage(): JSX.Element {
-  const gameData = useGameStore(s => s.gameData)
-  const params = useGameStore(s => s.navigationParams)
+  const gameData  = useGameStore(s => s.gameData)
+  const params    = useGameStore(s => s.navigationParams)
   const setScreen = useGameStore(s => s.setScreen)
 
   const bodyId = params?.bodyId ?? ''
 
-  // Collect all sanctioning bodies from national + international data.
-  const allBodies: SanctioningBody[] = []
+  const allBodies:  SanctioningBody[]        = []
   const allCircuits: CircuitLevelDefinition[] = []
   let matchedRules: RulesData | undefined
 
@@ -140,7 +245,10 @@ export default function SanctioningBodyPage(): JSX.Element {
       if (bundle.boxing !== undefined) {
         allBodies.push(...bundle.boxing.sanctioningBodies.sanctioningBodies)
         allCircuits.push(...bundle.boxing.amateurCircuit.circuitLevels)
-        if (bundle.boxing.rules !== undefined && bundle.boxing.sanctioningBodies.sanctioningBodies.some(b => b.id === bodyId)) {
+        if (
+          bundle.boxing.rules !== undefined &&
+          bundle.boxing.sanctioningBodies.sanctioningBodies.some(b => b.id === bodyId)
+        ) {
           matchedRules = bundle.boxing.rules
         }
       }
@@ -151,13 +259,9 @@ export default function SanctioningBodyPage(): JSX.Element {
     if (bodyId === 'iba')  matchedRules = gameData.international.boxing.ibaRules
   }
 
-  const body = allBodies.find(b => b.id === bodyId)
-
-  // Find circuits this body sanctions.
+  const body            = allBodies.find(b => b.id === bodyId)
   const governedCircuits = allCircuits.filter(c => c.sanctioningBody === bodyId)
-
-  // Find the parent body for affiliation display.
-  const affiliatedBody = body?.affiliation !== null && body?.affiliation !== undefined
+  const affiliatedBody   = body?.affiliation != null
     ? allBodies.find(b => b.id === body.affiliation)
     : undefined
 
@@ -190,15 +294,14 @@ export default function SanctioningBodyPage(): JSX.Element {
     )
   }
 
+  const accentColor = bodyAccentColor(bodyId)
+
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-      {/* Back button */}
+      {/* Back — text only */}
       <button
         onClick={handleBack}
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-1)',
           fontFamily: 'var(--font-body)',
           fontSize: '11px',
           color: 'var(--color-text-muted)',
@@ -209,157 +312,117 @@ export default function SanctioningBodyPage(): JSX.Element {
           marginBottom: 'var(--space-4)',
         }}
       >
-        <ArrowLeftIcon width={12} height={12} />
-        Back to Calendar
+        ← Back
       </button>
 
-      <div style={{ display: 'flex', gap: 'var(--space-6)', alignItems: 'flex-start', maxWidth: '900px' }}>
-        {/* Left column — main content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Header */}
-          <div style={{ marginBottom: 'var(--space-5)' }}>
-            <h1
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '20px',
-                fontWeight: 700,
-                color: 'var(--color-text-primary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                margin: '0 0 var(--space-2)',
-              }}
-            >
-              {body.label}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-              <Badge variant="neutral" label={levelLabel(body.level)} />
-              {affiliatedBody !== undefined && (
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.5)' }}>
-                  Affiliated with{' '}
-                  <button
-                    onClick={() => setScreen('sanctioningBody', { bodyId: affiliatedBody.id })}
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '10px',
-                      color: 'var(--color-text-primary)',
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'underline' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.textDecoration = 'none' }}
-                  >
-                    {affiliatedBody.label}
-                  </button>
-                  {' '}
-                  <ExternalLinkIcon width={9} height={9} style={{ display: 'inline', verticalAlign: 'middle', opacity: 0.4 }} />
-                </span>
-              )}
-            </div>
-          </div>
+      {/* Content — max 900px */}
+      <div style={{ maxWidth: '900px' }}>
 
-          {/* About */}
-          <div style={{ marginBottom: 'var(--space-5)' }}>
-            <SectionLabel label="About" />
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: 1.7, margin: 0 }}>
-              {body.description}
-            </p>
-          </div>
-
-          {/* Competition Rules — per circuit level */}
-          {matchedRules !== undefined && governedCircuits.length > 0 && (
-            <div style={{ marginBottom: 'var(--space-5)' }}>
-              <SectionLabel label="Competition Rules" />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {governedCircuits.map(circuit => (
-                  <div key={circuit.id}>
-                    <div
-                      style={{
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        color: 'var(--color-text-primary)',
-                        marginBottom: 'var(--space-2)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {circuitDisplayLabel(circuit.id)}
-                    </div>
-                    <RulesTable rules={matchedRules!} circuitId={circuit.id} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Titles controlled */}
-          {body.titlesPerWeightClass.length > 0 && (
-            <div style={{ marginBottom: 'var(--space-5)' }}>
-              <SectionLabel label="Titles Controlled" />
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {body.titlesPerWeightClass.map(title => (
-                  <span
-                    key={title}
-                    style={{
-                      fontFamily: 'var(--font-body)',
-                      fontSize: '10px',
-                      padding: '3px 8px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'rgba(218,212,201,0.06)',
-                      border: 'var(--border-subtle)',
-                      color: 'var(--color-text-muted)',
-                    }}
-                  >
-                    {title.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right column — governed events */}
-        <div style={{ width: '240px', flexShrink: 0 }}>
-          <div
+        {/* Header — thick left accent border, body name in Rock Bro, level badge, affiliation */}
+        <div
+          style={{
+            borderLeft: `4px solid ${accentColor}`,
+            paddingLeft: 'var(--space-4)',
+            marginBottom: 'var(--space-6)',
+          }}
+        >
+          <h1
             style={{
-              background: 'rgba(10,10,14,0.4)',
-              border: 'var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'hidden',
+              fontFamily: 'var(--font-display)',
+              fontSize: '28px',
+              color: 'var(--color-text-primary)',
+              margin: '0 0 var(--space-2)',
+              lineHeight: 1.1,
             }}
           >
-            <div style={{ padding: 'var(--space-2) var(--space-3)', borderBottom: 'var(--border-subtle)' }}>
-              <SectionLabel label="Governed Events" />
-            </div>
-            {governedCircuits.length === 0 ? (
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.35)', padding: 'var(--space-3)', margin: 0 }}>
-                No circuit levels found.
-              </p>
-            ) : (
-              <div>
-                {governedCircuits.map((circuit, i) => (
-                  <div
-                    key={circuit.id}
-                    style={{
-                      padding: 'var(--space-2) var(--space-3)',
-                      borderBottom: i < governedCircuits.length - 1 ? 'var(--border-subtle)' : 'none',
-                    }}
-                  >
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-primary)', marginBottom: '2px' }}>
-                      {circuitDisplayLabel(circuit.id)}
-                    </div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.4)' }}>
-                      Prestige {circuit.prestige} · {circuit.locationScope}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {body.label}
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            <Badge variant="neutral" label={levelLabel(body.level)} />
+            {affiliatedBody !== undefined && (
+              <span
+                style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  color: 'rgba(218,212,201,0.5)',
+                }}
+              >
+                Affiliated with{' '}
+                <button
+                  onClick={() => setScreen('sanctioningBody', { bodyId: affiliatedBody.id })}
+                  onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
+                  onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '11px',
+                    color: 'var(--color-text-primary)',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {affiliatedBody.label}
+                </button>
+              </span>
             )}
           </div>
         </div>
+
+        {/* ABOUT */}
+        <SectionBlock label="About">
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '12px',
+              color: 'var(--color-text-muted)',
+              lineHeight: 1.7,
+              margin: 0,
+            }}
+          >
+            {body.description}
+          </p>
+        </SectionBlock>
+
+        {/* COMPETITION RULES — age category tabs, circuit spec lines */}
+        {matchedRules !== undefined && governedCircuits.length > 0 && (
+          <SectionBlock label="Competition Rules">
+            <RulesSpecSection rules={matchedRules} governedCircuits={governedCircuits} />
+          </SectionBlock>
+        )}
+
+        {/* TITLES AWARDED — plain list, no pills */}
+        {body.titlesPerWeightClass.length > 0 && (
+          <SectionBlock label="Titles Awarded Per Weight Class">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+              {body.titlesPerWeightClass.map(title => (
+                <span
+                  key={title}
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: '11px',
+                    color: 'var(--color-text-muted)',
+                  }}
+                >
+                  {title.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </span>
+              ))}
+            </div>
+          </SectionBlock>
+        )}
+
+        {/* GOVERNED EVENTS — circuit badges in a row */}
+        {governedCircuits.length > 0 && (
+          <SectionBlock label="Governed Events">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
+              {governedCircuits.map(c => (
+                <Badge key={c.id} variant={circuitBadgeVariant(c.id)} label={circuitDisplayLabel(c.id)} />
+              ))}
+            </div>
+          </SectionBlock>
+        )}
+
       </div>
     </GameShell>
   )
