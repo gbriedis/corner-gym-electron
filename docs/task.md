@@ -1,295 +1,286 @@
 # Current Task
 
-## Task: Top Nav Rework + Calendar Events + Page v2 + Bracket Component
+## Task: Font Swap + Naming Fix + Nav Guard + Dynamic Event Names + Rewards Schema
 
 ### What To Build
-Four things in sequence. Each builds on the previous.
-1. Top nav — spine of the game UI
-2. Calendar event display — replace pills with clean text in split cells
-3. Page v2 — event, venue, sanctioning body pages redesigned around small images
-4. Bracket component — single elimination skeleton
+Five focused fixes. Do in order — each is independent but together they clean up significant rough edges.
 
 ### Skill To Load
-`.claude/skills/public/frontend-design/SKILL.md`
 `.claude/skills/new-feature/SKILL.md`
+`.claude/rules/data.md`
 
 ---
 
-## The Design Philosophy For This Task
+## Part 1 — Font Swap
 
-The assets we have are small venue snapshots — cramped boxing gyms and clubs. They are texture, not heroes. The typography and layout carries the pages. Images accent, they do not lead.
+Replace Rock Bro with the new Corner Gym header font.
 
-Think print. Boxing programmes. Fight posters. Dense, considered, every element earning its place. This is a sim game played on a laptop — the UI should feel like a specialist tool used by someone who knows boxing, not a consumer app.
+**`packages/ui/src/index.css`**
 
----
-
-## Part 1 — Top Nav Rework
-
-Completely replace the current top bar. Remove all per-page title headers from Calendar, Venue, Sanctioning Body, and Event pages — the top nav owns that responsibility now.
-
-### Layout
-
-Full width, fixed top, `--color-bg-dark` background, single pixel bottom border `--color-bg-mid`. Height: 48px. Three zones.
-
-**Left zone (navigation memory):**
-```
-[←] [→]  CALENDAR
-```
-- Back arrow: `ArrowLeftIcon` from Radix, 16px, `--color-text-muted`. Disabled state: `opacity: 0.3`. Clicking navigates browser history back.
-- Forward arrow: `ArrowRightIcon`, same treatment.
-- Page name: current route label in Inconsolata, 11px, uppercase, tracked, `--color-text-muted`. Clicking navigates to `/` (Dashboard/main game screen).
-- Separator between arrows and page name: single pixel vertical rule `--color-bg-mid`.
-
-Page name map:
-```
-/              → DASHBOARD
-/calendar      → CALENDAR
-/calendar/event/:id  → EVENT
-/venue/:id     → VENUE
-/sanctioning-body/:id → FEDERATION
-/fighters      → FIGHTERS
-/inbox         → INBOX
-/world         → WORLD
-/finances      → FINANCES
-```
-
-**Centre zone:**
-Empty for now. Reserved. `flex: 1`.
-
-**Right zone (game state):**
-```
-Week 3, 2026    €  —    [ADVANCE WEEK]
-```
-
-- Date: `WEEK 3 · 2026` in Inconsolata, 11px, uppercase, tracked, `--color-text-muted`. Pulled from game store.
-- Separator: single pixel vertical rule.
-- Finances: `€ —` placeholder. Small, muted. Will be wired when finances are built.
-- Separator: single pixel vertical rule.
-- Advance Week button: `--color-accent-amber` background, dark text, Inconsolata, 11px, uppercase, tracked, `padding: 6px 16px`. No border radius beyond `--radius-sm`. This button is the heartbeat of the game — it should feel weighted and deliberate. Disabled state: `opacity: 0.5`. Not wired to logic yet — clicking does nothing but the skeleton exists.
-
-### Remove From All Pages
-- `Calendar.tsx` — remove "BOXING CALENDAR" header section
-- `EventFullPage.tsx` — remove page title header (back button moves to top nav)
-- `VenuePage.tsx` — remove page title header
-- `SanctioningBodyPage.tsx` — remove page title header
-
-Back buttons on detail pages — remove them. Navigation history arrows in top nav handle this.
-
----
-
-## Part 2 — Calendar Event Display Rework
-
-### Kill The Pills
-
-Remove event pills from day cells entirely. The coloured cell split does the visual work. Inside each colour section, show only the event name as plain text.
-
-### Day Cell Layout
-
-Each day cell has:
-- Day number top-right, small, muted
-- If events: the cell background splits equally by event count (existing behaviour — keep)
-- Inside each colour split section: event name in Inconsolata, 10px, `--color-text-primary`, single line, truncated with ellipsis if too long, `padding: 2px 4px`
-- No badges, no pills, no icons inside the cell
-
-The event name text sits in the lower portion of each split section. If the section is too narrow for text (less than 20px height), show nothing — the colour alone communicates.
-
-### Empty Day Cells
-No change — neutral background, day number only.
-
-### Today Highlight
-Current game week's days: day number in `--color-accent-amber`. Subtle, not loud.
-
-### Legend
-Keep the existing legend below the grid. Update labels to match new circuit level names: "Club Card", "Regional", "Nationals", etc.
-
----
-
-## Part 3 — Page v2
-
-### Design System For These Pages
-
-**Image treatment:** Small, contained, right-aligned. Images are 240px wide maximum, aspect ratio 4:3, `object-fit: cover`. They float right in the header section while typography dominates the left. If no image — the layout works without it, no placeholder needed.
-
-**Header section:** Two columns. Left: all text content. Right: image (if exists). Left column takes remaining space. Never reversed — text always left, image always right.
-
-**Typography hierarchy:**
-- Page title: Rock Bro, 28px, `--color-text-primary`
-- Section labels: Inconsolata, 10px, uppercase, letter-spacing 0.15em, `--color-text-muted`
-- Body text: Inconsolata, 13px, `--color-text-primary`, line-height 1.7
-- Stat values: Inconsolata, 14px, `--color-text-primary`
-- Stat labels: Inconsolata, 10px, uppercase, `--color-text-muted`
-
-**Sections:** Separated by single pixel rules `--color-bg-mid`. Label above rule, content below. `padding: 16px 0` between sections.
-
-**Stat grids:** 3-4 columns. Each stat: label (10px muted uppercase) above value (14px primary). Used for capacity, rounds, date, city etc.
-
-**Lists:** No card wrappers. Rows separated by single pixel rules. Each row: date/label left, name centre, badge right. `padding: 8px 0`.
-
----
-
-### Event Full Page v2 (`/calendar/event/:eventId`)
-
-**Header:**
-```
-[Left column]                    [Right: 240px image]
-CLUB CARD badge  · 17 Jan 2026
-Club Tournament
-Rīgas Boksa klubs  →link
-```
-- Circuit badge top-left
-- Date small muted right of badge on same line
-- Event name in Rock Bro, large
-- Venue name as hover-underline link below
-
-**Stat row (below header, full width):**
-Three stats in a row:
-```
-VENUE              CITY          CAPACITY
-Rīgas Boksa klubs  Riga          200 seats
-```
-
-**Sections in order:**
-1. `ABOUT` — description paragraph
-2. `FORMAT` — one line: "Card · One bout per fighter" or "Tournament · Single Elimination"
-3. `RULES` — stat grid: ROUNDS / DURATION / SCORING / HEADGEAR
-4. `SANCTIONED BY` — org name as link
-5. `BRACKET` — bracket component (see Part 4). Header: "TOURNAMENT BRACKET". For club cards: "No bracket — fighters matched on the night." in muted text.
-6. `WHY THIS EVENT MATTERS` — paragraph. Olympics gets gold left border `3px solid var(--color-accent-gold)`.
-7. `PAST EDITIONS` — compact list or "No previous editions recorded."
-
----
-
-### Venue Page v2 (`/venue/:venueId`)
-
-**Header:**
-```
-[Left column]                    [Right: 240px image]
-Rīgas Boksa klubs
-Riga · Latvia
-200 seats
-```
-- Venue name in Rock Bro
-- City · Country below
-- Capacity below that
-
-**Sections:**
-1. `ABOUT` — description paragraph
-2. `HOSTS` — `eligibleFor` as circuit badges in a row
-3. `UPCOMING EVENTS` — compact list. Row: `[date] [badge] [event name]`. Single pixel dividers.
-4. `PAST EVENTS` — same format. Empty state: single muted line.
-
----
-
-### Sanctioning Body Page v2 (`/sanctioning-body/:bodyId`)
-
-No image. This page is a document. Lean into it.
-
-Thick left border on the entire page header section — `border-left: 3px solid` in the body's primary circuit level colour (LBF → amber, EUBC → blue-dark, IBA → gold). Gives identity without needing an image.
-
-**Header:**
-- Body name in Rock Bro
-- Level badge
-- Affiliation as link
-
-**Sections:**
-1. `ABOUT` — description paragraph
-
-2. `COMPETITION RULES` — age category selector: three small tabs `JUNIOR · YOUTH · SENIOR`. Active tab in `--color-accent-amber`.
-
-   Under each tab, rules grouped by circuit level:
-   ```
-   CLUB CARD
-   3 rounds · 3 min · 10 point must · Headgear required · 10 oz gloves · Max 2 bouts/day
-
-   REGIONAL TOURNAMENT
-   3 rounds · 3 min · 10 point must · Headgear required · 10 oz gloves · Max 1 bout/day
-   ```
-   Circuit level name: 10px stamp label. Rules: single dense line in 12px Inconsolata muted. Single pixel divider between levels. This reads like a technical specification, not a table.
-
-3. `TITLES AWARDED` — list of title names in muted Inconsolata. No decoration.
-
-4. `GOVERNED EVENTS` — circuit badges in a row.
-
----
-
-## Part 4 — Bracket Component
-
-**`packages/ui/src/components/Bracket.tsx`**
-
-Single elimination bracket. Used on the event full page.
-
-### Props
-```typescript
-interface BracketProps {
-  rounds: number          // number of rounds — 1=final only, 2=semis+final, 3=quarters+semis+final
-  entrants?: TournamentEntrant[]   // empty array or undefined = all TBD slots
-  winnerId?: string
+Replace the Rock Bro `@font-face` declaration:
+```css
+@font-face {
+  font-family: 'CornerGymHeader';
+  src: url('./assets/fonts/corner-gym-header.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
 }
 ```
 
-### Visual Layout
+**`packages/ui/src/styles/theme.css`**
 
-Columns left to right, one per round. Round label above each column: "QUARTERFINALS", "SEMIFINALS", "FINAL".
-
-Each slot is a rectangular block:
+Update the display font variable:
+```css
+--font-display: 'CornerGymHeader', serif;
 ```
-┌─────────────────────┐
-│ TBD                 │
-│ —                   │
-└─────────────────────┘
+
+Remove any remaining references to 'Rock Bro' across all files. Verify the font loads correctly in `pnpm dev` — the Corner Gym logotype in the top nav and all Rock Bro headings should now use the new font.
+
+---
+
+## Part 2 — Kill "Club Tournament" Display Strings
+
+Audit every file in `packages/ui/src/` for the string "Club Tournament". Replace all display instances.
+
+The correct display label for `club_card` circuit level is **"Club Show"** — not "Club Tournament", not "Club Card" as a user-facing label. "Club Card" is fine as a badge/tag. "Club Show" is the human-readable event name.
+
+Update:
+- Circuit level display name map — wherever circuit levels are converted to human readable strings
+- Upcoming events sidebar — event names
+- Calendar legend
+- Event detail panel
+- Any other place "Club Tournament" appears as visible text
+
+The `id` value `club_card` stays unchanged in all data and TypeScript — this is display strings only.
+
+---
+
+## Part 3 — Back Navigation Guard
+
+The back arrow in the top nav must not navigate past the game screen. Once the player is in the game, they cannot accidentally navigate back to the new game or load game screens using the back arrow.
+
+**`packages/ui/src/components/layout/TopBar.tsx`**
+
+Add a guard on the back arrow click handler:
+
+```typescript
+// Never navigate back past the game screen.
+// The game screen is the root of in-game navigation — going back further
+// would return the player to the new game or load screens, losing context.
+const canGoBack = window.history.state?.idx > 0 && !isAtGameRoot()
+
+function isAtGameRoot(): boolean {
+  // Returns true if the current location is the root game screen.
+  // Determined by checking if there is no meaningful back history
+  // within the game routes.
+  return window.history.state?.idx <= 1
+}
 ```
-When entrant exists:
+
+Disable the back arrow when `!canGoBack`. Apply `opacity: 0.3`, `cursor: not-allowed`, `pointer-events: none`.
+
+Test: navigate to Calendar → Event page → Venue page. Back arrow works. Navigate back to Calendar. Back arrow works. One more back goes to Dashboard. Back arrow disables — cannot go further.
+
+---
+
+## Part 4 — Dynamic Event Names
+
+### Engine: Event Name Generation
+
+**`packages/engine/src/generation/calendar.ts`**
+
+Add `generateEventName()` function:
+
+```typescript
+// generateEventName produces a unique, realistic event name.
+// Naming follows real boxing conventions: [Year] [Location/Venue] [Type]
+// For events that occur multiple times per year in the same city,
+// the venue name is used to differentiate. If still not unique,
+// a sequence number is appended.
+// The usedNames set tracks names already assigned in the current
+// generation pass to guarantee uniqueness within a calendar year.
+
+function generateEventName(
+  template: EventTemplate,
+  cityId: string,
+  venueId: string,
+  year: number,
+  nationId: string,
+  data: GameData,
+  usedNames: Set<string>
+): string
 ```
-┌─────────────────────┐
-│ Jānis Bērziņš       │
-│ Valmiera Boxing     │
-└─────────────────────┘
+
+**Naming rules per circuit level:**
+
+`club_card`:
+- Base: `[Year] [Venue Short Name] Show`
+- Venue short name = first two words of venue name, stripped of "boksa klubs" suffix
+- Example: "2026 Rīgas Boksa Show" → too long → "2026 Imanta Show"
+- Actually: take the city label and append "Club Show": "2026 Riga Club Show"
+- If duplicate in same year: append venue name: "2026 Riga Imanta Show"
+- If still duplicate: append sequence: "2026 Riga Club Show #2"
+
+`regional_tournament`:
+- Base: `[Year] [City] Open`
+- Example: "2026 Riga Open", "2026 Daugavpils Open"
+- Duplicates unlikely for regionals — one per city per season
+
+`national_championship`:
+- Fixed: `[Year] Latvian National Championships`
+- Always unique — one per year
+
+`baltic_championship`:
+- Fixed: `[Year] Baltic Boxing Championships`
+
+`european_championship`:
+- Fixed: `[Year] European Amateur Boxing Championships`
+
+`world_championship`:
+- Fixed: `[Year] IBA World Boxing Championships`
+
+`olympics`:
+- Fixed: `[Year] Olympic Games Boxing`
+
+**Uniqueness enforcement:**
+Pass a `usedNames: Set<string>` through the generation loop. After assigning a name, add it to the set. Before assigning, check — if present, apply disambiguation logic (venue name, then sequence number).
+
+**Update `CalendarEvent` type:**
+Add `name: string` field to `CalendarEvent` in `src/types/calendar.ts`.
+
+**Update SQLite:**
+Add `name TEXT NOT NULL DEFAULT ''` column to `calendar_events` table. Use `ALTER TABLE IF NOT EXISTS` migration pattern for existing saves.
+
+**Update all places that display event names** — they should now read `event.name` not derive it from template label.
+
+---
+
+## Part 5 — Rewards Schema
+
+Define what each circuit level awards structurally. No engine logic — data definition only. This schema exists so rewards are designed correctly before fighters are built.
+
+**`packages/engine/data/universal/rewards.json`**
+
+Meta must explain: rewards are awarded to fighters and gyms when they achieve results at each circuit level. Rep and follower rewards are defined here but not wired until gym and fighter systems exist. Belt and medal rewards are structurally complete. The engine reads this file when processing bout results — implementation comes with the fight engine.
+
+```json
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Rewards awarded per circuit level and result. Rep and follower values are placeholders — they will be calibrated once the gym and fighter reputation systems are built. Belt and medal definitions are final. The engine reads this when processing bout results."
+  },
+  "circuitRewards": [
+    {
+      "circuitLevel": "club_card",
+      "results": {
+        "win": {
+          "fighterRep": 1,
+          "gymRep": 1,
+          "followers": 0,
+          "medal": null,
+          "belt": null,
+          "description": "A win at a club show. Small reputation gain. No title implications."
+        },
+        "loss": {
+          "fighterRep": 0,
+          "gymRep": 0,
+          "followers": 0,
+          "medal": null,
+          "belt": null,
+          "description": "A loss at a club show. No reputation penalty at this level — experience is the reward."
+        }
+      }
+    },
+    {
+      "circuitLevel": "national_championship",
+      "results": {
+        "gold": {
+          "fighterRep": 25,
+          "gymRep": 15,
+          "followers": 50,
+          "medal": "gold",
+          "belt": "latvian_national_champion",
+          "description": "Latvian National Champion. The title belt per weight class. Significant domestic reputation."
+        },
+        "silver": {
+          "fighterRep": 15,
+          "gymRep": 8,
+          "followers": 20,
+          "medal": "silver",
+          "belt": null,
+          "description": "National finalist. Respected result. No belt."
+        },
+        "bronze": {
+          "fighterRep": 8,
+          "gymRep": 4,
+          "followers": 10,
+          "medal": "bronze",
+          "belt": null,
+          "description": "National semi-finalist. Solid result for a developing fighter."
+        }
+      }
+    },
+    {
+      "circuitLevel": "olympics",
+      "results": {
+        "gold": {
+          "fighterRep": 200,
+          "gymRep": 150,
+          "followers": 10000,
+          "medal": "gold",
+          "belt": "olympic_champion",
+          "description": "Olympic Champion. The ceiling of amateur boxing. Changes everything."
+        },
+        "silver": {
+          "fighterRep": 150,
+          "gymRep": 100,
+          "followers": 5000,
+          "medal": "silver",
+          "belt": null,
+          "description": "Olympic silver medallist. A legacy result."
+        },
+        "bronze": {
+          "fighterRep": 100,
+          "gymRep": 75,
+          "followers": 3000,
+          "medal": "bronze",
+          "belt": null,
+          "description": "Olympic bronze. Two bronze medals awarded per weight class."
+        }
+      }
+    }
+  ]
+}
 ```
-Slot size: `width: 180px`, `height: 44px`. Background: `--color-bg-mid`. Border: `1px solid var(--color-bg-light)` at 30% opacity. Inconsolata, 11px.
 
-Winner slot: border colour `--color-accent-amber`.
-Bye slot: lighter background, "BYE" text in muted.
+Include all circuit levels: `club_card`, `regional_tournament`, `national_championship`, `baltic_championship`, `european_championship`, `world_championship`, `olympics`.
 
-### Connector Lines
+Tournament events use `gold/silver/bronze` result keys. Club cards use `win/loss`. Rep and follower values scale logically — a national title is worth significantly more than a regional win, Olympics is the ceiling.
 
-SVG lines connecting slots between rounds. Each slot in round N connects to one slot in round N+1. Lines: `--color-bg-mid`, 1px stroke. Use an SVG overlay or CSS borders — whatever is cleanest in React.
-
-### Bracket Sizes
-- 2 entrants: 1 round (final only), 1 bout
-- 4 entrants: 2 rounds, 2 bouts → 1 bout
-- 8 entrants: 3 rounds, 4 → 2 → 1
-- 16 entrants: 4 rounds, 8 → 4 → 2 → 1
-
-When `entrants` is empty — all slots show "TBD" with "—" gym line. The bracket structure still shows with the correct number of rounds and slots.
-
-### On Event Full Page
-
-For tournament events: show `<Bracket rounds={derivedRounds} entrants={[]} />` with header "TOURNAMENT BRACKET" and subtext "Entry opens [X weeks before event] · Bracket drawn when entry closes."
-
-For club card events: replace bracket with single muted line "No bracket — fighters matched on the night."
+Add `RewardsData` TypeScript type in `src/types/data/`. Add to loader. Add to `data-registry.md`.
 
 ---
 
 ### Definition Of Done
-- [ ] Top nav — back/forward arrows, page name, date, finances placeholder, Advance Week button
-- [ ] All per-page headers removed from Calendar, Event, Venue, Sanctioning Body pages
-- [ ] Calendar day cells — text-only event names in split sections, no pills
-- [ ] Event full page v2 — two-column header, stat row, correct section order
-- [ ] Venue page v2 — two-column header, small image, compact lists
-- [ ] Sanctioning body page v2 — no image, left border identity, rules as dense spec
-- [ ] Bracket component — correct slot layout, connector lines, scales by round count
-- [ ] Bracket shows on event full page for tournaments, text fallback for club cards
-- [ ] `pnpm dev` — pages feel like a specialist sim tool, not a web app
+- [ ] `corner-gym-header.otf` wired as `--font-display`, Rock Bro removed everywhere
+- [ ] "Club Tournament" display string gone from all UI — replaced with "Club Show" where needed
+- [ ] Back arrow disabled when at game root — cannot navigate to new game/load screens
+- [ ] `generateEventName()` produces unique realistic names — "2026 Riga Club Show", "2026 Latvian National Championships" etc
+- [ ] `CalendarEvent.name` field exists, populated at generation, saved to SQLite
+- [ ] All event name displays read from `event.name`
+- [ ] `rewards.json` created with all circuit levels, correct result keys
+- [ ] `RewardsData` type created and added to loader
 - [ ] `pnpm typecheck` clean
+- [ ] `pnpm test` passing
+- [ ] `docs/structure.md` updated
+- [ ] `docs/data-registry.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: top nav + calendar events + page v2 + bracket component`
+- [ ] Committed: `feat: font swap + naming fixes + nav guard + event names + rewards schema`
 
 ### Notes
-- Read frontend-design skill fully before touching any code
-- Images are texture, not heroes — 240px max width, float right, text dominates left
-- No card components with visible borders — sections separated by rules only
-- Rock Bro for page titles only — everything else Inconsolata
-- Advance Week button is skeleton only — no logic wired
-- Bracket connector lines can be SVG or CSS — choose whichever is cleaner
-- The sanctioning body page has no image — the left border gives it identity instead
-- If something looks like a Bootstrap card, it's wrong
+- Font swap is Part 1 — verify it loads in dev before moving on
+- "Club Tournament" is a display string bug — do not change any id values in data or TypeScript
+- Back nav guard: the player is in the game — they cannot accidentally leave it via back arrow
+- Event names must be unique per year — usedNames Set enforced during generation
+- Rewards rep/follower values are placeholders — they will be calibrated later
+- Do not wire rewards to any system — data definition only this session
