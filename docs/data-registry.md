@@ -44,6 +44,7 @@
 | [x] | `packages/engine/src/types/data/reasonsForBoxing.ts` |
 | [x] | `packages/engine/src/types/data/coachVoice.ts` |
 | [x] | `packages/engine/src/types/data/developmentProfiles.ts` |
+| [x] | `packages/engine/src/types/data/rewards.ts` |
 
 ## Engine — Utilities
 | State | File |
@@ -89,6 +90,7 @@
 | [x] | `packages/engine/data/universal/development-profiles.json` |
 | [x] | `packages/engine/data/universal/game-config-defaults.json` |
 | [x] | `packages/engine/data/universal/difficulties.json` |
+| [x] | `packages/engine/data/universal/rewards.json` |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -158,6 +160,7 @@
 ## UI — Assets & Styles
 | State | File |
 |-------|------|
+| [x] | `packages/ui/src/assets/fonts/corner-gym-header.otf` |
 | [x] | `packages/ui/src/assets/fonts/RockBro.otf` |
 | [x] | `packages/ui/src/assets/fonts/Inconsolata-*.ttf` |
 | [~] | `packages/ui/src/assets/venues/` — 10 Latvian venue images present; remaining venues show styled placeholder. |

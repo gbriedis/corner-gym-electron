@@ -11,6 +11,9 @@ export interface CalendarEvent {
   id: string
   templateId: string
   circuitLevel: CircuitLevel
+  // name is the unique, human-readable event name generated at calendar creation time.
+  // Examples: "2026 Riga Club Show", "2026 Latvian National Championships".
+  name: string
   label: string
   venueId: string
   venueName: string

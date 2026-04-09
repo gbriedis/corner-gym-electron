@@ -62,7 +62,8 @@ corner-gym/
     │   │   │   ├── gifts-and-flaws.json       # Gift/flaw definitions for 8 attributes
     │   │   │   ├── development-profiles.json  # 3 profiles — peak age, rise/plateau/decline rates
     │   │   │   ├── game-config-defaults.json  # Default settings for a new game (seed, year, nations, world settings)
-    │   │   │   └── difficulties.json          # 4 difficulty presets — multipliers on city modifiers and probabilities
+    │   │   │   ├── difficulties.json          # 4 difficulty presets — multipliers on city modifiers and probabilities
+    │   │   │   └── rewards.json               # Rewards per circuit level and result — rep, followers, medals, belts
     │   │   ├── nations/
     │   │   │   └── latvia/
     │   │   │       ├── nation.json
@@ -119,6 +120,7 @@ corner-gym/
     │       │       ├── reasonsForBoxing.ts
     │       │       ├── coachVoice.ts
     │       │       ├── developmentProfiles.ts
+    │       │       ├── rewards.ts     # RewardsData — per circuit level reward definitions
     │       │       └── boxing.ts      # All boxing data types — sanctioning bodies, circuits, templates, venues
     │       ├── data/
     │       │   └── loader.ts          # loadGameData() — GameData + NationBoxingData + InternationalData
@@ -161,7 +163,8 @@ corner-gym/
             │   └── gameStore.ts       # Zustand store — worldState, persons, currentScreen, pendingSaveId
                 ├── assets/
             │   ├── fonts/
-            │   │   ├── RockBro.otf                    # Display font — logotype and headings
+            │   │   ├── corner-gym-header.otf          # Display font — logotype and headings (CornerGymHeader)
+            │   │   ├── RockBro.otf                    # Legacy — kept on disk, no longer wired
             │   │   ├── Inconsolata-Light.ttf
             │   │   ├── Inconsolata-Regular.ttf
             │   │   ├── Inconsolata-Medium.ttf
@@ -195,7 +198,7 @@ corner-gym/
             │       ├── SideNav.tsx                    # Fixed left nav — 6 items with Radix icons, expand/collapse
             │       └── GameShell.tsx                  # Composes TopNav + SideNav + scrollable main — controlled nav
             └── screens/
-                ├── MainMenu.tsx             # New Game / Load Game / Quit — grain overlay, Rock Bro title
+                ├── MainMenu.tsx             # New Game / Load Game / Quit — grain overlay, CornerGymHeader title
                 ├── NewGame.tsx              # Player name, gym name, nation, city, difficulty, seed — two-column grid
                 ├── Loading.tsx              # ProgressBar + step/detail text + elapsed timer
                 ├── LoadGame.tsx             # Save list with load and delete (confirm step) actions

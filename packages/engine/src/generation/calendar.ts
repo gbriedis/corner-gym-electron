@@ -131,6 +131,122 @@ function makeEventId(templateId: string, cityId: string, year: number, week: num
   return `${templateId}--${cityId}--${year}w${week.toString().padStart(2, '0')}`
 }
 
+// getCityLabel looks up the human-readable city name from the nation bundle.
+// Falls back to formatting the cityId if the city isn't found — handles
+// international events where cityId is a raw display string, not a data id.
+function getCityLabel(cityId: string, nationId: string, data: GameData): string {
+  const bundle = data.nations[nationId]
+  if (bundle !== undefined) {
+    const city = bundle.cities.cities.find(c => c.id === cityId)
+    if (city !== undefined) return city.label
+  }
+  // International or unresolved — strip nation prefix and title-case.
+  const short = cityId.replace(/^[^-]+-/, '')
+  return short.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// getVenueFirstWord returns the first word of a venue name for disambiguation.
+// Used when two club shows in the same city share the base name.
+// "Imanta Sporta Halle" → "Imanta", "Daugavpils Boksa Klubs" → "Daugavpils"
+function getVenueFirstWord(venueId: string, venueMap: Map<string, Venue>): string {
+  const venue = venueMap.get(venueId)
+  if (venue !== undefined) {
+    const first = venue.name.split(' ')[0]
+    if (first !== undefined && first.length > 0) return first
+  }
+  return venueId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+// generateEventName produces a unique, realistic event name.
+// Naming follows real boxing conventions: [Year] [Location/Venue] [Type]
+// For events that occur multiple times per year in the same city,
+// the venue name is used to differentiate. If still not unique,
+// a sequence number is appended.
+// The usedNames set tracks names already assigned in the current
+// generation pass to guarantee uniqueness within a calendar year.
+function generateEventName(
+  template: EventTemplate,
+  cityId: string,
+  venueId: string,
+  year: number,
+  nationId: string,
+  data: GameData,
+  venueMap: Map<string, Venue>,
+  usedNames: Set<string>,
+): string {
+  const level = template.circuitLevel
+
+  // Fixed-name international events — always unique per year.
+  if (level === 'national_championship') {
+    const name = `${year} Latvian National Championships`
+    usedNames.add(name)
+    return name
+  }
+  if (level === 'baltic_championship') {
+    const name = `${year} Baltic Boxing Championships`
+    usedNames.add(name)
+    return name
+  }
+  if (level === 'european_championship') {
+    const name = `${year} European Amateur Boxing Championships`
+    usedNames.add(name)
+    return name
+  }
+  if (level === 'world_championship') {
+    const name = `${year} IBA World Boxing Championships`
+    usedNames.add(name)
+    return name
+  }
+  if (level === 'olympics') {
+    const name = `${year} Olympic Games Boxing`
+    usedNames.add(name)
+    return name
+  }
+
+  const cityLabel = getCityLabel(cityId, nationId, data)
+
+  if (level === 'regional_tournament') {
+    const base = `${year} ${cityLabel} Open`
+    if (!usedNames.has(base)) {
+      usedNames.add(base)
+      return base
+    }
+    let seq = 2
+    while (true) {
+      const candidate = `${year} ${cityLabel} Open #${seq}`
+      if (!usedNames.has(candidate)) {
+        usedNames.add(candidate)
+        return candidate
+      }
+      seq++
+    }
+  }
+
+  // club_card — base name is [Year] [City] Club Show.
+  const base = `${year} ${cityLabel} Club Show`
+  if (!usedNames.has(base)) {
+    usedNames.add(base)
+    return base
+  }
+  // Disambiguate with first word of venue name.
+  const venueWord = getVenueFirstWord(venueId, venueMap)
+  const withVenue = `${year} ${cityLabel} ${venueWord} Show`
+  if (!usedNames.has(withVenue)) {
+    usedNames.add(withVenue)
+    return withVenue
+  }
+  // Final fallback: sequence number.
+  let seq = 2
+  while (true) {
+    const candidate = `${year} ${cityLabel} Club Show #${seq}`
+    if (!usedNames.has(candidate)) {
+      usedNames.add(candidate)
+      return candidate
+    }
+    seq++
+  }
+}
+
 // pickWeightClasses selects weight class ids for an event.
 // For club tournaments, lighter weight classes are biased more heavily —
 // they dominate grassroots boxing, where smaller fighters are most common.
@@ -189,6 +305,8 @@ function generateDomesticEvents(
   occupiedMajorWeeks: Set<string>,
   worldState: WorldState,
   rng: RNG,
+  data: GameData,
+  usedNames: Set<string>,
 ): CalendarEvent[] {
   const events: CalendarEvent[] = []
 
@@ -236,11 +354,13 @@ function generateDomesticEvents(
 
         const venue = pickVenue(template, circuitLevel, hostCityShort, venueMap, rng)
         const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+        const name = generateEventName(template, hostCityId, venue.id, year, nationId, data, venueMap, usedNames)
 
         events.push({
           id: makeEventId(template.id, hostCityId, year, week),
           templateId: template.id,
           circuitLevel,
+          name,
           label: template.label,
           venueId: venue.id,
           venueName: venue.name,
@@ -298,11 +418,13 @@ function generateDomesticEvents(
           const cityShort = cityShortId(entry.cityId)
           const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
           const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+          const name = generateEventName(template, entry.cityId, venue.id, year, nationId, data, venueMap, usedNames)
 
           events.push({
             id: makeEventId(template.id, entry.cityId, year, week),
             templateId: template.id,
             circuitLevel,
+            name,
             label: template.label,
             venueId: venue.id,
             venueName: venue.name,
@@ -371,11 +493,13 @@ function generateDomesticEvents(
             const cityShort = cityShortId(entry.cityId)
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+            const name = generateEventName(template, entry.cityId, venue.id, year, nationId, data, venueMap, usedNames)
 
             events.push({
               id: makeEventId(template.id, entry.cityId, year, week),
               templateId: template.id,
               circuitLevel,
+              name,
               label: template.label,
               venueId: venue.id,
               venueName: venue.name,
@@ -402,11 +526,13 @@ function generateDomesticEvents(
             const cityShort = cityShortId(entry.cityId)
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+            const name = generateEventName(template, entry.cityId, venue.id, year, nationId, data, venueMap, usedNames)
 
             events.push({
               id: makeEventId(template.id, entry.cityId, year, week),
               templateId: template.id,
               circuitLevel,
+              name,
               label: template.label,
               venueId: venue.id,
               venueName: venue.name,
@@ -438,6 +564,7 @@ function generateInternationalEvents(
   venueMap: Map<string, Venue>,
   occupiedMajorWeeks: Set<string>,
   rng: RNG,
+  usedNames: Set<string>,
 ): CalendarEvent[] {
   const events: CalendarEvent[] = []
   const templates = data.international.boxing.eventTemplates.eventTemplates
@@ -491,10 +618,12 @@ function generateInternationalEvents(
         occupiedMajorWeeks.add(altKey)
         const venue = pickVenue(template, circuitLevel, null, venueMap, rng)
         const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+        const name = generateEventName(template, venue.city, venue.id, year, nationId, data, venueMap, usedNames)
         events.push({
           id: makeEventId(template.id, nationId, year, alt),
           templateId: template.id,
           circuitLevel,
+          name,
           label: template.label,
           venueId: venue.id,
           venueName: venue.name,
@@ -515,11 +644,13 @@ function generateInternationalEvents(
 
       const venue = pickVenue(template, circuitLevel, null, venueMap, rng)
       const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
+      const name = generateEventName(template, venue.city, venue.id, year, nationId, data, venueMap, usedNames)
 
       events.push({
         id: makeEventId(template.id, nationId, year, week),
         templateId: template.id,
         circuitLevel,
+        name,
         label: template.label,
         venueId: venue.id,
         venueName: venue.name,
@@ -648,6 +779,10 @@ export function generateCalendar(
 
   const venueMap = buildVenueMap(data)
   const occupiedMajorWeeks = new Set<string>()
+  // usedNames tracks all event names assigned in this generation pass.
+  // Shared across domestic and international events — names include the year
+  // so a single flat set covers the full generation window without key collisions.
+  const usedNames = new Set<string>()
   const allEvents: CalendarEvent[] = []
 
   // Domestic events for each rendered nation that has boxing data.
@@ -667,6 +802,8 @@ export function generateCalendar(
       occupiedMajorWeeks,
       worldState,
       rng,
+      data,
+      usedNames,
     )
     allEvents.push(...domestic)
   }
@@ -680,6 +817,7 @@ export function generateCalendar(
     venueMap,
     occupiedMajorWeeks,
     rng,
+    usedNames,
   )
   allEvents.push(...international)
 

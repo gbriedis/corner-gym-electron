@@ -193,3 +193,47 @@ describe('generateCalendar — year window', () => {
     }
   })
 })
+
+describe('generateCalendar — event names', () => {
+  it('every event has a non-empty name', () => {
+    const ws = makeWorldState()
+    const rng = createRng(42)
+    const events = generateCalendar(2026, 1, baseConfig, data, rng, ws)
+    for (const e of events) {
+      expect(e.name.length, `Event ${e.id} has empty name`).toBeGreaterThan(0)
+    }
+  })
+
+  it('no two events in the same year share a name', () => {
+    const ws = makeWorldState()
+    const rng = createRng(42)
+    const events = generateCalendar(2026, 1, baseConfig, data, rng, ws)
+    for (const year of [2026, 2027]) {
+      const yearEvents = events.filter(e => e.year === year)
+      const names = yearEvents.map(e => e.name)
+      const unique = new Set(names)
+      expect(unique.size, `Duplicate event names in ${year}`).toBe(names.length)
+    }
+  })
+
+  it('national championship uses fixed name format', () => {
+    const ws = makeWorldState()
+    const rng = createRng(42)
+    const events = generateCalendar(2026, 1, baseConfig, data, rng, ws)
+    const nationals = events.filter(e => e.circuitLevel === 'national_championship')
+    for (const e of nationals) {
+      expect(e.name).toBe(`${e.year} Latvian National Championships`)
+    }
+  })
+
+  it('club show names include the city and year', () => {
+    const ws = makeWorldState()
+    const rng = createRng(42)
+    const events = generateCalendar(2026, 1, baseConfig, data, rng, ws)
+    const clubShows = events.filter(e => e.circuitLevel === 'club_card')
+    for (const e of clubShows) {
+      expect(e.name, `Club show name should start with year: ${e.name}`).toMatch(/^2026|^2027/)
+      expect(e.name, `Club show name should contain Show: ${e.name}`).toContain('Show')
+    }
+  })
+})

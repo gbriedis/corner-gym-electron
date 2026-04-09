@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Rewards awarded per circuit level and result. Rep and follower values are placeholders — they will be calibrated once the gym and fighter reputation systems are built. Belt and medal definitions are final. The engine reads this when processing bout results."
+  },
+  "circuitRewards": [
+    {
+      "circuitLevel": "club_card",
+      "results": {
+        "win": {
+          "fighterRep": 1,
+          "gymRep": 1,
+          "followers": 0,
+          "medal": null,
+          "belt": null,
+          "description": "A win at a club show. Small reputation gain. No title implications."
+        },
+        "loss": {
+          "fighterRep": 0,
+          "gymRep": 0,
+          "followers": 0,
+          "medal": null,
+          "belt": null,
+          "description": "A loss at a club show. No reputation penalty at this level — experience is the reward."
+        }
+      }
+    },
+    {
+      "circuitLevel": "regional_tournament",
+      "results": {
+        "gold": {
+          "fighterRep": 10,
+          "gymRep": 5,
+          "followers": 10,
+          "medal": "gold",
+          "belt": null,
+          "description": "Regional tournament winner. Solid domestic result. LBF ranking points awarded."
+        },
+        "silver": {
+          "fighterRep": 6,
+          "gymRep": 3,
+          "followers": 5,
+          "medal": "silver",
+          "belt": null,
+          "description": "Regional finalist. Respected result at the regional level."
+        },
+        "bronze": {
+          "fighterRep": 3,
+          "gymRep": 1,
+          "followers": 2,
+          "medal": "bronze",
+          "belt": null,
+          "description": "Regional semi-finalist. A good showing for a developing fighter."
+        }
+      }
+    },
+    {
+      "circuitLevel": "national_championship",
+      "results": {
+        "gold": {
+          "fighterRep": 25,
+          "gymRep": 15,
+          "followers": 50,
+          "medal": "gold",
+          "belt": "latvian_national_champion",
+          "description": "Latvian National Champion. The title belt per weight class. Significant domestic reputation."
+        },
+        "silver": {
+          "fighterRep": 15,
+          "gymRep": 8,
+          "followers": 20,
+          "medal": "silver",
+          "belt": null,
+          "description": "National finalist. Respected result. No belt."
+        },
+        "bronze": {
+          "fighterRep": 8,
+          "gymRep": 4,
+          "followers": 10,
+          "medal": "bronze",
+          "belt": null,
+          "description": "National semi-finalist. Solid result for a developing fighter."
+        }
+      }
+    },
+    {
+      "circuitLevel": "baltic_championship",
+      "results": {
+        "gold": {
+          "fighterRep": 40,
+          "gymRep": 25,
+          "followers": 100,
+          "medal": "gold",
+          "belt": "baltic_champion",
+          "description": "Baltic Champion. First regional title. Significant step beyond domestic competition."
+        },
+        "silver": {
+          "fighterRep": 25,
+          "gymRep": 15,
+          "followers": 40,
+          "medal": "silver",
+          "belt": null,
+          "description": "Baltic finalist. Strong regional result."
+        },
+        "bronze": {
+          "fighterRep": 15,
+          "gymRep": 8,
+          "followers": 20,
+          "medal": "bronze",
+          "belt": null,
+          "description": "Baltic semi-finalist. Notable regional performance."
+        }
+      }
+    },
+    {
+      "circuitLevel": "european_championship",
+      "results": {
+        "gold": {
+          "fighterRep": 80,
+          "gymRep": 50,
+          "followers": 500,
+          "medal": "gold",
+          "belt": "european_champion",
+          "description": "European Champion. Elite continental result. Major international reputation gain."
+        },
+        "silver": {
+          "fighterRep": 55,
+          "gymRep": 35,
+          "followers": 250,
+          "medal": "silver",
+          "belt": null,
+          "description": "European finalist. World-class result."
+        },
+        "bronze": {
+          "fighterRep": 35,
+          "gymRep": 20,
+          "followers": 100,
+          "medal": "bronze",
+          "belt": null,
+          "description": "European semi-finalist. Top-four in Europe. Serious international pedigree."
+        }
+      }
+    },
+    {
+      "circuitLevel": "world_championship",
+      "results": {
+        "gold": {
+          "fighterRep": 150,
+          "gymRep": 100,
+          "followers": 5000,
+          "medal": "gold",
+          "belt": "world_amateur_champion",
+          "description": "IBA World Champion. The pinnacle of amateur boxing before the Olympics."
+        },
+        "silver": {
+          "fighterRep": 100,
+          "gymRep": 70,
+          "followers": 2000,
+          "medal": "silver",
+          "belt": null,
+          "description": "IBA World finalist. Elite global result."
+        },
+        "bronze": {
+          "fighterRep": 65,
+          "gymRep": 45,
+          "followers": 1000,
+          "medal": "bronze",
+          "belt": null,
+          "description": "IBA World semi-finalist. Top-four in the world."
+        }
+      }
+    },
+    {
+      "circuitLevel": "olympics",
+      "results": {
+        "gold": {
+          "fighterRep": 200,
+          "gymRep": 150,
+          "followers": 10000,
+          "medal": "gold",
+          "belt": "olympic_champion",
+          "description": "Olympic Champion. The ceiling of amateur boxing. Changes everything."
+        },
+        "silver": {
+          "fighterRep": 150,
+          "gymRep": 100,
+          "followers": 5000,
+          "medal": "silver",
+          "belt": null,
+          "description": "Olympic silver medallist. A legacy result."
+        },
+        "bronze": {
+          "fighterRep": 100,
+          "gymRep": 75,
+          "followers": 3000,
+          "medal": "bronze",
+          "belt": null,
+          "description": "Olympic bronze. Two bronze medals awarded per weight class."
+        }
+      }
+    }
+  ]
+}

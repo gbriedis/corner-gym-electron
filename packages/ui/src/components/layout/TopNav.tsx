@@ -40,7 +40,10 @@ export default function TopNav(): JSX.Element {
   const navigateForward = useGameStore((s) => s.navigateForward)
 
   const pageName   = PAGE_NAMES[currentScreen] ?? ''
-  const canGoBack  = navHistory.length > 0
+  // Never navigate back past the game screen.
+  // The game screen is the root of in-game navigation — going back further
+  // would return the player to the new game or load screens, losing context.
+  const canGoBack  = currentScreen !== 'game' && navHistory.length > 0
   const canGoForward = navFuture.length > 0
 
   const weekDisplay = worldState !== null
@@ -51,8 +54,9 @@ export default function TopNav(): JSX.Element {
     background: 'none',
     border: 'none',
     padding: '4px',
-    cursor: enabled ? 'pointer' : 'default',
+    cursor: enabled ? 'pointer' : 'not-allowed',
     opacity: enabled ? 1 : 0.3,
+    pointerEvents: enabled ? 'auto' : 'none',
     color: 'var(--color-text-muted)',
     display: 'flex',
     alignItems: 'center',

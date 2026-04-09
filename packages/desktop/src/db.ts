@@ -81,6 +81,7 @@ export function openDb(): Database.Database {
       saveId TEXT NOT NULL,
       templateId TEXT NOT NULL,
       circuitLevel TEXT NOT NULL,
+      name TEXT NOT NULL DEFAULT '',
       label TEXT NOT NULL,
       venueId TEXT NOT NULL,
       venueName TEXT NOT NULL DEFAULT '',
@@ -154,6 +155,7 @@ export function openDb(): Database.Database {
     `ALTER TABLE calendar_events ADD COLUMN venueName TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE calendar_events ADD COLUMN venueCapacity INTEGER NOT NULL DEFAULT 0`,
     `ALTER TABLE calendar_events ADD COLUMN countryDisplay TEXT`,
+    `ALTER TABLE calendar_events ADD COLUMN name TEXT NOT NULL DEFAULT ''`,
   ]
   for (const sql of migrations) {
     try {
@@ -286,15 +288,15 @@ export function saveCalendar(
 ): void {
   const insert = db.prepare(`
     INSERT INTO calendar_events
-      (id, saveId, templateId, circuitLevel, label, venueId, venueName, venueCapacity,
+      (id, saveId, templateId, circuitLevel, name, label, venueId, venueName, venueCapacity,
        cityId, countryDisplay, nationId, year, week, weightClasses, status, boutIds)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
   db.transaction(() => {
     for (const e of events) {
       insert.run(
-        e.id, saveId, e.templateId, e.circuitLevel, e.label,
+        e.id, saveId, e.templateId, e.circuitLevel, e.name, e.label,
         e.venueId, e.venueName, e.venueCapacity,
         e.cityId, e.countryDisplay ?? null, e.nationId,
         e.year, e.week,
@@ -312,7 +314,7 @@ export function loadCalendar(
   saveId: string,
 ): CalendarEvent[] {
   type Row = {
-    id: string; templateId: string; circuitLevel: string; label: string
+    id: string; templateId: string; circuitLevel: string; name: string; label: string
     venueId: string; venueName: string; venueCapacity: number
     cityId: string; countryDisplay: string | null; nationId: string
     year: number; week: number
@@ -327,6 +329,7 @@ export function loadCalendar(
       id: r.id,
       templateId: r.templateId,
       circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
+      name: r.name,
       label: r.label,
       venueId: r.venueId,
       venueName: r.venueName,
@@ -364,7 +367,7 @@ export function getUpcomingEvents(
   const endWeek = (currentPos + weeksAhead) % 100
 
   type Row = {
-    id: string; templateId: string; circuitLevel: string; label: string
+    id: string; templateId: string; circuitLevel: string; name: string; label: string
     venueId: string; venueName: string; venueCapacity: number
     cityId: string; countryDisplay: string | null; nationId: string
     year: number; week: number
@@ -383,6 +386,7 @@ export function getUpcomingEvents(
       id: r.id,
       templateId: r.templateId,
       circuitLevel: r.circuitLevel as CalendarEvent['circuitLevel'],
+      name: r.name,
       label: r.label,
       venueId: r.venueId,
       venueName: r.venueName,

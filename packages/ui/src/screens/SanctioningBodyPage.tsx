@@ -297,7 +297,7 @@ export default function SanctioningBodyPage(): JSX.Element {
       {/* Content — max 900px */}
       <div style={{ maxWidth: '900px' }}>
 
-        {/* Header — thick left accent border, body name in Rock Bro, level badge, affiliation */}
+        {/* Header — thick left accent border, body name in display font, level badge, affiliation */}
         <div
           style={{
             borderLeft: `4px solid ${accentColor}`,

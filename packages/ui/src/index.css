@@ -1,7 +1,7 @@
-/* Rock Bro — display font for logotype and major headings only */
+/* CornerGymHeader — display font for logotype and major headings only */
 @font-face {
-  font-family: 'Rock Bro';
-  src: url('./assets/fonts/RockBro.otf') format('opentype');
+  font-family: 'CornerGymHeader';
+  src: url('./assets/fonts/corner-gym-header.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;

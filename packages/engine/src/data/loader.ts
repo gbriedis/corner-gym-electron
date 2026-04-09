@@ -38,6 +38,7 @@ import type {
   EventTemplatesData,
   VenuesData,
   InternationalCircuitsData,
+  RewardsData,
 } from '../types/data/index.js'
 import type { RulesData } from '../types/competition.js'
 
@@ -210,6 +211,7 @@ export interface GameData {
   health: HealthData
   giftsAndFlaws: GiftsAndFlawsData
   developmentProfiles: DevelopmentProfilesData
+  rewards: RewardsData
   nations: Record<string, NationBundle>
   international: InternationalData
 }
@@ -225,6 +227,7 @@ export function loadGameData(): GameData {
     health: load<HealthData>('universal/health.json'),
     giftsAndFlaws: load<GiftsAndFlawsData>('universal/gifts-and-flaws.json'),
     developmentProfiles: load<DevelopmentProfilesData>('universal/development-profiles.json'),
+    rewards: load<RewardsData>('universal/rewards.json'),
     nations: loadNationsFromDir(join(DATA_ROOT, 'nations')),
     international: {
       boxing: {

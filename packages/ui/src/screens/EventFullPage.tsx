@@ -471,7 +471,7 @@ export default function EventFullPage(): JSX.Element {
       <EventHeader
         venueId={event.venueId}
         venueName={venueName}
-        eventLabel={event.label}
+        eventLabel={event.name || event.label}
         circuitLevel={event.circuitLevel}
         dateStr={dateStr}
         onVenueClick={() => setScreen('venue', { venueId: event.venueId })}

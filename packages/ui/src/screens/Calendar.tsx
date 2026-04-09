@@ -503,7 +503,7 @@ function EventDetailPanel({ event, onClose, onViewFull, onBodyClick, onVenueClic
               lineHeight: 1.3,
             }}
           >
-            {event.label}
+            {event.name || event.label}
           </div>
           {isMultiDay && (
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.4)', marginBottom: 'var(--space-1)' }}>
@@ -926,7 +926,7 @@ function UpcomingEventsPanel({ events, currentYear, currentWeek, onSelect, gameD
                       flex: 1,
                     }}
                   >
-                    {event.label}
+                    {event.name || event.label}
                   </span>
                 </div>
                 {/* Bottom row: date + venue · city */}
@@ -1452,7 +1452,7 @@ export default function Calendar(): JSX.Element {
                                   lineHeight: 1.3,
                                 }}
                               >
-                                {event.label}
+                                {event.name || event.label}
                               </span>
                             </div>
                           )
@@ -1477,7 +1477,7 @@ export default function Calendar(): JSX.Element {
             >
               {(
                 [
-                  ['club_card',             'Club Card'],
+                  ['club_card',             'Club Show'],
                   ['regional_tournament',   'Regional'],
                   ['national_championship', 'Nationals'],
                   ['baltic_championship',   'Baltic'],

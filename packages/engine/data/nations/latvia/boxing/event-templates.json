@@ -6,7 +6,7 @@
     {
       "id": "club_tournament_small",
       "circuitLevel": "club_card",
-      "label": "Club Tournament",
+      "label": "Club Show",
       "boutCount": {
         "min": 6
       },

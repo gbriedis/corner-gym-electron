@@ -231,7 +231,7 @@ function EventListRow({ event, isLast }: { event: CalendarEvent; isLast: boolean
           textOverflow: 'ellipsis',
         }}
       >
-        {event.label}
+        {event.name || event.label}
       </span>
     </div>
   )

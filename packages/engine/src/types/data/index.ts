@@ -48,6 +48,15 @@ export type {
 } from './coachVoice.js'
 
 export type {
+  MedalType,
+  RewardResult,
+  ClubRewards,
+  TournamentRewards,
+  CircuitReward,
+  RewardsData,
+} from './rewards.js'
+
+export type {
   CircuitLevel,
   EventFormat,
   EventDay,
