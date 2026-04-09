@@ -40,7 +40,7 @@ export default function SideNav({ activeItem, onNavigate }: Props): JSX.Element 
     <div
       style={{
         position: 'fixed',
-        top: '44px',        // below TopBar
+        top: '48px',        // below TopNav
         left: 0,
         bottom: 0,
         width,

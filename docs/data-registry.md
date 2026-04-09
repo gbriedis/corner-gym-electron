@@ -173,7 +173,9 @@
 | [x] | `packages/ui/src/components/Dropdown.tsx` |
 | [x] | `packages/ui/src/components/Badge.tsx` |
 | [x] | `packages/ui/src/components/ProgressBar.tsx` |
-| [x] | `packages/ui/src/components/layout/TopBar.tsx` |
+| [x] | `packages/ui/src/components/Bracket.tsx` — single elimination, scales by rounds, SVG connector lines |
+| [x] | `packages/ui/src/components/layout/TopNav.tsx` — 48px bar with back/forward history, page name, Advance Week |
+| [x] | `packages/ui/src/components/layout/TopBar.tsx` — legacy, superseded by TopNav |
 | [x] | `packages/ui/src/components/layout/SideNav.tsx` |
 | [x] | `packages/ui/src/components/layout/GameShell.tsx` |
 
@@ -188,10 +190,10 @@
 | [x] | `packages/ui/src/screens/Loading.tsx` |
 | [x] | `packages/ui/src/screens/LoadGame.tsx` |
 | [x] | `packages/ui/src/screens/Game.tsx` |
-| [x] | `packages/ui/src/screens/Calendar.tsx` — QoL: cell colour split, click-outside, nav limit, future landmarks, sanctioning body + venue links, View Full Details |
-| [x] | `packages/ui/src/screens/SanctioningBodyPage.tsx` — rules table, titles, governed events; reads from gameData store |
-| [x] | `packages/ui/src/screens/VenuePage.tsx` — hero image, description, eligibility, upcoming/past events via IPC |
-| [x] | `packages/ui/src/screens/EventFullPage.tsx` — venue feature, schedule, bracket placeholder, why it matters |
+| [x] | `packages/ui/src/screens/Calendar.tsx` — text-in-section day cells (no pills), month nav, right panel, legend |
+| [x] | `packages/ui/src/screens/SanctioningBodyPage.tsx` — left-border identity, rules spec, titles, governed events |
+| [x] | `packages/ui/src/screens/VenuePage.tsx` — two-column header (240px image right), sections, compact event lists |
+| [x] | `packages/ui/src/screens/EventFullPage.tsx` — two-column header, stat row, Bracket component, why it matters |
 | [ ] | `packages/ui/src/screens/Gym.tsx` |
 | [ ] | `packages/ui/src/screens/Inbox.tsx` |
 | [ ] | `packages/ui/src/screens/Fighters.tsx` |

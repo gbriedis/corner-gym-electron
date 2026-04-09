@@ -1,6 +1,6 @@
 // VenuePage — full detail view for a boxing venue.
-// Shows full-bleed hero image, stat row, description, circuit eligibility,
-// and upcoming/past events at this venue queried from SQLite.
+// Two-column header: text left, small venue image right (240px max, 4:3). Images are texture.
+// Sections: About, Hosts, Upcoming Events, Past Events.
 // Styled as a worn boxing programme: no web-UI cards, stamp labels, divider rules.
 
 import { useState, useEffect, type JSX, type ReactNode } from 'react'
@@ -112,58 +112,9 @@ function SectionBlock({
   )
 }
 
-// StatBlock — label above, value below. Used in the stat bar.
-function StatBlock({ label, value }: { label: string; value: string }): JSX.Element {
-  return (
-    <div>
-      <div
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: '10px',
-          textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          color: 'rgba(218,212,201,0.55)',
-          marginBottom: '3px',
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--color-text-primary)' }}>
-        {value}
-      </div>
-    </div>
-  )
-}
-
-// StatBar — full-bleed horizontal strip of stat blocks directly below the hero.
-function StatBar({
-  blocks,
-}: {
-  blocks: Array<{ label: string; value: string }>
-}): JSX.Element {
-  return (
-    <div
-      style={{
-        marginLeft: 'calc(-1 * var(--space-6))',
-        marginRight: 'calc(-1 * var(--space-6))',
-        width: 'calc(100% + 2 * var(--space-6))',
-        backgroundColor: 'var(--color-bg-mid)',
-        display: 'flex',
-        gap: 'var(--space-8)',
-        padding: 'var(--space-3) var(--space-6)',
-        marginBottom: 'var(--space-6)',
-      }}
-    >
-      {blocks.map((b, i) => (
-        <StatBlock key={i} label={b.label} value={b.value} />
-      ))}
-    </div>
-  )
-}
-
-// VenueHero — full-bleed 21:9 image with gradient scrim.
-// Venue name (Rock Bro), city · country, capacity pill overlaid on scrim.
-function VenueHero({
+// VenueHeader — two-column header: text left, small venue image right.
+// Image is texture (240px max, 4:3), not a hero. Text dominates.
+function VenueHeader({
   venueId,
   venueName,
   cityLine,
@@ -176,98 +127,69 @@ function VenueHero({
 }): JSX.Element {
   const [imgError, setImgError] = useState(false)
   const src = getVenueImageSrc(venueId)
+  const showImage = src !== null && !imgError
 
-  const bleed: React.CSSProperties = {
-    marginLeft: 'calc(-1 * var(--space-6))',
-    marginRight: 'calc(-1 * var(--space-6))',
-    width: 'calc(100% + 2 * var(--space-6))',
-    aspectRatio: '21 / 9',
-    position: 'relative',
-    overflow: 'hidden',
-    marginTop: 'var(--space-2)',
-  }
-
-  const scrim: React.CSSProperties = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 'var(--space-6)',
-    paddingTop: '72px',
-    background: 'linear-gradient(to top, var(--color-bg-dark) 0%, transparent 100%)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-1)',
-  }
-
-  const overlay = (
-    <div style={scrim}>
-      <div
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '28px',
-          color: 'var(--color-text-primary)',
-          lineHeight: 1.1,
-        }}
-      >
-        {venueName}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-          {cityLine}
-        </span>
-        <span
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 'var(--space-6)',
+        alignItems: 'flex-start',
+        marginBottom: 'var(--space-4)',
+      }}
+    >
+      {/* Left column — all text */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <h1
           style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '10px',
+            fontFamily: 'var(--font-display)',
+            fontSize: '28px',
             color: 'var(--color-text-primary)',
-            border: '1px solid rgba(218,212,201,0.35)',
-            padding: '2px 6px',
-            flexShrink: 0,
-            marginLeft: 'var(--space-4)',
-          }}
-        >
-          {capacity}
-        </span>
-      </div>
-    </div>
-  )
-
-  if (src === null || imgError) {
-    return (
-      <div
-        style={{
-          ...bleed,
-          backgroundColor: '#0d0f13',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '11px',
-            color: 'rgba(218,212,201,0.3)',
-            textAlign: 'center',
+            margin: '0 0 var(--space-1)',
+            lineHeight: 1.1,
           }}
         >
           {venueName}
-        </span>
-        {overlay}
+        </h1>
+        <div
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '13px',
+            color: 'var(--color-text-muted)',
+            marginBottom: 'var(--space-1)',
+          }}
+        >
+          {cityLine}
+        </div>
+        <div
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '13px',
+            color: 'rgba(218,212,201,0.5)',
+          }}
+        >
+          {capacity}
+        </div>
       </div>
-    )
-  }
 
-  return (
-    <div style={bleed}>
-      <img
-        src={src}
-        alt={venueName}
-        onError={() => setImgError(true)}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
-      />
-      {overlay}
+      {/* Right column — small image, 240px max, 4:3, if it exists */}
+      {showImage && (
+        <div
+          style={{
+            width: '240px',
+            flexShrink: 0,
+            aspectRatio: '4 / 3',
+            overflow: 'hidden',
+          }}
+        >
+          <img
+            src={src}
+            alt={venueName}
+            onError={() => setImgError(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -358,10 +280,6 @@ export default function VenuePage(): JSX.Element {
     e => e.year < currentYear || (e.year === currentYear && e.week < currentWeek),
   ).reverse()
 
-  function handleBack(): void {
-    setScreen('calendar')
-  }
-
   function handleNavigate(id: string): void {
     if (id !== 'calendar') setScreen('game')
     else setScreen('calendar')
@@ -391,37 +309,12 @@ export default function VenuePage(): JSX.Element {
 
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-      {/* Back — text only, above the hero */}
-      <button
-        onClick={handleBack}
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: '11px',
-          color: 'var(--color-text-muted)',
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
-        }}
-      >
-        ← Back
-      </button>
-
-      {/* Full-bleed hero: name, city, capacity */}
-      <VenueHero
+      {/* Two-column header: text left, small venue image right */}
+      <VenueHeader
         venueId={venueId}
         venueName={venue.name}
         cityLine={cityLine}
         capacity={`${venue.capacity.toLocaleString()} seats`}
-      />
-
-      {/* Stat bar: CITY · COUNTRY · CAPACITY */}
-      <StatBar
-        blocks={[
-          { label: 'City',     value: venue.city.replace(/\b\w/g, c => c.toUpperCase()) },
-          { label: 'Country',  value: venue.country.replace(/\b\w/g, c => c.toUpperCase()) },
-          { label: 'Capacity', value: `${venue.capacity.toLocaleString()} seats` },
-        ]}
       />
 
       {/* Content — single column, max 900px */}

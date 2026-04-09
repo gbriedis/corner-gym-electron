@@ -1,10 +1,11 @@
 // EventFullPage — full detail view for a calendar event.
 // Navigated to from the "View Full Details" button in the 75/25 quick view panel.
-// Styled as a worn boxing programme: full-bleed hero, stamp labels, no web-UI cards.
+// Two-column header: text left, small venue image right (240px max). Images are texture.
 
 import { useState, useEffect, type JSX, type ReactNode } from 'react'
 import GameShell from '../components/layout/GameShell'
 import Badge from '../components/Badge'
+import Bracket from '../components/Bracket'
 import { useGameStore } from '../store/gameStore'
 import { getAllEvents } from '../ipc/client'
 
@@ -111,6 +112,17 @@ const CIRCUIT_DAY_STRUCTURE: Partial<Record<CircuitLevel, Array<{ label: string 
   ],
 }
 
+// deriveBracketRounds — how many elimination rounds does this circuit level have?
+// Multi-day events: one round per day. Regional (single day): 3 rounds (8 fighters).
+// Returns null for club_card — those use no bracket.
+function deriveBracketRounds(level: CircuitLevel): number | null {
+  if (level === 'club_card') return null
+  const dayStructure = CIRCUIT_DAY_STRUCTURE[level]
+  if (dayStructure !== undefined) return dayStructure.length
+  // regional_tournament is a single-day 8-fighter tournament — 3 rounds.
+  return 3
+}
+
 // WHY_IT_MATTERS explains the significance of each circuit level.
 const WHY_IT_MATTERS: Record<CircuitLevel, string> = {
   club_card: 'A local card. One bout, go home. The starting point.',
@@ -164,195 +176,161 @@ function SectionBlock({
   )
 }
 
-// StatBlock — label above, value below. Used in stat bar (large) and rules row (small).
+// StatBlock — label above, value below. Used in stat grid and rules row.
 function StatBlock({
   label,
   value,
-  size = 'large',
   onClick,
 }: {
   label: string
   value: string
-  size?: 'large' | 'small'
   onClick?: () => void
 }): JSX.Element {
-  const valueSize = size === 'large' ? '13px' : '12px'
-  const labelStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-body)',
-    fontSize: '10px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.12em',
-    color: 'rgba(218,212,201,0.55)',
-    marginBottom: '3px',
-  }
-  const valueStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-body)',
-    fontSize: valueSize,
-    color: 'var(--color-text-primary)',
-  }
   return (
     <div>
-      <div style={labelStyle}>{label}</div>
+      <div
+        style={{
+          fontFamily: 'var(--font-body)',
+          fontSize: '10px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'rgba(218,212,201,0.55)',
+          marginBottom: '3px',
+        }}
+      >
+        {label}
+      </div>
       {onClick !== undefined ? (
         <button
           onClick={onClick}
           onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
           onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
-          style={{ ...valueStyle, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'none' }}
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '14px',
+            color: 'var(--color-text-primary)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            textDecoration: 'none',
+          }}
         >
           {value}
         </button>
       ) : (
-        <div style={valueStyle}>{value}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '14px', color: 'var(--color-text-primary)' }}>
+          {value}
+        </div>
       )}
     </div>
   )
 }
 
-// StatBar — full-bleed horizontal strip of stat blocks directly below the hero.
-function StatBar({
-  blocks,
-}: {
-  blocks: Array<{ label: string; value: string; onClick?: () => void }>
-}): JSX.Element {
-  return (
-    <div
-      style={{
-        marginLeft: 'calc(-1 * var(--space-6))',
-        marginRight: 'calc(-1 * var(--space-6))',
-        width: 'calc(100% + 2 * var(--space-6))',
-        backgroundColor: 'var(--color-bg-mid)',
-        display: 'flex',
-        gap: 'var(--space-8)',
-        padding: 'var(--space-3) var(--space-6)',
-        marginBottom: 'var(--space-6)',
-      }}
-    >
-      {blocks.map((b, i) => (
-        <StatBlock
-          key={i}
-          label={b.label}
-          value={b.value}
-          size="large"
-          {...(b.onClick !== undefined ? { onClick: b.onClick } : {})}
-        />
-      ))}
-    </div>
-  )
-}
-
-// EventHero — full-bleed 21:9 image with gradient scrim.
-// Event name (Rock Bro), circuit badge + format, date overlaid on scrim.
-function EventHero({
+// EventHeader — two-column header: text left, small venue image right.
+// Image is texture (240px max, 4:3), not a hero. Text dominates.
+function EventHeader({
   venueId,
   venueName,
   eventLabel,
   circuitLevel,
-  formatStr,
   dateStr,
+  onVenueClick,
 }: {
   venueId: string
   venueName: string
   eventLabel: string
   circuitLevel: CircuitLevel
-  formatStr: string
   dateStr: string
+  onVenueClick: () => void
 }): JSX.Element {
   const [imgError, setImgError] = useState(false)
   const src = getVenueImageSrc(venueId)
+  const showImage = src !== null && !imgError
 
-  const bleed: React.CSSProperties = {
-    marginLeft: 'calc(-1 * var(--space-6))',
-    marginRight: 'calc(-1 * var(--space-6))',
-    width: 'calc(100% + 2 * var(--space-6))',
-    aspectRatio: '21 / 9',
-    position: 'relative',
-    overflow: 'hidden',
-    marginTop: 'var(--space-2)',
-  }
-
-  const scrim: React.CSSProperties = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 'var(--space-6)',
-    paddingTop: '72px',
-    background: 'linear-gradient(to top, var(--color-bg-dark) 0%, transparent 100%)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-2)',
-  }
-
-  const overlay = (
-    <div style={scrim}>
-      <div
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '28px',
-          color: 'var(--color-text-primary)',
-          lineHeight: 1.1,
-        }}
-      >
-        {eventLabel}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
-          <Badge variant={circuitBadgeVariant(circuitLevel)} label={circuitLabel(circuitLevel)} />
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.55)' }}>
-            {formatStr}
-          </span>
-        </div>
-        <span
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 'var(--space-6)',
+        alignItems: 'flex-start',
+        marginBottom: 'var(--space-4)',
+      }}
+    >
+      {/* Left column — all text */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Circuit badge + date on same line */}
+        <div
           style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '10px',
-            color: 'var(--color-text-muted)',
-            flexShrink: 0,
-            marginLeft: 'var(--space-4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            marginBottom: 'var(--space-2)',
           }}
         >
-          {dateStr}
-        </span>
-      </div>
-    </div>
-  )
+          <Badge variant={circuitBadgeVariant(circuitLevel)} label={circuitLabel(circuitLevel)} />
+          <span
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '11px',
+              color: 'rgba(218,212,201,0.5)',
+            }}
+          >
+            {dateStr}
+          </span>
+        </div>
 
-  if (src === null || imgError) {
-    return (
-      <div
-        style={{
-          ...bleed,
-          backgroundColor: '#0d0f13',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span
+        {/* Event name */}
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '28px',
+            color: 'var(--color-text-primary)',
+            margin: '0 0 var(--space-2)',
+            lineHeight: 1.1,
+          }}
+        >
+          {eventLabel}
+        </h1>
+
+        {/* Venue link */}
+        <button
+          onClick={onVenueClick}
+          onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline' }}
+          onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none' }}
           style={{
             fontFamily: 'var(--font-body)',
-            fontSize: '11px',
-            color: 'rgba(218,212,201,0.3)',
-            textAlign: 'center',
+            fontSize: '13px',
+            color: 'var(--color-text-muted)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            textDecoration: 'none',
           }}
         >
           {venueName}
-        </span>
-        {overlay}
+        </button>
       </div>
-    )
-  }
 
-  return (
-    <div style={bleed}>
-      <img
-        src={src}
-        alt={venueName}
-        onError={() => setImgError(true)}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
-      />
-      {overlay}
+      {/* Right column — small venue image, 240px max, 4:3, if it exists */}
+      {showImage && (
+        <div
+          style={{
+            width: '240px',
+            flexShrink: 0,
+            aspectRatio: '4 / 3',
+            overflow: 'hidden',
+          }}
+        >
+          <img
+            src={src}
+            alt={venueName}
+            onError={() => setImgError(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -367,9 +345,7 @@ export default function EventFullPage(): JSX.Element {
 
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>([])
 
-  const event       = params?.calendarEvent ?? null
-  const returnMonth = params?.returnMonth
-  const returnYear  = params?.returnYear
+  const event = params?.calendarEvent ?? null
 
   useEffect(() => {
     if (worldState === null) return
@@ -377,15 +353,6 @@ export default function EventFullPage(): JSX.Element {
       .then(setAllEvents)
       .catch(() => setAllEvents([]))
   }, [worldState])
-
-  function handleBack(): void {
-    setScreen(
-      'calendar',
-      returnMonth !== undefined && returnYear !== undefined
-        ? { returnMonth, returnYear }
-        : undefined,
-    )
-  }
 
   function handleNavigate(id: string): void {
     if (id !== 'calendar') setScreen('game')
@@ -500,47 +467,36 @@ export default function EventFullPage(): JSX.Element {
 
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-      {/* Back — text only, above the image */}
-      <button
-        onClick={handleBack}
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: '11px',
-          color: 'var(--color-text-muted)',
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
-        }}
-      >
-        ← Back
-      </button>
-
-      {/* Full-bleed hero image with gradient scrim */}
-      <EventHero
+      {/* Two-column header: text left, small venue image right */}
+      <EventHeader
         venueId={event.venueId}
         venueName={venueName}
         eventLabel={event.label}
         circuitLevel={event.circuitLevel}
-        formatStr={formatStr}
         dateStr={dateStr}
+        onVenueClick={() => setScreen('venue', { venueId: event.venueId })}
       />
 
-      {/* Stat bar: VENUE · CITY · CAPACITY · DATE */}
-      <StatBar
-        blocks={[
-          {
-            label: 'Venue',
-            value: venueName,
-            onClick: () => setScreen('venue', { venueId: event.venueId }),
-          },
-          ...(cityDisplay !== '' ? [{ label: 'City', value: cityDisplay }] : []),
-          ...(venue !== undefined
-            ? [{ label: 'Capacity', value: `${venue.capacity.toLocaleString()} seats` }]
-            : []),
-          { label: 'Date', value: dateStr },
-        ]}
-      />
+      {/* Stat row: VENUE · CITY · CAPACITY */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--space-8)',
+          paddingBottom: 'var(--space-4)',
+          marginBottom: 'var(--space-4)',
+          borderBottom: 'var(--border-subtle)',
+        }}
+      >
+        <StatBlock
+          label="Venue"
+          value={venueName}
+          onClick={() => setScreen('venue', { venueId: event.venueId })}
+        />
+        {cityDisplay !== '' && <StatBlock label="City" value={cityDisplay} />}
+        {venue !== undefined && (
+          <StatBlock label="Capacity" value={`${venue.capacity.toLocaleString()} seats`} />
+        )}
+      </div>
 
       {/* Content — single column, max 900px */}
       <div style={{ maxWidth: '900px' }}>
@@ -574,9 +530,9 @@ export default function EventFullPage(): JSX.Element {
         {seniorRule !== undefined && (
           <SectionBlock label="Rules">
             <div style={{ display: 'flex', gap: 'var(--space-8)' }}>
-              <StatBlock label="Rounds"   value={String(seniorRule.rounds)}                                    size="small" />
-              <StatBlock label="Duration" value={`${seniorRule.roundDurationMinutes} min each`}                size="small" />
-              <StatBlock label="Scoring"  value={seniorRule.scoringSystem.replace(/_/g, ' ')}                 size="small" />
+              <StatBlock label="Rounds"   value={String(seniorRule.rounds)} />
+              <StatBlock label="Duration" value={`${seniorRule.roundDurationMinutes} min each`} />
+              <StatBlock label="Scoring"  value={seniorRule.scoringSystem.replace(/_/g, ' ')} />
             </div>
           </SectionBlock>
         )}
@@ -657,39 +613,29 @@ export default function EventFullPage(): JSX.Element {
           </SectionBlock>
         )}
 
-        {/* TOURNAMENT BRACKET — dark inset placeholder */}
-        <SectionBlock label="Tournament Bracket">
-          <div
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid var(--color-bg-mid)',
-              padding: 'var(--space-4)',
-              textAlign: 'center',
-            }}
-          >
-            {event.status === 'scheduled' ? (
-              <>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '11px',
-                    color: 'var(--color-text-muted)',
-                    marginBottom: 'var(--space-2)',
-                  }}
-                >
-                  Bracket will be drawn when entry closes.
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: 'rgba(218,212,201,0.35)' }}>
-                  Enter a fighter via the Fighters screen once your roster is set up.
-                </div>
-              </>
-            ) : (
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                Bracket structure coming soon.
+        {/* BRACKET — real bracket for tournaments, text fallback for club cards */}
+        {(() => {
+          const bracketRounds = deriveBracketRounds(event.circuitLevel)
+          if (bracketRounds === null) {
+            return (
+              <SectionBlock label="Bracket">
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(218,212,201,0.45)', margin: 0 }}>
+                  No bracket — fighters matched on the night.
+                </p>
+              </SectionBlock>
+            )
+          }
+          return (
+            <SectionBlock label="Tournament Bracket">
+              <div style={{ marginBottom: 'var(--space-2)' }}>
+                <Bracket rounds={bracketRounds} entrants={[]} />
               </div>
-            )}
-          </div>
-        </SectionBlock>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'rgba(218,212,201,0.35)', margin: 0 }}>
+                Entry opens when the event is scheduled · Bracket drawn when entry closes.
+              </p>
+            </SectionBlock>
+          )
+        })()}
 
         {/* WHY THIS EVENT MATTERS — Olympics: gold left border, gold label, larger text */}
         {isOlympics ? (

@@ -1,28 +1,26 @@
 // Calendar screen — month grid view of the full boxing calendar.
 // Events are placed on the Saturday of their ISO week (the traditional fight-night day).
-// Clicking an event pill opens a detail panel on the right.
+// Clicking a day cell opens a detail panel on the right.
 // Navigate with ← → arrows, keyboard arrow keys, or the Today button.
 
 import { useState, useEffect, useCallback, type JSX } from 'react'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  CalendarIcon,
   SewingPinIcon,
   PersonIcon,
   Cross2Icon,
 } from '@radix-ui/react-icons'
 import GameShell from '../components/layout/GameShell'
 import Badge from '../components/Badge'
-import Icon from '../components/Icon'
 import { useGameStore } from '../store/gameStore'
 import { getAllEvents } from '../ipc/client'
 
 import type { CalendarEvent, GameData } from '@corner-gym/engine'
 import type { BadgeVariant } from '../components/Badge'
 
-// Cell background colours at 20% opacity — used for the day cell colour split (2a).
-// Each circuit level tints the cell background to signal event type at a glance.
+// circuitCellBgColor — tint colour for each circuit level in day cell sections.
+// Applied as the background of each event's split section within the cell.
 function circuitCellBgColor(level: CalendarEvent['circuitLevel']): string {
   switch (level) {
     case 'club_card':             return 'rgba(218,212,201,0.06)'
@@ -33,32 +31,6 @@ function circuitCellBgColor(level: CalendarEvent['circuitLevel']): string {
     case 'world_championship':    return 'rgba(255,209,131,0.2)'
     case 'olympics':              return 'rgba(255,209,131,0.25)'
   }
-}
-
-// cellGradientBackground builds a CSS linear-gradient splitting cell background
-// equally between the circuit level colours of all events on that day.
-// Single event: solid tint. Multiple events: vertical strips, equal weight.
-function cellGradientBackground(slots: Array<{ event: CalendarEvent }>): string {
-  // Deduplicate by circuit level — same event appearing on multiple days
-  // counts once per level for background colouring.
-  const seen = new Set<CalendarEvent['circuitLevel']>()
-  const levels: CalendarEvent['circuitLevel'][] = []
-  for (const { event } of slots) {
-    if (!seen.has(event.circuitLevel)) {
-      seen.add(event.circuitLevel)
-      levels.push(event.circuitLevel)
-    }
-  }
-  if (levels.length === 0) return 'transparent'
-  if (levels.length === 1) return circuitCellBgColor(levels[0]!)
-  const pct = 100 / levels.length
-  const stops = levels.map((level, i) => {
-    const color = circuitCellBgColor(level)
-    const from = Math.round(i * pct)
-    const to = Math.round((i + 1) * pct)
-    return `${color} ${from}% ${to}%`
-  })
-  return `linear-gradient(to bottom, ${stops.join(', ')})`
 }
 
 // All venue images pre-loaded as URL strings by Vite at build time.
@@ -262,52 +234,6 @@ function statusBadgeVariant(status: CalendarEvent['status']): BadgeVariant {
     case 'in_progress': return 'easy'
     case 'completed':   return 'neutral'
     case 'cancelled':   return 'extreme'
-  }
-}
-
-// pillStyle returns inline styles for an event pill in the grid cell.
-// Prestige increases from muted club cards to glowing Olympics pills.
-function pillStyle(level: CalendarEvent['circuitLevel']): React.CSSProperties {
-  const base: React.CSSProperties = {
-    display: 'block',
-    width: '100%',
-    padding: '1px 4px',
-    borderRadius: 'var(--radius-sm)',
-    fontSize: '9px',
-    lineHeight: '14px',
-    fontFamily: 'var(--font-body)',
-    fontWeight: 400,
-    cursor: 'pointer',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    textAlign: 'left',
-    border: 'none',
-    marginBottom: '1px',
-  }
-  switch (level) {
-    case 'club_card':
-      return { ...base, background: 'rgba(218,212,201,0.08)', color: 'rgba(218,212,201,0.5)' }
-    case 'regional_tournament':
-      return { ...base, background: 'rgba(90,139,222,0.15)', color: 'var(--color-accent-blue)' }
-    case 'national_championship':
-      return { ...base, background: 'rgba(238,178,74,0.18)', color: 'var(--color-accent-amber)', fontWeight: 600 }
-    case 'baltic_championship':
-      return { ...base, background: 'rgba(85,146,127,0.2)', color: 'var(--color-accent-green)', fontWeight: 600, fontSize: '10px' }
-    case 'european_championship':
-      return { ...base, background: 'rgba(33,82,165,0.18)', color: 'var(--color-accent-blue-dark)', fontWeight: 700, fontSize: '10px' }
-    case 'world_championship':
-      return { ...base, background: 'rgba(255,209,131,0.2)', color: 'var(--color-accent-gold)', fontWeight: 700, fontSize: '10px' }
-    case 'olympics':
-      return {
-        ...base,
-        background: 'rgba(255,209,131,0.25)',
-        color: 'var(--color-accent-gold)',
-        fontWeight: 700,
-        fontSize: '10px',
-        boxShadow: '0 0 6px rgba(255,209,131,0.35)',
-        border: '1px solid rgba(255,209,131,0.3)',
-      }
   }
 }
 
@@ -986,11 +912,9 @@ function UpcomingEventsPanel({ events, currentYear, currentWeek, onSelect, gameD
                   textAlign: 'left',
                 }}
               >
-                {/* Top row: circuit pill + event label */}
+                {/* Top row: circuit badge + event label */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: '2px' }}>
-                  <span style={{ ...pillStyle(event.circuitLevel), display: 'inline-block', width: 'auto', marginBottom: 0, flexShrink: 0 }}>
-                    {circuitLabel(event.circuitLevel)}
-                  </span>
+                  <Badge variant={circuitBadgeVariant(event.circuitLevel)} label={circuitLabel(event.circuitLevel)} />
                   <span
                     style={{
                       fontFamily: 'var(--font-body)',
@@ -1274,7 +1198,7 @@ export default function Calendar(): JSX.Element {
 
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-      {/* Screen header */}
+      {/* Month navigation row */}
       <div
         style={{
           display: 'flex',
@@ -1283,19 +1207,6 @@ export default function Calendar(): JSX.Element {
           marginBottom: 'var(--space-4)',
         }}
       >
-        <Icon icon={CalendarIcon} size="lg" color="var(--color-accent-amber)" />
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '18px',
-            color: 'var(--color-accent-amber)',
-            margin: 0,
-            flex: 1,
-          }}
-        >
-          Boxing Calendar
-        </h1>
-
         {/* Today button */}
         <button
           onClick={navigateToday}
@@ -1441,74 +1352,111 @@ export default function Calendar(): JSX.Element {
                   todaySat.getMonth() + 1 === viewMonth &&
                   todaySat.getDate() === day
 
-                // Cell background: events tint it with their circuit level colours.
-                // Today overrides with amber tint. Empty cells are transparent.
-                const cellBg = day === null
-                  ? 'transparent'
-                  : isToday
-                    ? 'rgba(238,178,74,0.05)'
-                    : daySlots.length > 0
-                      ? cellGradientBackground(daySlots)
-                      : 'rgba(218,212,201,0.02)'
+                // Each event gets an equal vertical section of the cell.
+                // Minimum section height for text to render — below this only colour shows.
+                const CELL_MIN_H = 72
+                const sectionHeightPx = daySlots.length > 0
+                  ? Math.floor(CELL_MIN_H / daySlots.length)
+                  : CELL_MIN_H
 
                 return (
                   <div
                     key={idx}
                     onClick={daySlots.length === 1 ? () => setSelectedEvent(daySlots[0]!.event) : undefined}
                     style={{
-                      minHeight: '72px',
-                      background: cellBg,
+                      minHeight: `${CELL_MIN_H}px`,
+                      position: 'relative',
+                      background: day === null
+                        ? 'transparent'
+                        : isToday
+                          ? 'rgba(238,178,74,0.05)'
+                          : daySlots.length === 0
+                            ? 'rgba(218,212,201,0.02)'
+                            : 'transparent',
                       border: day === null
                         ? 'none'
                         : isToday
                           ? '1px solid rgba(238,178,74,0.2)'
                           : 'var(--border-subtle)',
                       borderRadius: 'var(--radius-sm)',
-                      padding: '4px',
                       overflow: 'hidden',
                       cursor: daySlots.length === 1 ? 'pointer' : 'default',
                     }}
                   >
                     {day !== null && (
                       <>
-                        {/* Day number */}
+                        {/* Colour background sections — one per event, equal height splits */}
+                        {daySlots.map(({ event }, slotIdx) => (
+                          <div
+                            key={`bg-${event.id}-${slotIdx}`}
+                            style={{
+                              position: 'absolute',
+                              left: 0,
+                              right: 0,
+                              top: `${(slotIdx / daySlots.length) * 100}%`,
+                              height: `${(1 / daySlots.length) * 100}%`,
+                              background: circuitCellBgColor(event.circuitLevel),
+                            }}
+                          />
+                        ))}
+
+                        {/* Day number — top right, above colour sections */}
                         <div
                           style={{
+                            position: 'relative',
+                            zIndex: 1,
                             fontFamily: 'var(--font-body)',
                             fontSize: '10px',
                             color: isToday
                               ? 'var(--color-accent-amber)'
                               : 'rgba(218,212,201,0.35)',
                             textAlign: 'right',
-                            marginBottom: '2px',
+                            padding: '3px 4px 0',
                             fontWeight: isToday ? 700 : 400,
                           }}
                         >
                           {day}
                         </div>
 
-                        {/* Event pills — continuation days shown at reduced opacity */}
-                        {daySlots.map(({ event, dayIndex, totalDays }) => {
-                          const isContinuation = dayIndex > 0
-                          return (
-                            <button
-                              key={`${event.id}-d${dayIndex}`}
-                              onClick={() => setSelectedEvent(event)}
+                        {/* Event name in lower portion of each colour section.
+                            Skip text if the section is too narrow to be readable. */}
+                        {daySlots.map(({ event }, slotIdx) => (
+                          sectionHeightPx >= 20 && (
+                            <div
+                              key={`text-${event.id}-${slotIdx}`}
+                              onClick={(e) => { e.stopPropagation(); setSelectedEvent(event) }}
                               style={{
-                                ...pillStyle(event.circuitLevel),
-                                opacity: isContinuation ? 0.6 : 1,
+                                position: 'absolute',
+                                left: 0,
+                                right: 0,
+                                top: `${(slotIdx / daySlots.length) * 100}%`,
+                                height: `${(1 / daySlots.length) * 100}%`,
+                                display: 'flex',
+                                alignItems: 'flex-end',
+                                padding: '2px 4px',
+                                zIndex: 1,
+                                cursor: 'pointer',
+                                boxSizing: 'border-box',
                               }}
-                              title={event.label}
                             >
-                              {isContinuation
-                                ? `· D${dayIndex + 1}/${totalDays}`
-                                : totalDays > 1
-                                  ? `${circuitLabel(event.circuitLevel)} · D1/${totalDays}`
-                                  : circuitLabel(event.circuitLevel)
-                              }
-                            </button>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--font-body)',
+                                  fontSize: '10px',
+                                  color: 'var(--color-text-primary)',
+                                  overflow: 'hidden',
+                                  whiteSpace: 'nowrap',
+                                  textOverflow: 'ellipsis',
+                                  display: 'block',
+                                  width: '100%',
+                                  lineHeight: 1.3,
+                                }}
+                              >
+                                {event.label}
+                              </span>
+                            </div>
                           )
-                        })}
+                        ))}
                       </>
                     )}
                   </div>
@@ -1516,7 +1464,7 @@ export default function Calendar(): JSX.Element {
               })}
             </div>
 
-            {/* Legend */}
+            {/* Legend — coloured squares matching the cell section background tints */}
             <div
               style={{
                 display: 'flex',
@@ -1529,17 +1477,27 @@ export default function Calendar(): JSX.Element {
             >
               {(
                 [
-                  ['club_card', 'Club Card'],
-                  ['regional_tournament', 'Regional Tournament'],
-                  ['national_championship', 'National Championship'],
-                  ['baltic_championship', 'Baltic Championship'],
-                  ['european_championship', 'European Championship'],
-                  ['world_championship', 'World Championship'],
-                  ['olympics', 'Olympics'],
+                  ['club_card',             'Club Card'],
+                  ['regional_tournament',   'Regional'],
+                  ['national_championship', 'Nationals'],
+                  ['baltic_championship',   'Baltic'],
+                  ['european_championship', 'European'],
+                  ['world_championship',    'Worlds'],
+                  ['olympics',              'Olympics'],
                 ] as [CalendarEvent['circuitLevel'], string][]
               ).map(([level, label]) => (
                 <div key={level} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ ...pillStyle(level), width: '10px', height: '10px', display: 'block', padding: 0, borderRadius: '2px', marginBottom: 0 }} />
+                  <span
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      display: 'block',
+                      background: circuitCellBgColor(level),
+                      border: 'var(--border-subtle)',
+                      borderRadius: '2px',
+                      flexShrink: 0,
+                    }}
+                  />
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', color: 'rgba(218,212,201,0.4)' }}>
                     {label}
                   </span>

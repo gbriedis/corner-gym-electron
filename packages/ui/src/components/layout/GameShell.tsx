@@ -1,9 +1,8 @@
 import { useState, type JSX, type ReactNode } from 'react'
-import TopBar from './TopBar'
+import TopNav from './TopNav'
 import SideNav from './SideNav'
 
 interface Props {
-  title?: string
   children: ReactNode
   // activeNav and onNavigate allow callers to control navigation —
   // screens that handle cross-screen routing (e.g. Calendar) provide
@@ -12,7 +11,7 @@ interface Props {
   onNavigate?: (id: string) => void
 }
 
-export default function GameShell({ title = '', children, activeNav: activeNavProp, onNavigate: onNavigateProp }: Props): JSX.Element {
+export default function GameShell({ children, activeNav: activeNavProp, onNavigate: onNavigateProp }: Props): JSX.Element {
   const [internalNav, setInternalNav] = useState('gym')
 
   const activeNav = activeNavProp ?? internalNav
@@ -20,15 +19,15 @@ export default function GameShell({ title = '', children, activeNav: activeNavPr
 
   return (
     <div style={{ width: '100vw', height: '100vh', backgroundColor: 'var(--color-bg-dark)' }}>
-      <TopBar title={title} />
+      <TopNav />
       <SideNav activeItem={activeNav} onNavigate={handleNavigate} />
 
-      {/* Main content area — offset from TopBar and SideNav, scrollable */}
+      {/* Main content area — offset from TopNav (48px) and SideNav (44px), scrollable */}
       <main
         style={{
           position: 'fixed',
-          top: '44px',       // TopBar height
-          left: '44px',      // SideNav collapsed width
+          top: '48px',
+          left: '44px',
           right: 0,
           bottom: 0,
           overflowY: 'auto',

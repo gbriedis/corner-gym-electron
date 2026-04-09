@@ -265,10 +265,6 @@ export default function SanctioningBodyPage(): JSX.Element {
     ? allBodies.find(b => b.id === body.affiliation)
     : undefined
 
-  function handleBack(): void {
-    setScreen('calendar')
-  }
-
   function handleNavigate(id: string): void {
     if (id !== 'calendar') setScreen('game')
     else setScreen('calendar')
@@ -298,23 +294,6 @@ export default function SanctioningBodyPage(): JSX.Element {
 
   return (
     <GameShell activeNav="calendar" onNavigate={handleNavigate}>
-      {/* Back — text only */}
-      <button
-        onClick={handleBack}
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: '11px',
-          color: 'var(--color-text-muted)',
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          cursor: 'pointer',
-          marginBottom: 'var(--space-4)',
-        }}
-      >
-        ← Back
-      </button>
-
       {/* Content — max 900px */}
       <div style={{ maxWidth: '900px' }}>
 

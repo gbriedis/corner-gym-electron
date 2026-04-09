@@ -188,10 +188,12 @@ corner-gym/
             │   ├── Badge.tsx                          # 7 variants: easy/normal/hard/extreme/gift/flaw/neutral. Selectable
             │   ├── ProgressBar.tsx                    # Animated fill, CSS cubic-bezier transition
             │   ├── Icon.tsx                           # Thin wrapper around @radix-ui/react-icons — size + colour
+            │   ├── Bracket.tsx                        # Single elimination bracket — rounds prop, TBD slots, SVG connectors
             │   └── layout/
-            │       ├── TopBar.tsx                     # Fixed 44px bar — logotype, screen title, gym/year
+            │       ├── TopNav.tsx                     # Fixed 48px bar — back/forward, page name, week/finances, Advance Week
+            │       ├── TopBar.tsx                     # Legacy (pre-nav rework) — kept but unused in game flow
             │       ├── SideNav.tsx                    # Fixed left nav — 6 items with Radix icons, expand/collapse
-            │       └── GameShell.tsx                  # Composes TopBar + SideNav + scrollable main — controlled nav
+            │       └── GameShell.tsx                  # Composes TopNav + SideNav + scrollable main — controlled nav
             └── screens/
                 ├── MainMenu.tsx             # New Game / Load Game / Quit — grain overlay, Rock Bro title
                 ├── NewGame.tsx              # Player name, gym name, nation, city, difficulty, seed — two-column grid
