@@ -1,213 +1,295 @@
 # Current Task
 
-## Task: UI Polish — Event Page, Venue Page, Sanctioning Body Page
+## Task: Top Nav Rework + Calendar Events + Page v2 + Bracket Component
 
-### What To Fix
-All three detail pages look like database printouts. They have the right content but no visual character. This task is purely visual — no new features, no new data, no logic changes. Pure UI polish.
+### What To Build
+Four things in sequence. Each builds on the previous.
+1. Top nav — spine of the game UI
+2. Calendar event display — replace pills with clean text in split cells
+3. Page v2 — event, venue, sanctioning body pages redesigned around small images
+4. Bracket component — single elimination skeleton
 
 ### Skill To Load
 `.claude/skills/public/frontend-design/SKILL.md`
+`.claude/skills/new-feature/SKILL.md`
 
 ---
 
-## The Aesthetic Direction
+## The Design Philosophy For This Task
 
-These pages should feel like a worn boxing programme. The kind of thing a Latvian coach carries in his coat pocket — ink on paper, dense but considered. Not a website. Not a dashboard. Something with texture and weight.
+The assets we have are small venue snapshots — cramped boxing gyms and clubs. They are texture, not heroes. The typography and layout carries the pages. Images accent, they do not lead.
 
-**Rules:**
-- Section headers: uppercase, tracked letter-spacing, small font size, muted colour — like a label stamped on old equipment. Never large. Never bold headline style.
-- Body text: Inconsolata naturally has character. Give it room to breathe — `line-height: 1.7`. Don't squeeze.
-- Section dividers: single pixel rule `var(--color-bg-mid)`, not padding gaps alone. Creates printed document feel.
-- Data points: two-column stat grid. Label small and muted ABOVE, value larger and primary BELOW. Never `Label: Value` on one line — that's a form, not a programme.
-- Venue image: bleeds edge to edge at top of page. No border radius. No margin. Like a photograph pinned to a notice board.
-- Colour: background is dark, text is primary. Colour appears only on badges, circuit level indicators, and one accent element per page. Nowhere else.
-- Spacing: generous between sections, tight within them.
+Think print. Boxing programmes. Fight posters. Dense, considered, every element earning its place. This is a sim game played on a laptop — the UI should feel like a specialist tool used by someone who knows boxing, not a consumer app.
 
 ---
 
-## Event Full Page (`/calendar/event/:eventId`)
+## Part 1 — Top Nav Rework
 
-### Header
-No padding above the venue image. Image bleeds full width, 21:9 ratio, no border radius, no shadow. Graceful fallback if no image — dark placeholder with venue name centred in muted text.
+Completely replace the current top bar. Remove all per-page title headers from Calendar, Venue, Sanctioning Body, and Event pages — the top nav owns that responsibility now.
 
-Overlaid on the bottom of the image, a dark gradient scrim (bottom 40% of image fades to `--color-bg-dark`). On top of the scrim:
-- Event name in Rock Bro font, large, `--color-text-primary`
-- Circuit level badge + format indicator on same line below the name
-- Date in small Inconsolata, muted, bottom right of scrim
+### Layout
 
-Back button top left — small, `← Back`, no background, just text. Sits above the image not on top of it.
+Full width, fixed top, `--color-bg-dark` background, single pixel bottom border `--color-bg-mid`. Height: 48px. Three zones.
 
-### Stat Row
-Immediately below the image. Single horizontal row of 3-4 stat blocks in a dark bar (`--color-bg-mid` background, full width, no border radius).
-
-Each stat block:
+**Left zone (navigation memory):**
 ```
-VENUE              CITY               CAPACITY           DATE
-Rīgas Boksa klubs  Riga, Latvia       200 seats          17 Jan 2026
+[←] [→]  CALENDAR
 ```
+- Back arrow: `ArrowLeftIcon` from Radix, 16px, `--color-text-muted`. Disabled state: `opacity: 0.3`. Clicking navigates browser history back.
+- Forward arrow: `ArrowRightIcon`, same treatment.
+- Page name: current route label in Inconsolata, 11px, uppercase, tracked, `--color-text-muted`. Clicking navigates to `/` (Dashboard/main game screen).
+- Separator between arrows and page name: single pixel vertical rule `--color-bg-mid`.
 
-Label: 10px uppercase tracked muted text.
-Value: 14px `--color-text-primary`.
-
-Venue and city values are links — hover underline, no button styling.
-
-### Sections below the stat row
-
-Each section:
-- Section label: 10px uppercase tracked `--color-text-muted`, margin-bottom 8px
-- Single pixel divider above the label
-- Content below
-
-**ABOUT**
-Description paragraph. Inconsolata, `line-height: 1.7`. No box, no card — just text.
-
-**FORMAT**
-Single line. "Card · One bout per fighter · Results same night" or "Tournament · Single Elimination · [X] Day Event". Muted text, smaller.
-
-**RULES**
-Three stat blocks in a row (same pattern as the header stat row but smaller):
+Page name map:
 ```
-ROUNDS     DURATION      SCORING
-3          3 min each    10-point must
+/              → DASHBOARD
+/calendar      → CALENDAR
+/calendar/event/:id  → EVENT
+/venue/:id     → VENUE
+/sanctioning-body/:id → FEDERATION
+/fighters      → FIGHTERS
+/inbox         → INBOX
+/world         → WORLD
+/finances      → FINANCES
 ```
 
-**SANCTIONED BY**
-Organisation name as a link. No label box. Just: `SANCTIONED BY` label above, organisation name below as a hover-underline link.
+**Centre zone:**
+Empty for now. Reserved. `flex: 1`.
 
-**TOURNAMENT BRACKET**
-Dark inset box (`background: rgba(0,0,0,0.3)`, `border: 1px solid var(--color-bg-mid)`). Inside: placeholder text in muted Inconsolata. No visual clutter — just the message and the entry note.
+**Right zone (game state):**
+```
+Week 3, 2026    €  —    [ADVANCE WEEK]
+```
 
-**WHY THIS EVENT MATTERS**
-The paragraph text for each circuit level. No label box. Just the `WHY THIS EVENT MATTERS` stamp label above, paragraph below. This section has the most character — give the text room.
+- Date: `WEEK 3 · 2026` in Inconsolata, 11px, uppercase, tracked, `--color-text-muted`. Pulled from game store.
+- Separator: single pixel vertical rule.
+- Finances: `€ —` placeholder. Small, muted. Will be wired when finances are built.
+- Separator: single pixel vertical rule.
+- Advance Week button: `--color-accent-amber` background, dark text, Inconsolata, 11px, uppercase, tracked, `padding: 6px 16px`. No border radius beyond `--radius-sm`. This button is the heartbeat of the game — it should feel weighted and deliberate. Disabled state: `opacity: 0.5`. Not wired to logic yet — clicking does nothing but the skeleton exists.
 
-For Olympics: the entire section gets a gold left border (`border-left: 3px solid var(--color-accent-gold)`), gold label colour, slightly larger text. The weight of it should be felt without being garish.
+### Remove From All Pages
+- `Calendar.tsx` — remove "BOXING CALENDAR" header section
+- `EventFullPage.tsx` — remove page title header (back button moves to top nav)
+- `VenuePage.tsx` — remove page title header
+- `SanctioningBodyPage.tsx` — remove page title header
 
-**PAST EDITIONS**
-If empty: single line muted text "No previous editions recorded." — no empty state card.
-If populated: compact list. Each row: `[Year] · [City] · [Venue]` — all on one line, muted separators.
+Back buttons on detail pages — remove them. Navigation history arrows in top nav handle this.
 
 ---
 
-## Venue Page (`/venue/:venueId`)
+## Part 2 — Calendar Event Display Rework
 
-### Header
-Same as event page — image bleeds full width, 21:9, no border radius. Dark gradient scrim on bottom portion.
+### Kill The Pills
 
-On the scrim:
-- Venue name in Rock Bro font, large
-- City · Country in small Inconsolata below
-- Capacity badge bottom right — `[200 seats]` in a small pill
+Remove event pills from day cells entirely. The coloured cell split does the visual work. Inside each colour section, show only the event name as plain text.
 
-### Stat Row
-Three stat blocks:
-```
-CITY               COUNTRY            CAPACITY
-Riga               Latvia             200 seats
-```
+### Day Cell Layout
 
-### Sections
+Each day cell has:
+- Day number top-right, small, muted
+- If events: the cell background splits equally by event count (existing behaviour — keep)
+- Inside each colour split section: event name in Inconsolata, 10px, `--color-text-primary`, single line, truncated with ellipsis if too long, `padding: 2px 4px`
+- No badges, no pills, no icons inside the cell
 
-**ABOUT**
-Description paragraph. No box.
+The event name text sits in the lower portion of each split section. If the section is too narrow for text (less than 20px height), show nothing — the colour alone communicates.
 
-**HOSTS**
-`eligibleFor` circuit levels shown as badges in a row. No label box above badges — just the `HOSTS` stamp and the badges.
+### Empty Day Cells
+No change — neutral background, day number only.
 
-**UPCOMING EVENTS**
-Compact list. Each row:
-```
-17 Jan 2026    [Club Card]    Club Tournament
-7 Feb 2026     [Club Card]    Club Tournament
-```
-Date left-aligned muted, badge, event name. Single pixel dividers between rows. No cards, no padding boxes.
+### Today Highlight
+Current game week's days: day number in `--color-accent-amber`. Subtle, not loud.
 
-Empty state: "No upcoming events scheduled." — single muted line.
-
-**PAST EVENTS**
-Same compact list format. Empty state: "No recorded events yet."
+### Legend
+Keep the existing legend below the grid. Update labels to match new circuit level names: "Club Card", "Regional", "Nationals", etc.
 
 ---
 
-## Sanctioning Body Page (`/sanctioning-body/:bodyId`)
+## Part 3 — Page v2
 
-### Header
-No image — this page is text-heavy by nature. That's fine. Lean into it.
+### Design System For These Pages
 
-Large body name in Rock Bro font. Below it: level badge (National / Continental / International). Below that: affiliation as a link.
+**Image treatment:** Small, contained, right-aligned. Images are 240px wide maximum, aspect ratio 4:3, `object-fit: cover`. They float right in the header section while typography dominates the left. If no image — the layout works without it, no placeholder needed.
 
-Top of page has a thick left border accent in the circuit level colour most associated with this body — LBF gets amber (national championship colour), EUBC gets blue-dark, IBA gets gold.
+**Header section:** Two columns. Left: all text content. Right: image (if exists). Left column takes remaining space. Never reversed — text always left, image always right.
 
-### Sections
+**Typography hierarchy:**
+- Page title: Rock Bro, 28px, `--color-text-primary`
+- Section labels: Inconsolata, 10px, uppercase, letter-spacing 0.15em, `--color-text-muted`
+- Body text: Inconsolata, 13px, `--color-text-primary`, line-height 1.7
+- Stat values: Inconsolata, 14px, `--color-text-primary`
+- Stat labels: Inconsolata, 10px, uppercase, `--color-text-muted`
 
-**ABOUT**
-Description paragraph. `line-height: 1.7`. No box.
+**Sections:** Separated by single pixel rules `--color-bg-mid`. Label above rule, content below. `padding: 16px 0` between sections.
 
-**COMPETITION RULES**
-This is the most important section on this page. Style it like an official document — it IS one.
+**Stat grids:** 3-4 columns. Each stat: label (10px muted uppercase) above value (14px primary). Used for capacity, rounds, date, city etc.
 
-Age category tabs or segmented control: Junior | Youth | Senior. Switching shows rules for that category.
-
-Rules displayed as a tight grid — not a standard HTML table. Each rule:
-```
-ROUNDS    DURATION    REST       SCORING           HEADGEAR    GLOVES
-3         3 min       1 min      10-point must     Required    10 oz
-```
-
-Monospace, small, tight rows. Alternating row background: transparent and `rgba(255,255,255,0.02)`. Single pixel dividers. This should feel like reading a technical specification.
-
-Group rows by circuit level within the age category tab:
-
-```
-CLUB CARD
-3 rounds · 3 min · 10-point must · Headgear required · 10 oz · Max 2 bouts/day
-
-REGIONAL TOURNAMENT  
-3 rounds · 3 min · 10-point must · Headgear required · 10 oz · Max 1 bout/day
-
-NATIONAL CHAMPIONSHIP
-3 rounds · 3 min · 10-point must · Headgear required · 10 oz · Max 1 bout/day
-```
-
-Circuit level as a stamp label above each group. Rules on one dense line below. Not a table — a list of specifications.
-
-**TITLES AWARDED**
-`TITLES AWARDED PER WEIGHT CLASS` stamp label. Below: simple list of title names. No table, no cards. Just the list in muted Inconsolata.
-
-**GOVERNED EVENTS**
-Circuit level badges in a row. That's it.
+**Lists:** No card wrappers. Rows separated by single pixel rules. Each row: date/label left, name centre, badge right. `padding: 8px 0`.
 
 ---
 
-## Global Rules For All Three Pages
+### Event Full Page v2 (`/calendar/event/:eventId`)
 
-- No card components with borders and padding that look like web UI cards
-- No coloured background boxes for sections — sections are separated by rules and spacing only
-- No centre-aligned text anywhere except the placeholder/empty states
-- Back button is always top-left, small, text only — no button styling
-- All links: normal text colour, no underline at rest, underline on hover, cursor pointer
-- Scrollbar: 4px, barely visible (already implemented — verify it applies to these pages)
-- Page max-width: 900px centred, generous horizontal padding on smaller windows
+**Header:**
+```
+[Left column]                    [Right: 240px image]
+CLUB CARD badge  · 17 Jan 2026
+Club Tournament
+Rīgas Boksa klubs  →link
+```
+- Circuit badge top-left
+- Date small muted right of badge on same line
+- Event name in Rock Bro, large
+- Venue name as hover-underline link below
+
+**Stat row (below header, full width):**
+Three stats in a row:
+```
+VENUE              CITY          CAPACITY
+Rīgas Boksa klubs  Riga          200 seats
+```
+
+**Sections in order:**
+1. `ABOUT` — description paragraph
+2. `FORMAT` — one line: "Card · One bout per fighter" or "Tournament · Single Elimination"
+3. `RULES` — stat grid: ROUNDS / DURATION / SCORING / HEADGEAR
+4. `SANCTIONED BY` — org name as link
+5. `BRACKET` — bracket component (see Part 4). Header: "TOURNAMENT BRACKET". For club cards: "No bracket — fighters matched on the night." in muted text.
+6. `WHY THIS EVENT MATTERS` — paragraph. Olympics gets gold left border `3px solid var(--color-accent-gold)`.
+7. `PAST EDITIONS` — compact list or "No previous editions recorded."
+
+---
+
+### Venue Page v2 (`/venue/:venueId`)
+
+**Header:**
+```
+[Left column]                    [Right: 240px image]
+Rīgas Boksa klubs
+Riga · Latvia
+200 seats
+```
+- Venue name in Rock Bro
+- City · Country below
+- Capacity below that
+
+**Sections:**
+1. `ABOUT` — description paragraph
+2. `HOSTS` — `eligibleFor` as circuit badges in a row
+3. `UPCOMING EVENTS` — compact list. Row: `[date] [badge] [event name]`. Single pixel dividers.
+4. `PAST EVENTS` — same format. Empty state: single muted line.
+
+---
+
+### Sanctioning Body Page v2 (`/sanctioning-body/:bodyId`)
+
+No image. This page is a document. Lean into it.
+
+Thick left border on the entire page header section — `border-left: 3px solid` in the body's primary circuit level colour (LBF → amber, EUBC → blue-dark, IBA → gold). Gives identity without needing an image.
+
+**Header:**
+- Body name in Rock Bro
+- Level badge
+- Affiliation as link
+
+**Sections:**
+1. `ABOUT` — description paragraph
+
+2. `COMPETITION RULES` — age category selector: three small tabs `JUNIOR · YOUTH · SENIOR`. Active tab in `--color-accent-amber`.
+
+   Under each tab, rules grouped by circuit level:
+   ```
+   CLUB CARD
+   3 rounds · 3 min · 10 point must · Headgear required · 10 oz gloves · Max 2 bouts/day
+
+   REGIONAL TOURNAMENT
+   3 rounds · 3 min · 10 point must · Headgear required · 10 oz gloves · Max 1 bout/day
+   ```
+   Circuit level name: 10px stamp label. Rules: single dense line in 12px Inconsolata muted. Single pixel divider between levels. This reads like a technical specification, not a table.
+
+3. `TITLES AWARDED` — list of title names in muted Inconsolata. No decoration.
+
+4. `GOVERNED EVENTS` — circuit badges in a row.
+
+---
+
+## Part 4 — Bracket Component
+
+**`packages/ui/src/components/Bracket.tsx`**
+
+Single elimination bracket. Used on the event full page.
+
+### Props
+```typescript
+interface BracketProps {
+  rounds: number          // number of rounds — 1=final only, 2=semis+final, 3=quarters+semis+final
+  entrants?: TournamentEntrant[]   // empty array or undefined = all TBD slots
+  winnerId?: string
+}
+```
+
+### Visual Layout
+
+Columns left to right, one per round. Round label above each column: "QUARTERFINALS", "SEMIFINALS", "FINAL".
+
+Each slot is a rectangular block:
+```
+┌─────────────────────┐
+│ TBD                 │
+│ —                   │
+└─────────────────────┘
+```
+When entrant exists:
+```
+┌─────────────────────┐
+│ Jānis Bērziņš       │
+│ Valmiera Boxing     │
+└─────────────────────┘
+```
+Slot size: `width: 180px`, `height: 44px`. Background: `--color-bg-mid`. Border: `1px solid var(--color-bg-light)` at 30% opacity. Inconsolata, 11px.
+
+Winner slot: border colour `--color-accent-amber`.
+Bye slot: lighter background, "BYE" text in muted.
+
+### Connector Lines
+
+SVG lines connecting slots between rounds. Each slot in round N connects to one slot in round N+1. Lines: `--color-bg-mid`, 1px stroke. Use an SVG overlay or CSS borders — whatever is cleanest in React.
+
+### Bracket Sizes
+- 2 entrants: 1 round (final only), 1 bout
+- 4 entrants: 2 rounds, 2 bouts → 1 bout
+- 8 entrants: 3 rounds, 4 → 2 → 1
+- 16 entrants: 4 rounds, 8 → 4 → 2 → 1
+
+When `entrants` is empty — all slots show "TBD" with "—" gym line. The bracket structure still shows with the correct number of rounds and slots.
+
+### On Event Full Page
+
+For tournament events: show `<Bracket rounds={derivedRounds} entrants={[]} />` with header "TOURNAMENT BRACKET" and subtext "Entry opens [X weeks before event] · Bracket drawn when entry closes."
+
+For club card events: replace bracket with single muted line "No bracket — fighters matched on the night."
 
 ---
 
 ### Definition Of Done
-- [ ] Event full page — image bleeds full width, stat row, sections with stamp labels
-- [ ] Event full page — Olympics section has gold left border treatment
-- [ ] Venue page — image bleeds full width, compact event lists
-- [ ] Sanctioning body page — rules as dense specification list, age category tabs
-- [ ] No card borders, no coloured section backgrounds
-- [ ] All links are hover-underline style, no button styling
-- [ ] Back buttons are text only, top left
-- [ ] `pnpm dev` — all three pages feel like a boxing programme, not a website
+- [ ] Top nav — back/forward arrows, page name, date, finances placeholder, Advance Week button
+- [ ] All per-page headers removed from Calendar, Event, Venue, Sanctioning Body pages
+- [ ] Calendar day cells — text-only event names in split sections, no pills
+- [ ] Event full page v2 — two-column header, stat row, correct section order
+- [ ] Venue page v2 — two-column header, small image, compact lists
+- [ ] Sanctioning body page v2 — no image, left border identity, rules as dense spec
+- [ ] Bracket component — correct slot layout, connector lines, scales by round count
+- [ ] Bracket shows on event full page for tournaments, text fallback for club cards
+- [ ] `pnpm dev` — pages feel like a specialist sim tool, not a web app
 - [ ] `pnpm typecheck` clean
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `polish: event, venue, sanctioning body pages`
+- [ ] Committed: `feat: top nav + calendar events + page v2 + bracket component`
 
 ### Notes
-- This is a visual task only — no new data, no new logic, no new routes
-- Read the frontend-design skill fully before touching any code
-- The aesthetic is worn boxing programme — ink on paper, dense but considered
-- If something looks like a modern web app card, it's wrong
-- Rock Bro is for display headings only — venue name, event name, body name
-- Inconsolata for everything else
-- Colour appears sparingly — badges and one accent per page only
+- Read frontend-design skill fully before touching any code
+- Images are texture, not heroes — 240px max width, float right, text dominates left
+- No card components with visible borders — sections separated by rules only
+- Rock Bro for page titles only — everything else Inconsolata
+- Advance Week button is skeleton only — no logic wired
+- Bracket connector lines can be SVG or CSS — choose whichever is cleaner
+- The sanctioning body page has no image — the left border gives it identity instead
+- If something looks like a Bootstrap card, it's wrong
