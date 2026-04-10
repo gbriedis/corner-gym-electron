@@ -4,7 +4,7 @@
 // IPC contract changes.
 
 import type { GameConfig, WorldState, Person, CalendarEvent, GameData } from '@corner-gym/engine'
-import type { SaveSummary, NewGameOptions, ProgressEvent } from '../electron'
+import type { SaveSummary, NewGameOptions, ProgressEvent, BackrunProgressEvent } from '../electron'
 
 export async function generateAndSave(config: GameConfig): Promise<string> {
   return window.electronAPI.generateAndSave(config)
@@ -28,6 +28,10 @@ export async function getNewGameOptions(): Promise<NewGameOptions> {
 
 export function onGenerationProgress(callback: (data: ProgressEvent) => void): () => void {
   return window.electronAPI.onGenerationProgress(callback)
+}
+
+export function onBackrunProgress(callback: (data: BackrunProgressEvent) => void): () => void {
+  return window.electronAPI.onBackrunProgress(callback)
 }
 
 export async function getUpcomingEvents(

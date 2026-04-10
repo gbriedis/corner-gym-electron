@@ -178,15 +178,21 @@ corner-gym/
     │       │   ├── bracket.ts         # generateBracket — empty TournamentBracket from entrant list + days structure
     │       │   ├── bracket.test.ts    # 14 tests — structure, byes, determinism, seeding, days alignment
     │       │   ├── fighter.ts         # generateFighter — complete Fighter from Person + gym assignment
-    │       │   └── fighter.test.ts    # 17 tests — fields, weight class, mental caps, ambitions, style, coachability, determinism
+    │       │   ├── fighter.test.ts    # 17 tests — fields, weight class, mental caps, ambitions, style, coachability, determinism
+    │       │   └── backrun.ts         # runBackrun — 520 weeks in memory; builds 10yr calendar; annual batch writes via onYearEnd
     │       └── engine/
-    │           ├── advanceWeek.ts     # Week tick entry point stub
-    │           ├── styleEngine.ts     # getMatchup + getEffectiveModifiers — lookup helpers for exchange simulation
-    │           ├── boutAssessment.ts  # assessBout — derives FighterBoutState + BoutConditions from input + data
-    │           ├── roundResolution.ts # resolveRound — per-round dominance, damage, knockdowns, stoppages, soul traits
-    │           ├── attributeEvents.ts # calculateAttributeEvents — gain/regression rules from attribute-accumulation.json
-    │           ├── resolveBout.ts     # resolveBout — orchestrates assessment + round loop + judge scoring + damage + events
-    │           └── resolveBout.test.ts # 14 tests — determinism, skill disparity, KO, headgear, 3KD, decisions, attr events, fragile, stamina
+    │           ├── advanceWeek.ts         # Full week tick — weeklyTick + identityTick + eventTick + year rollover
+    │           ├── advanceWeek.test.ts    # 15 tests — week/year advancement, decay, finances, inactivity, identity, events, backrun
+    │           ├── coachEntryDecision.ts  # coachShouldEnterFighter — registration, identity, inactivity, readiness, circuit checks
+    │           ├── weeklyTick.ts          # Equipment decay, gym finances, fighter inactivity regression, age advancement
+    │           ├── identityTick.ts        # Identity transitions: unaware→curious, curious→aspiring, competing→retired
+    │           ├── eventTick.ts           # Event resolution: club cards, regional/national tournaments
+    │           ├── styleEngine.ts         # getMatchup + getEffectiveModifiers — graceful fallback for unknown style pairings
+    │           ├── boutAssessment.ts      # assessBout — derives FighterBoutState + BoutConditions from input + data
+    │           ├── roundResolution.ts     # resolveRound — per-round dominance, damage, knockdowns, stoppages, soul traits
+    │           ├── attributeEvents.ts     # calculateAttributeEvents — gain/regression rules from attribute-accumulation.json
+    │           ├── resolveBout.ts         # resolveBout — orchestrates assessment + round loop + judge scoring + damage + events
+    │           └── resolveBout.test.ts    # 14 tests — determinism, skill disparity, KO, headgear, 3KD, decisions, attr events, fragile, stamina
     │
     ├── desktop/                       # Electron main process
     │   ├── package.json               # @corner-gym/desktop — depends on engine + better-sqlite3

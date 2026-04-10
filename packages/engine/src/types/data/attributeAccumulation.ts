@@ -75,6 +75,35 @@ export interface SoulTraitMultiplierEntry {
   note?: string
 }
 
+// Per-status regression rates — keyed by attribute category.
+// "technical" covers striking and defense categories, "mental" is mental, "physical_non_genetic" is physical.
+export interface InactivityCategoryRates {
+  technical: number
+  mental: number
+  physical_non_genetic: number
+}
+
+export interface InactivityRateEntry {
+  regressionStartsWeeks: number
+  ratePerWeek: InactivityCategoryRates
+}
+
+export interface PhysicalGeneticRegression {
+  // Age at which physical genetic attributes begin regressing.
+  // Development profile can shift this earlier or later.
+  baselineStartAge: number
+  // Per-attribute annual regression rate — keyed by attribute id.
+  ratePerYear: Record<string, number>
+  note?: string
+}
+
+export interface InactivityRegressionData {
+  amateur: InactivityRateEntry
+  pro: InactivityRateEntry
+  retired: InactivityRateEntry
+  physicalGeneticRegression: PhysicalGeneticRegression
+}
+
 export interface AttributeAccumulationData {
   startingValueFormula: StartingValueFormula
   // Keyed by event type: training_session, sparring, amateur_bout, pro_bout, title_fight, olympic_bout
@@ -105,4 +134,6 @@ export interface AttributeAccumulationData {
     olympic_bout: number
     note?: string
   }
+  // Regression rates for inactivity (no bouts) and physical genetic decay with age.
+  inactivityRegression: InactivityRegressionData
 }

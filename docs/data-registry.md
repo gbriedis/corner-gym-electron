@@ -23,6 +23,7 @@
 | [x] | `packages/engine/src/types/gym.ts` |
 | [x] | `packages/engine/src/types/coach.ts` |
 | [x] | `packages/engine/src/types/resolution.ts` |
+| [x] | `packages/engine/src/types/advanceWeek.ts` — AdvanceWeekState, AdvanceWeekResult, BackrunProgress |
 | [~] | `packages/engine/src/types/manager.ts` |
 | [~] | `packages/engine/src/types/clause.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
@@ -74,12 +75,17 @@
 ## Engine — Loop
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/src/engine/advanceWeek.ts` |
-| [x] | `packages/engine/src/engine/styleEngine.ts` |
+| [x] | `packages/engine/src/engine/advanceWeek.ts` |
+| [x] | `packages/engine/src/engine/coachEntryDecision.ts` |
+| [x] | `packages/engine/src/engine/weeklyTick.ts` |
+| [x] | `packages/engine/src/engine/identityTick.ts` |
+| [x] | `packages/engine/src/engine/eventTick.ts` |
+| [x] | `packages/engine/src/engine/styleEngine.ts` — graceful fallback for missing matchups |
 | [x] | `packages/engine/src/engine/boutAssessment.ts` |
 | [x] | `packages/engine/src/engine/roundResolution.ts` |
 | [x] | `packages/engine/src/engine/attributeEvents.ts` |
 | [x] | `packages/engine/src/engine/resolveBout.ts` |
+| [x] | `packages/engine/src/generation/backrun.ts` |
 | [ ] | `packages/engine/src/engine/world.ts` |
 | [ ] | `packages/engine/src/engine/gym.ts` |
 | [ ] | `packages/engine/src/engine/training.ts` |

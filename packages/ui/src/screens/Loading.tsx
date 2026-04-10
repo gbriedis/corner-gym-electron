@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, type JSX } from 'react'
 import { useGameStore } from '../store/gameStore'
-import { onGenerationProgress, loadSave, getGameData } from '../ipc/client'
-import type { ProgressEvent } from '../electron'
+import { onGenerationProgress, onBackrunProgress, loadSave, getGameData } from '../ipc/client'
+import type { ProgressEvent, BackrunProgressEvent } from '../electron'
 import ProgressBar from '../components/ProgressBar'
 
-// Steps in generation order — used to compute progress percentage.
-const STEPS = ['Preparing', 'Cities', 'Persons', 'Done']
+// World gen steps before backrun starts — progress is 0–50%.
+const GEN_STEPS = ['Loading game data', 'Generating population', 'Generating world', 'Saving to database']
 
-function stepToPercent(step: string): number {
-  const idx = STEPS.indexOf(step)
+function genStepToPercent(step: string): number {
+  const idx = GEN_STEPS.indexOf(step)
   if (idx === -1) return 5
-  return Math.round(((idx + 1) / STEPS.length) * 100)
+  // Gen steps cover 0–50%; backrun covers 50–100%
+  return Math.round(((idx + 1) / GEN_STEPS.length) * 50)
 }
 
 export default function Loading(): JSX.Element {
@@ -20,6 +21,7 @@ export default function Loading(): JSX.Element {
   const pendingSaveId = useGameStore((s) => s.pendingSaveId)
 
   const [latest, setLatest] = useState<ProgressEvent | null>(null)
+  const [backrun, setBackrun] = useState<BackrunProgressEvent | null>(null)
   const [startMs] = useState(() => Date.now())
   const [elapsed, setElapsed] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -27,6 +29,13 @@ export default function Loading(): JSX.Element {
   useEffect(() => {
     const unsubscribe = onGenerationProgress((event) => {
       setLatest(event)
+    })
+    return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    const unsubscribe = onBackrunProgress((event) => {
+      setBackrun(event)
     })
     return unsubscribe
   }, [])
@@ -56,7 +65,25 @@ export default function Loading(): JSX.Element {
       .catch(console.error)
   }, [pendingSaveId, latest, loadWorld, setScreen, setGameData])
 
-  const percent = latest !== null ? stepToPercent(latest.step) : 5
+  // Backrun progress covers 50–100%. Each year-end event updates the bar.
+  const isInBackrun = latest !== null && latest.step === 'Generating world history'
+  let percent: number
+  if (backrun !== null) {
+    percent = 50 + Math.round(backrun.percent / 2)
+  } else if (latest !== null) {
+    percent = genStepToPercent(latest.step)
+  } else {
+    percent = 5
+  }
+
+  const stepLabel = isInBackrun
+    ? 'Generating world history...'
+    : (latest !== null ? latest.step : 'Starting…')
+
+  const detailLabel = isInBackrun && backrun !== null
+    ? `Year ${backrun.year} · ${backrun.boutsSimulated} bouts simulated`
+    : (latest !== null ? latest.detail : '')
+
   const elapsedSec = (elapsed / 1000).toFixed(1)
 
   return (
@@ -81,7 +108,7 @@ export default function Loading(): JSX.Element {
             marginBottom: 'var(--space-1)',
           }}
         >
-          {latest !== null ? latest.step : 'Starting…'}
+          {stepLabel}
         </p>
 
         {/* Detail */}
@@ -94,7 +121,7 @@ export default function Loading(): JSX.Element {
             minHeight: '16px',
           }}
         >
-          {latest !== null ? latest.detail : ''}
+          {detailLabel}
         </p>
 
         <ProgressBar value={percent} showPercent />

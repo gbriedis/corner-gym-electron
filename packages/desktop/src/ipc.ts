@@ -11,8 +11,35 @@ import type { BrowserWindow } from 'electron'
 import type Database from 'better-sqlite3'
 import type { GameConfig } from '@corner-gym/engine'
 
-import { loadGameData, generateWorld } from '@corner-gym/engine'
-import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms, saveCoaches } from './db.js'
+import { loadGameData, generateWorld, runBackrun } from '@corner-gym/engine'
+import type { YearEndBatch } from '@corner-gym/engine'
+import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms, saveCoaches, updateFighter, updateGym, saveBoutResult } from './db.js'
+
+// batchWriteBackrun persists one year of accumulated simulation changes to SQLite.
+// Each batch contains only the records that changed during that year — we don't
+// rewrite the entire world, only the fighters and gyms that were touched.
+// Running inside a transaction ensures each year is all-or-nothing.
+function batchWriteBackrun(db: Database.Database, batch: YearEndBatch): void {
+  db.transaction(() => {
+    for (const boutResult of batch.pendingBoutResults) {
+      saveBoutResult(db, batch.saveId, boutResult)
+    }
+
+    for (const fighterId of batch.pendingFighterUpdates) {
+      const fighter = batch.fighters.get(fighterId)
+      if (fighter !== undefined) {
+        updateFighter(db, batch.saveId, fighter)
+      }
+    }
+
+    for (const gymId of batch.pendingGymUpdates) {
+      const gym = batch.gyms.get(gymId)
+      if (gym !== undefined) {
+        updateGym(db, batch.saveId, gym)
+      }
+    }
+  })()
+}
 
 // ESM does not have __dirname — derive it from import.meta.url.
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -94,19 +121,16 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
 
   // ipc: generate-and-save
   // Receives a fully resolved GameConfig from the UI. Loads game data, generates
-  // the world, persists it to SQLite, and returns the saveId. Progress events are
-  // emitted per city so the loading spinner shows live feedback.
+  // the world, runs a 10-year backrun to populate history, then persists the final
+  // state to SQLite. Progress events are emitted throughout so the loading screen
+  // stays alive with meaningful feedback.
   ipcMain.handle('generate-and-save', async (_event, config: GameConfig) => {
     const startMs = Date.now()
 
     emit('Loading game data', 'Initialising engine data…', startMs)
     const data = loadGameData()
 
-    // Emit one progress event per city so the loading screen feels alive.
-    // We patch the generation to emit after each city by splitting the call
-    // into per-city progress points before the full generateWorld call.
-    // generateWorld is called once with the full config — the city-level
-    // events are approximated from the nation bundles already in data.
+    // Per-city progress events so the loading spinner feels alive during world gen.
     for (const nationId of config.renderedNations) {
       const bundle = data.nations[nationId]
       if (bundle === undefined) continue
@@ -116,7 +140,7 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
     }
 
     emit('Generating world', 'Building gyms and world state…', startMs)
-    const { worldState, persons, gyms, coaches, calendar } = generateWorld(config, data)
+    const { worldState, persons, fighters, gyms, coaches, calendar } = generateWorld(config, data)
 
     emit('Saving to database', 'Writing save file…', startMs)
     const saveId = createSave(db, worldState, persons, config)
@@ -124,7 +148,36 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
     saveGyms(db, saveId, gyms)
     saveCoaches(db, saveId, coaches)
 
-    emit('Done', `Save created in ${Date.now() - startMs}ms`, startMs)
+    // Run the backrun — 520 weeks of history before the player arrives.
+    // Year-end batches write only changed records so we don't rewrite the full world each year.
+    // Progress events are forwarded to the renderer via backrun-progress IPC.
+    emit('Generating world history', 'Simulating 10 years of boxing history…', startMs)
+
+    await runBackrun(
+      worldState,
+      persons,
+      fighters,
+      gyms,
+      coaches,
+      calendar,
+      data,
+      config,
+      saveId,
+      (batch: YearEndBatch) => {
+        batchWriteBackrun(db, batch)
+      },
+      (progress) => {
+        const pct = Math.round(((progress.year - (config.startYear - 10)) / 10) * 100)
+        win.webContents.send('backrun-progress', { ...progress, percent: pct })
+        emit(
+          'Generating world history',
+          `Year ${progress.year} · ${progress.boutsSimulated} bouts simulated`,
+          startMs,
+        )
+      },
+    )
+
+    emit('Done', `World ready in ${Date.now() - startMs}ms`, startMs)
 
     return saveId
   })

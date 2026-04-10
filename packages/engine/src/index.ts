@@ -18,6 +18,9 @@ export type {
 
 // Fighter type and generation — exported for IPC typing and world pre-population
 export type { Fighter } from './types/fighter.js'
+
+// Resolution types — needed by desktop to type saveBoutResult
+export type { BoutResolutionResult } from './types/resolution.js'
 export { generateFighter } from './generation/fighter.js'
 export type { FighterGenerationOptions } from './generation/fighter.js'
 
@@ -48,6 +51,15 @@ export type {
   EventDay,
 } from './types/data/boxing.js'
 
-// advanceWeek — the single entry point the desktop calls each week tick.
-// Takes current world state, returns updated world state + surfaces for the inbox/popups.
+// advanceWeek — the single tick function used by both the backrun and live play.
+// isBackrun=true suppresses player-facing outputs (inbox, moments, popups).
 export { advanceWeek } from './engine/advanceWeek.js'
+
+// runBackrun — simulates 10 years of history before the player arrives.
+// Calls advanceWeek() 520 times in memory, writes to SQLite in annual batches
+// via the onYearEnd callback so the engine stays free of database dependencies.
+export { runBackrun } from './generation/backrun.js'
+export type { YearEndBatch } from './generation/backrun.js'
+
+// AdvanceWeek types — used by desktop to type the state and progress events.
+export type { AdvanceWeekState, AdvanceWeekResult, BackrunProgress } from './types/advanceWeek.js'

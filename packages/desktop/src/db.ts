@@ -14,6 +14,7 @@ import { app } from 'electron'
 import type { WorldState, Person, GameConfig, Gym, Coach } from '@corner-gym/engine'
 import type { CalendarEvent, EventStatus } from '@corner-gym/engine'
 import type { Bout, BoutResult, Card, TournamentBracket, MultiDayEvent } from '@corner-gym/engine'
+import type { Fighter, BoutResolutionResult } from '@corner-gym/engine'
 
 export interface SaveSummary {
   id: string
@@ -649,4 +650,52 @@ export function getCoachesByGym(db: Database.Database, saveId: string, gymId: st
     .prepare('SELECT data FROM coaches WHERE saveId = ? AND gymId = ?')
     .all(saveId, gymId) as Array<{ data: string }>
   return rows.map(r => JSON.parse(r.data) as Coach)
+}
+
+// updateFighter writes a changed Fighter back to the persons table.
+// Called at year-end during the backrun to persist only the fighters that
+// were modified — not the full roster on every write.
+// Fighter extends Person, so the same persons table stores both.
+export function updateFighter(db: Database.Database, saveId: string, fighter: Fighter): void {
+  db.prepare(`
+    UPDATE persons SET data = ?, age = ? WHERE id = ? AND saveId = ?
+  `).run(JSON.stringify(fighter), fighter.age, fighter.id, saveId)
+}
+
+// updateGym writes a changed Gym back to the gyms table.
+// Called at year-end during the backrun for gyms that had financial or
+// reputation changes during the year.
+export function updateGym(db: Database.Database, saveId: string, gym: Gym): void {
+  db.prepare(`
+    UPDATE gyms SET data = ? WHERE id = ? AND saveId = ?
+  `).run(JSON.stringify(gym), gym.id, saveId)
+}
+
+// saveBoutResult persists a BoutResolutionResult from the backrun.
+// Results are stored as JSON blobs in the bouts table so nothing is lost.
+// The bout row carries the minimal indexed columns needed for later querying.
+export function saveBoutResult(
+  db: Database.Database,
+  saveId: string,
+  result: BoutResolutionResult,
+): void {
+  db.prepare(`
+    INSERT OR REPLACE INTO bouts
+      (id, saveId, eventId, circuitLevel, weightClassId, ageCategoryId,
+       fighterAId, fighterBId, gymAId, gymBId, scheduledRounds, status, result)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    result.boutId,
+    saveId,
+    'backrun',         // eventId — backrun bouts have no specific event row
+    'club_card',       // circuitLevel placeholder — full data is in result JSON
+    'unknown',         // weightClassId — not tracked at resolution level
+    'senior',
+    result.winnerId ?? 'draw',
+    result.loserId ?? 'draw',
+    '', '',            // gymAId, gymBId — not required for backrun analytics
+    result.scheduledRounds,
+    'completed',
+    JSON.stringify(result),
+  )
 }

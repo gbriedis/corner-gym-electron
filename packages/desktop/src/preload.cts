@@ -40,4 +40,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getGameData: () =>
     ipcRenderer.invoke('get-game-data'),
+
+  // onBackrunProgress registers a listener for year-end progress events emitted
+  // during the 10-year backrun simulation. Returns an unsubscribe function.
+  onBackrunProgress: (callback: (data: unknown) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, data: unknown): void => {
+      callback(data)
+    }
+    ipcRenderer.on('backrun-progress', listener)
+    return (): void => {
+      ipcRenderer.removeListener('backrun-progress', listener)
+    }
+  },
 })

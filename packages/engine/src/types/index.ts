@@ -17,6 +17,12 @@ export type {
   RulesData,
 } from './competition.js'
 
+export type {
+  AdvanceWeekState,
+  AdvanceWeekResult,
+  BackrunProgress,
+} from './advanceWeek.js'
+
 export type { Gym } from './gym.js'
 export type { CoachStyle, CoachFighterRelationship, Coach } from './coach.js'
 export type { Manager } from './manager.js'

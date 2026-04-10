@@ -45,7 +45,12 @@ export function getMatchup(
   )
 
   if (matchup === undefined) {
-    throw new Error(`No matchup defined for styles "${styleA}" vs "${styleB}"`)
+    // No specific matchup for this style pairing — fall back to the generic mirror match.
+    // This handles style combinations that exist in practice but were not explicitly tuned.
+    // mirror_match_generic produces a neutral fight with no style-based advantage.
+    const fallback = data.styleMatchups.matchups.find(m => m.id === 'mirror_match_generic')
+    if (fallback === undefined) throw new Error('Missing required matchup: mirror_match_generic')
+    return fallback
   }
 
   return matchup

@@ -66,6 +66,14 @@ export interface ProgressEvent {
   elapsedMs: number
 }
 
+export interface BackrunProgressEvent {
+  year: number
+  boutsSimulated: number
+  identityTransitions: number
+  message: string
+  percent: number
+}
+
 declare global {
   interface Window {
     electronAPI: {
@@ -75,6 +83,7 @@ declare global {
       listSaves(): Promise<SaveSummary[]>
       deleteSave(saveId: string): Promise<void>
       onGenerationProgress(callback: (data: ProgressEvent) => void): () => void
+      onBackrunProgress(callback: (data: BackrunProgressEvent) => void): () => void
       getUpcomingEvents(saveId: string, currentWeek: number, currentYear: number): Promise<CalendarEvent[]>
       getAllEvents(saveId: string): Promise<CalendarEvent[]>
       getGameData(): Promise<GameData>
