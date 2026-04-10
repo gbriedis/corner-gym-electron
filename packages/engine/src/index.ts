@@ -16,6 +16,11 @@ export type {
   RulesData, AgeCategory, CircuitRules, ScoringSystem,
 } from './types/competition.js'
 
+// Fighter type and generation — exported for IPC typing and world pre-population
+export type { Fighter } from './types/fighter.js'
+export { generateFighter } from './generation/fighter.js'
+export type { FighterGenerationOptions } from './generation/fighter.js'
+
 // Generation — exported so desktop can call generateWorld via IPC
 export { generateWorld } from './generation/world.js'
 

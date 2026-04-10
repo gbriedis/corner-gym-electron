@@ -21,3 +21,29 @@ export type { Gym } from './gym.js'
 export type { CoachStyle, Coach } from './coach.js'
 export type { Manager } from './manager.js'
 export type { Clause } from './clause.js'
+
+export type {
+  FighterIdentityState,
+  RetirementReason,
+  CompetitionStatus,
+  StyleTendency,
+  AmbitionLevel,
+  StagnationState,
+  FighterIdentity,
+  BoxingBackground,
+  DevelopedAttribute,
+  AttributeHistoryEvent,
+  AttributeHistory,
+  FighterStyle,
+  AmateurTitle,
+  Medal,
+  AmateurRanking,
+  ProTitle,
+  ProRanking,
+  AmateurCareer,
+  ProCareer,
+  FighterAmbitions,
+  FighterCareerState,
+  PlayerKnowledge,
+  Fighter,
+} from './fighter.js'

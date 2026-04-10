@@ -99,12 +99,12 @@ corner-gym/
     │   │           ├── pro-title-belts.json         # 144 belts — all tiers × all bodies × 9 pro weight classes
     │   │           └── pro-rankings-structure.json  # Ranking rules, decay, mandatory defence, acquisition tiers
     │   └── src/
-    │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + advanceWeek
+    │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + generateFighter + advanceWeek
     │       ├── types/
     │       │   ├── competition.ts     # Bout, Card, TournamentBracket, MultiDayEvent, RulesData — structural containers, no simulation logic
-    │       │   ├── index.ts           # Barrel — re-exports all competition types
+    │       │   ├── index.ts           # Barrel — re-exports all types including fighter sub-interfaces
     │       │   ├── person.ts          # Person, PhysicalProfile, AttributeValue, HealthValue, GiftFlawAssignment
-    │       │   ├── fighter.ts         # Fighter stub
+    │       │   ├── fighter.ts         # Fighter + all sub-interfaces — extends Person, 9 layers
     │       │   ├── gym.ts             # Gym stub — id, name, cityId, nationId, isPlayerGym
     │       │   ├── coach.ts           # Coach stub — CoachStyle + Coach; quality 1-20
     │       │   ├── manager.ts         # Manager stub — id, name, reputation, nationality
@@ -135,7 +135,7 @@ corner-gym/
     │       │       ├── rewards.ts     # RewardsData — per circuit level reward definitions
     │       │       └── boxing.ts      # All boxing data types — sanctioning bodies, circuits, templates, venues
     │       ├── data/
-    │       │   └── loader.ts          # loadGameData() — GameData + NationBoxingData + InternationalData
+    │       │   └── loader.ts          # loadGameData() — GameData + NationBoxingData + InternationalData + attributeAccumulation
     │       ├── utils/
     │       │   └── rng.ts             # Seeded deterministic RNG (mulberry32)
     │       ├── generation/
@@ -146,7 +146,9 @@ corner-gym/
     │       │   ├── calendar.ts        # generateCalendar — CalendarEvent[] from templates + world state
     │       │   ├── calendar.test.ts   # 12 tests — November constraint, Olympic gating, collision, determinism
     │       │   ├── bracket.ts         # generateBracket — empty TournamentBracket from entrant list + days structure
-    │       │   └── bracket.test.ts    # 14 tests — structure, byes, determinism, seeding, days alignment
+    │       │   ├── bracket.test.ts    # 14 tests — structure, byes, determinism, seeding, days alignment
+    │       │   ├── fighter.ts         # generateFighter — complete Fighter from Person + gym assignment
+    │       │   └── fighter.test.ts    # 17 tests — fields, weight class, mental caps, ambitions, style, coachability, determinism
     │       └── engine/
     │           └── advanceWeek.ts     # Week tick entry point stub
     │

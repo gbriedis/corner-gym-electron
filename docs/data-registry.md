@@ -19,7 +19,7 @@
 | [x] | `packages/engine/src/types/calendar.ts` |
 | [x] | `packages/engine/src/types/competition.ts` |
 | [x] | `packages/engine/src/types/index.ts` |
-| [ ] | `packages/engine/src/types/fighter.ts` |
+| [x] | `packages/engine/src/types/fighter.ts` |
 | [~] | `packages/engine/src/types/gym.ts` |
 | [~] | `packages/engine/src/types/coach.ts` |
 | [~] | `packages/engine/src/types/manager.ts` |
@@ -48,6 +48,7 @@
 | [x] | `packages/engine/src/types/data/coachVoice.ts` |
 | [x] | `packages/engine/src/types/data/developmentProfiles.ts` |
 | [x] | `packages/engine/src/types/data/rewards.ts` |
+| [x] | `packages/engine/src/types/data/attributeAccumulation.ts` |
 
 ## Engine — Utilities
 | State | File |
@@ -62,6 +63,7 @@
 | [x] | `packages/engine/src/generation/world.ts` |
 | [x] | `packages/engine/src/generation/calendar.ts` |
 | [x] | `packages/engine/src/generation/bracket.ts` |
+| [x] | `packages/engine/src/generation/fighter.ts` |
 
 ## Engine — Loop
 | State | File |

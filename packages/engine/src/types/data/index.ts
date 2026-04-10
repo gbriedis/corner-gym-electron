@@ -57,6 +57,13 @@ export type {
 } from './rewards.js'
 
 export type {
+  MentalAttributeStartingCap,
+  BackgroundModifiers,
+  StartingValueFormula,
+  AttributeAccumulationData,
+} from './attributeAccumulation.js'
+
+export type {
   CircuitLevel,
   EventFormat,
   EventDay,
