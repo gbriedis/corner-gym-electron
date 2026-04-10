@@ -172,9 +172,11 @@ function generateEventName(
 ): string {
   const level = template.circuitLevel
 
-  // Fixed-name international events — always unique per year.
+  // Fixed-name events — always unique per year.
   if (level === 'national_championship') {
-    const name = `${year} Latvian National Championships`
+    // Use the nation's label from data so naming works for any nation, not just Latvia.
+    const nationLabel = data.nations[nationId]?.nation.label ?? nationId
+    const name = `${year} ${nationLabel} National Championships`
     usedNames.add(name)
     return name
   }
@@ -559,7 +561,7 @@ function generateDomesticEvents(
 function generateInternationalEvents(
   data: GameData,
   allWeightClasses: WeightClass[],
-  config: GameConfig,
+  _config: GameConfig,
   yearsToGenerate: number[],
   venueMap: Map<string, Venue>,
   occupiedMajorWeeks: Set<string>,
@@ -607,8 +609,10 @@ function generateInternationalEvents(
       const weekKey = `${year}-${week}`
 
       // International events use venue.city and venue.country as direct display values.
-      // No mapping to game city ids — international venues are not part of the city graph.
-      const nationId = config.renderedNations[0] ?? 'international'
+      // nationId is 'international' — these events are not owned by any specific nation.
+      // The event tick and calendar UI both filter on nationId; tagging these to the
+      // first rendered nation would wrongly hide them from players of other nations.
+      const nationId = 'international'
 
       if (MAJOR_LEVELS.has(circuitLevel) && occupiedMajorWeeks.has(weekKey)) {
         // Try adjacent weeks to avoid collision before giving up.

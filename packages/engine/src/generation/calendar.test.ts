@@ -216,13 +216,14 @@ describe('generateCalendar — event names', () => {
     }
   })
 
-  it('national championship uses fixed name format', () => {
+  it('national championship uses nation label in name format', () => {
     const ws = makeWorldState()
     const rng = createRng(42)
     const events = generateCalendar(2026, 1, baseConfig, data, rng, ws)
     const nationals = events.filter(e => e.circuitLevel === 'national_championship')
     for (const e of nationals) {
-      expect(e.name).toBe(`${e.year} Latvian National Championships`)
+      // Name uses nation.label ("Latvia") not a hardcoded demonym — works for any nation.
+      expect(e.name).toBe(`${e.year} Latvia National Championships`)
     }
   })
 

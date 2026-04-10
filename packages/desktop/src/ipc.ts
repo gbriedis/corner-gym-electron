@@ -220,18 +220,26 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
   })
 
   // ipc: get-upcoming-events
-  // Returns calendar events for the next 52 weeks from the current position.
-  // Used by the Calendar screen to show a full-year forward view.
+  // Returns calendar events for the next 52 weeks, filtered to player nation + international.
   ipcMain.handle('get-upcoming-events', (_event, saveId: string, currentWeek: number, currentYear: number) => {
-    return getUpcomingEvents(db, saveId, currentWeek, currentYear, 52)
+    const saveRow = db
+      .prepare('SELECT nationId FROM saves WHERE id = ?')
+      .get(saveId) as { nationId: string } | undefined
+    const playerNationId = saveRow?.nationId ?? null
+    return getUpcomingEvents(db, saveId, currentWeek, currentYear, 52, playerNationId)
   })
 
   // ipc: get-all-events
-  // Returns every calendar event for a save ordered by year then week.
-  // Used by the Calendar month grid which needs the full generated window
-  // (start year + next year) without a recency filter.
+  // Returns calendar events for the player's nation + international events.
+  // A Latvia player never sees USA club shows — they are a different nation's local calendar.
+  // International events (nationId = 'international') are always included because
+  // players from any nation can aspire to compete at the Baltic/European/World level.
   ipcMain.handle('get-all-events', (_event, saveId: string) => {
-    return loadCalendar(db, saveId)
+    const saveRow = db
+      .prepare('SELECT nationId FROM saves WHERE id = ?')
+      .get(saveId) as { nationId: string } | undefined
+    const playerNationId = saveRow?.nationId ?? null
+    return loadCalendar(db, saveId, playerNationId)
   })
 
   // ipc: get-game-data

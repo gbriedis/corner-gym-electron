@@ -331,10 +331,15 @@ export function saveCalendar(
   })()
 }
 
-// loadCalendar returns all calendar events for a save ordered by year then week.
+// loadCalendar returns calendar events for a save ordered by year then week.
+// playerNationId filters to events relevant to the player:
+//   - events belonging to the player's nation
+//   - international events (nationId = 'international')
+// When null, all events are returned (used internally by the backrun event tick).
 export function loadCalendar(
   db: Database.Database,
   saveId: string,
+  playerNationId: string | null = null,
 ): CalendarEvent[] {
   type Row = {
     id: string; templateId: string; circuitLevel: string; name: string; label: string
@@ -343,9 +348,13 @@ export function loadCalendar(
     year: number; week: number
     weightClasses: string; status: string; boutIds: string
   }
-  const rows = db
-    .prepare('SELECT * FROM calendar_events WHERE saveId = ? ORDER BY year, week')
-    .all(saveId) as Row[]
+  const rows = playerNationId !== null
+    ? db
+        .prepare(`SELECT * FROM calendar_events WHERE saveId = ? AND (nationId = ? OR nationId = 'international') ORDER BY year, week`)
+        .all(saveId, playerNationId) as Row[]
+    : db
+        .prepare('SELECT * FROM calendar_events WHERE saveId = ? ORDER BY year, week')
+        .all(saveId) as Row[]
 
   return rows.map(r => {
     const event: CalendarEvent = {
@@ -372,7 +381,8 @@ export function loadCalendar(
   })
 }
 
-// getUpcomingEvents returns calendar events within weeksAhead of the current position.
+// getUpcomingEvents returns calendar events within weeksAhead of the current position,
+// filtered to the player's nation and international events.
 // Used by the Calendar screen to show a forward-looking event list.
 export function getUpcomingEvents(
   db: Database.Database,
@@ -380,6 +390,7 @@ export function getUpcomingEvents(
   currentWeek: number,
   currentYear: number,
   weeksAhead: number,
+  playerNationId: string | null = null,
 ): CalendarEvent[] {
   // Convert week position to a comparable integer (year * 100 + week).
   // This allows a simple numeric comparison across year boundaries without
@@ -397,12 +408,20 @@ export function getUpcomingEvents(
     weightClasses: string; status: string; boutIds: string
   }
 
-  const rows = db.prepare(`
-    SELECT * FROM calendar_events
-    WHERE saveId = ?
-      AND ((year = ? AND week >= ?) OR (year > ? AND year < ?) OR (year = ? AND week <= ?))
-    ORDER BY year, week
-  `).all(saveId, currentYear, currentWeek, currentYear, endYear, endYear, endWeek) as Row[]
+  const rows = playerNationId !== null
+    ? db.prepare(`
+        SELECT * FROM calendar_events
+        WHERE saveId = ?
+          AND ((year = ? AND week >= ?) OR (year > ? AND year < ?) OR (year = ? AND week <= ?))
+          AND (nationId = ? OR nationId = 'international')
+        ORDER BY year, week
+      `).all(saveId, currentYear, currentWeek, currentYear, endYear, endYear, endWeek, playerNationId) as Row[]
+    : db.prepare(`
+        SELECT * FROM calendar_events
+        WHERE saveId = ?
+          AND ((year = ? AND week >= ?) OR (year > ? AND year < ?) OR (year = ? AND week <= ?))
+        ORDER BY year, week
+      `).all(saveId, currentYear, currentWeek, currentYear, endYear, endYear, endWeek) as Row[]
 
   return rows.map(r => {
     const event: CalendarEvent = {
