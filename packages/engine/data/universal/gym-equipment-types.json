@@ -1,0 +1,184 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "All equipment types the engine knows about. Used when generating starting equipment, processing orders, and calculating condition decay. Condition is 0-100, decays weekly based on usage, reaches 0 if not maintained — maintenance events restore condition. squareMetersRequired of 0 means portable — stored in any zone. The ring's 36sqm requirement means adding a ring to a small gym significantly reduces training capacity."
+  },
+
+  "equipment": [
+    {
+      "id": "boxing_ring",
+      "label": "Boxing Ring",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 36,
+      "conditionDecayPerWeek": 0.3,
+      "maintenanceCostMonthly": 80,
+      "purchaseCost": 3000,
+      "description": "Full competition-spec boxing ring. Essential for ring craft development — without a ring, fighters cannot develop proper ring generalship or footwork.",
+      "trainingBenefit": {
+        "ring_generalship": "essential",
+        "footwork": "essential"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "heavy_bag",
+      "label": "Heavy Bag",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 2,
+      "conditionDecayPerWeek": 0.8,
+      "maintenanceCostMonthly": 5,
+      "purchaseCost": 150,
+      "description": "Standard hanging heavy bag. Workhorse of the gym — develops punching output and combination work.",
+      "trainingBenefit": {
+        "combination_fluency": "significant",
+        "output_volume": "significant"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "speed_bag",
+      "label": "Speed Bag",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 1,
+      "conditionDecayPerWeek": 0.5,
+      "maintenanceCostMonthly": 3,
+      "purchaseCost": 80,
+      "description": "Wall-mounted speed bag platform. Develops hand speed and rhythm.",
+      "trainingBenefit": {
+        "hand_speed": "significant"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "double_end_bag",
+      "label": "Double End Bag",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 2,
+      "conditionDecayPerWeek": 0.6,
+      "maintenanceCostMonthly": 4,
+      "purchaseCost": 100,
+      "description": "Floor-to-ceiling bag on elastic cord. Demands precise timing and accuracy.",
+      "trainingBenefit": {
+        "punch_accuracy": "significant"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "maize_bag",
+      "label": "Maize Bag",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 2,
+      "conditionDecayPerWeek": 0.4,
+      "maintenanceCostMonthly": 4,
+      "purchaseCost": 120,
+      "description": "Teardrop-shaped bag that swings unpredictably. Trains head movement and defensive positioning.",
+      "trainingBenefit": {
+        "defensive_skill": "significant"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "focus_mitts",
+      "label": "Focus Mitts",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 0,
+      "conditionDecayPerWeek": 0.4,
+      "maintenanceCostMonthly": 0,
+      "purchaseCost": 40,
+      "description": "Held pads requiring a coach or training partner. Best tool for technique and punch selection — the coach sees everything and corrects in real time.",
+      "trainingBenefit": {
+        "technique": "significant",
+        "punch_selection": "significant"
+      },
+      "requiresCoach": true
+    },
+    {
+      "id": "body_shield",
+      "label": "Body Shield",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 0,
+      "conditionDecayPerWeek": 0.3,
+      "maintenanceCostMonthly": 0,
+      "purchaseCost": 50,
+      "description": "Large pad worn by the coach or partner. Develops body punching power and targeting.",
+      "trainingBenefit": {
+        "body_punch_effectiveness": "significant"
+      },
+      "requiresCoach": true
+    },
+    {
+      "id": "skipping_ropes",
+      "label": "Skipping Ropes",
+      "zone": "trainingFloor",
+      "squareMetersRequired": 0,
+      "conditionDecayPerWeek": 1.2,
+      "maintenanceCostMonthly": 0,
+      "purchaseCost": 8,
+      "description": "Portable conditioning tool. Wears fast and costs almost nothing — buy in bulk. Builds stamina and footwork rhythm.",
+      "trainingBenefit": {
+        "stamina": "moderate",
+        "footwork": "moderate"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "dumbbells_set",
+      "label": "Dumbbells Set",
+      "zone": "strengthRoom",
+      "squareMetersRequired": 4,
+      "conditionDecayPerWeek": 0.1,
+      "maintenanceCostMonthly": 5,
+      "purchaseCost": 300,
+      "description": "Full set of dumbbells. Foundational strength equipment — develops power and structural durability.",
+      "trainingBenefit": {
+        "power": "moderate",
+        "durability": "moderate"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "bench_press",
+      "label": "Bench Press",
+      "zone": "strengthRoom",
+      "squareMetersRequired": 6,
+      "conditionDecayPerWeek": 0.1,
+      "maintenanceCostMonthly": 8,
+      "purchaseCost": 400,
+      "description": "Barbell bench press station. Significant upper body power builder.",
+      "trainingBenefit": {
+        "power": "significant"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "pull_up_bar",
+      "label": "Pull-Up Bar",
+      "zone": "strengthRoom",
+      "squareMetersRequired": 1,
+      "conditionDecayPerWeek": 0.05,
+      "maintenanceCostMonthly": 1,
+      "purchaseCost": 60,
+      "description": "Wall-mounted pull-up station. Builds back and core strength, improving recovery and structural toughness.",
+      "trainingBenefit": {
+        "recovery_rate": "moderate",
+        "durability": "moderate"
+      },
+      "requiresCoach": false
+    },
+    {
+      "id": "squat_rack",
+      "label": "Squat Rack",
+      "zone": "strengthRoom",
+      "squareMetersRequired": 8,
+      "conditionDecayPerWeek": 0.1,
+      "maintenanceCostMonthly": 10,
+      "purchaseCost": 600,
+      "description": "Full squat rack with safety bars. Builds leg strength — transfers to footwork and stamina in a way no other equipment does.",
+      "trainingBenefit": {
+        "footwork": "moderate",
+        "stamina": "moderate"
+      },
+      "requiresCoach": false
+    }
+  ]
+}

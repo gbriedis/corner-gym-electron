@@ -67,7 +67,8 @@ corner-gym/
     │   │   │   ├── promoters.json             # 4 named world promoters, 2 templates, 2 generic voice pools
     │   │   │   ├── pro-fight-offer.json       # Offer structure definition — required fields, card positions, clause types
     │   │   │   ├── attribute-accumulation.json # Gain/regression rules for all attributes — every attribute change flows through this
-    │   │   │   └── coach-styles.json          # Coach style dimensions — emphasis, methodology, communication types
+    │   │   │   ├── coach-styles.json          # Coach style dimensions — emphasis, methodology, communication types
+    │   │   │   └── gym-equipment-types.json   # 12 equipment types — zone, decay, cost, training benefit
     │   │   ├── nations/
     │   │   │   └── latvia/
     │   │   │       ├── nation.json
@@ -75,6 +76,7 @@ corner-gym/
     │   │   │       ├── names.json
     │   │   │       ├── economic-statuses.json
     │   │   │       ├── reasons-for-boxing.json
+    │   │   │       ├── gym-starting-states.json  # 4 templates + city distribution for gym generation
     │   │   │       ├── coach-voice/
     │   │   │       │   ├── attributes.json
     │   │   │       │   ├── physical-stats.json
@@ -105,7 +107,7 @@ corner-gym/
     │       │   ├── index.ts           # Barrel — re-exports all types including fighter sub-interfaces
     │       │   ├── person.ts          # Person, PhysicalProfile, AttributeValue, HealthValue, GiftFlawAssignment
     │       │   ├── fighter.ts         # Fighter + all sub-interfaces — extends Person, 9 layers
-    │       │   ├── gym.ts             # Gym stub — id, name, cityId, nationId, isPlayerGym
+    │       │   ├── gym.ts             # Full Gym type — zones, equipment, staff, finances, quality, culture, reputation
     │       │   ├── coach.ts           # Coach stub — CoachStyle + Coach; quality 1-20
     │       │   ├── manager.ts         # Manager stub — id, name, reputation, nationality
     │       │   ├── clause.ts          # Clause stub — type, details, expiresYear, expiresWeek
@@ -118,6 +120,7 @@ corner-gym/
     │       │   ├── gameConfig.ts      # GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings
     │       │   └── data/              # TypeScript interfaces for every data file
     │       │       ├── index.ts       # Barrel — re-exports everything
+    │       │       ├── gym.ts         # GymStartingStatesData, GymEquipmentTypesData + sub-types
     │       │       ├── meta.ts
     │       │       ├── soulTraits.ts
     │       │       ├── attributes.ts

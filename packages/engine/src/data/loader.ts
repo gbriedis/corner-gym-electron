@@ -40,6 +40,8 @@ import type {
   InternationalCircuitsData,
   RewardsData,
   AttributeAccumulationData,
+  GymStartingStatesData,
+  GymEquipmentTypesData,
 } from '../types/data/index.js'
 import type { RulesData } from '../types/competition.js'
 
@@ -87,6 +89,7 @@ export interface NationBundle {
     physicalStats: CoachVoicePhysicalData
     giftsAndFlaws: CoachVoiceGiftsFlawsData
   }
+  gymStartingStates: GymStartingStatesData
   // boxing is undefined when the nation has no boxing/ folder — not an error.
   boxing?: NationBoxingData
 }
@@ -174,6 +177,7 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
       physicalStats: loadFile<CoachVoicePhysicalData>('coach-voice/physical-stats.json'),
       giftsAndFlaws: loadFile<CoachVoiceGiftsFlawsData>('coach-voice/gifts-and-flaws.json'),
     },
+    gymStartingStates: loadFile<GymStartingStatesData>('gym-starting-states.json'),
   }
 
   // Conditionally assign so exactOptionalPropertyTypes is satisfied —
@@ -214,6 +218,7 @@ export interface GameData {
   developmentProfiles: DevelopmentProfilesData
   rewards: RewardsData
   attributeAccumulation: AttributeAccumulationData
+  gymEquipmentTypes: GymEquipmentTypesData
   nations: Record<string, NationBundle>
   international: InternationalData
 }
@@ -231,6 +236,7 @@ export function loadGameData(): GameData {
     developmentProfiles: load<DevelopmentProfilesData>('universal/development-profiles.json'),
     rewards: load<RewardsData>('universal/rewards.json'),
     attributeAccumulation: load<AttributeAccumulationData>('universal/attribute-accumulation.json'),
+    gymEquipmentTypes: load<GymEquipmentTypesData>('universal/gym-equipment-types.json'),
     nations: loadNationsFromDir(join(DATA_ROOT, 'nations')),
     international: {
       boxing: {

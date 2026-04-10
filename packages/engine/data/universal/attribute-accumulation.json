@@ -199,6 +199,12 @@
         { "qualityScore": [81, 100],"multiplier": 1.15, "label": "Elite — best equipment, optimal environment" }
       ],
       "note": "Gym quality score is calculated from equipment condition, available facilities, and maintenance state. A gym with no ring caps ring_generalship and footwork gains at 0.5× regardless of this multiplier."
+    },
+
+    "ringAbsenceCapRule": {
+      "affectedAttributes": ["ring_generalship", "footwork", "lateral_movement"],
+      "capMultiplier": 0.5,
+      "note": "If hasRing is false, gains on ring_generalship, footwork, and lateral_movement are capped at 50% of what they would otherwise be. A fighter cannot develop proper ring craft without actually working in a ring."
     }
   },
 

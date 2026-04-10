@@ -64,6 +64,13 @@ export type {
 } from './attributeAccumulation.js'
 
 export type {
+  GymStartingTemplate,
+  GymStartingStatesData,
+  GymEquipmentTypeDefinition,
+  GymEquipmentTypesData,
+} from './gym.js'
+
+export type {
   CircuitLevel,
   EventFormat,
   EventDay,

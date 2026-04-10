@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Starting state templates for gyms generated during world creation. Templates define the physical and financial starting point — not the roster, which is populated separately from the city population during world generation. Player gym always uses rundown_community. Rival gyms draw from cityDistribution based on city population type."
+  },
+
+  "templates": [
+    {
+      "id": "rundown_community",
+      "label": "Rundown Community Gym",
+      "forPlayerGym": true,
+      "squareMeters": { "min": 120, "max": 180 },
+      "zones": {
+        "trainingFloor": { "exists": true,  "condition": { "min": 20, "max": 50 } },
+        "strengthRoom":  { "exists": false, "condition": { "min": 0,  "max": 0  } },
+        "changingRooms": { "exists": true,  "condition": { "min": 15, "max": 40 } },
+        "reception":     { "exists": false, "condition": { "min": 0,  "max": 0  } },
+        "storage":       { "exists": true,  "condition": { "min": 20, "max": 50 } }
+      },
+      "startingEquipment": [
+        { "typeId": "heavy_bag",     "count": { "min": 2, "max": 4 }, "condition": { "min": 15, "max": 45 } },
+        { "typeId": "speed_bag",     "count": { "min": 1, "max": 2 }, "condition": { "min": 15, "max": 40 } },
+        { "typeId": "skipping_ropes","count": { "min": 3, "max": 6 }, "condition": { "min": 10, "max": 45 } },
+        { "typeId": "focus_mitts",   "count": { "min": 1, "max": 2 }, "condition": { "min": 15, "max": 45 } }
+      ],
+      "finances": {
+        "monthlyRent":        { "min": 200,   "max": 400   },
+        "startingBalance":    { "min": -500,  "max": 1000  },
+        "membershipFeeMonthly": { "min": 15,  "max": 30    }
+      },
+      "lockerCount": { "min": 10, "max": 25 },
+      "reputation": {
+        "local":         { "min": 5,  "max": 20 },
+        "regional":      0,
+        "national":      0,
+        "international": 0
+      }
+    },
+
+    {
+      "id": "established_community",
+      "label": "Established Community Gym",
+      "forPlayerGym": false,
+      "squareMeters": { "min": 200, "max": 350 },
+      "zones": {
+        "trainingFloor": { "exists": true,  "condition": { "min": 40, "max": 70 } },
+        "strengthRoom":  { "exists": true,  "condition": { "min": 35, "max": 65 } },
+        "changingRooms": { "exists": true,  "condition": { "min": 40, "max": 70 } },
+        "reception":     { "exists": true,  "condition": { "min": 35, "max": 65 } },
+        "storage":       { "exists": true,  "condition": { "min": 40, "max": 70 } }
+      },
+      "startingEquipment": [
+        { "typeId": "boxing_ring",   "count": 1,                      "condition": { "min": 40, "max": 70 } },
+        { "typeId": "heavy_bag",     "count": { "min": 3, "max": 6 }, "condition": { "min": 40, "max": 70 } },
+        { "typeId": "speed_bag",     "count": { "min": 1, "max": 3 }, "condition": { "min": 40, "max": 70 } },
+        { "typeId": "double_end_bag","count": { "min": 1, "max": 2 }, "condition": { "min": 35, "max": 65 } },
+        { "typeId": "focus_mitts",   "count": { "min": 2, "max": 4 }, "condition": { "min": 40, "max": 70 } },
+        { "typeId": "skipping_ropes","count": { "min": 5, "max": 10 },"condition": { "min": 35, "max": 65 } },
+        { "typeId": "dumbbells_set", "count": 1,                      "condition": { "min": 40, "max": 70 } }
+      ],
+      "finances": {
+        "monthlyRent":        { "min": 400,  "max": 700  },
+        "startingBalance":    { "min": 500,  "max": 3000 },
+        "membershipFeeMonthly": { "min": 25, "max": 45   }
+      },
+      "lockerCount": { "min": 25, "max": 60 },
+      "reputation": {
+        "local":         { "min": 25, "max": 55 },
+        "regional":      0,
+        "national":      0,
+        "international": 0
+      }
+    },
+
+    {
+      "id": "competition_gym",
+      "label": "Competition Gym",
+      "forPlayerGym": false,
+      "squareMeters": { "min": 350, "max": 600 },
+      "zones": {
+        "trainingFloor": { "exists": true,  "condition": { "min": 60, "max": 85 } },
+        "strengthRoom":  { "exists": true,  "condition": { "min": 55, "max": 80 } },
+        "changingRooms": { "exists": true,  "condition": { "min": 60, "max": 85 } },
+        "reception":     { "exists": true,  "condition": { "min": 55, "max": 80 } },
+        "storage":       { "exists": true,  "condition": { "min": 60, "max": 85 } }
+      },
+      "startingEquipment": [
+        { "typeId": "boxing_ring",   "count": 1,                       "condition": { "min": 60, "max": 85 } },
+        { "typeId": "heavy_bag",     "count": { "min": 5, "max": 10 }, "condition": { "min": 60, "max": 85 } },
+        { "typeId": "speed_bag",     "count": { "min": 2, "max": 4 },  "condition": { "min": 60, "max": 85 } },
+        { "typeId": "double_end_bag","count": { "min": 2, "max": 3 },  "condition": { "min": 55, "max": 80 } },
+        { "typeId": "maize_bag",     "count": { "min": 1, "max": 2 },  "condition": { "min": 55, "max": 80 } },
+        { "typeId": "focus_mitts",   "count": { "min": 3, "max": 6 },  "condition": { "min": 60, "max": 85 } },
+        { "typeId": "body_shield",   "count": { "min": 2, "max": 4 },  "condition": { "min": 55, "max": 80 } },
+        { "typeId": "skipping_ropes","count": { "min": 8, "max": 15 }, "condition": { "min": 55, "max": 80 } },
+        { "typeId": "dumbbells_set", "count": 1,                       "condition": { "min": 60, "max": 85 } },
+        { "typeId": "bench_press",   "count": { "min": 1, "max": 2 },  "condition": { "min": 55, "max": 80 } },
+        { "typeId": "pull_up_bar",   "count": { "min": 1, "max": 2 },  "condition": { "min": 60, "max": 85 } }
+      ],
+      "finances": {
+        "monthlyRent":        { "min": 700,  "max": 1400 },
+        "startingBalance":    { "min": 2000, "max": 8000 },
+        "membershipFeeMonthly": { "min": 40, "max": 70   }
+      },
+      "lockerCount": { "min": 60, "max": 120 },
+      "reputation": {
+        "local":         { "min": 60, "max": 80 },
+        "regional":      { "min": 10, "max": 45 },
+        "national":      0,
+        "international": 0
+      }
+    },
+
+    {
+      "id": "elite_gym",
+      "label": "Elite Gym",
+      "forPlayerGym": false,
+      "squareMeters": { "min": 600, "max": 1200 },
+      "zones": {
+        "trainingFloor":    { "exists": true, "condition": { "min": 75, "max": 95 } },
+        "strengthRoom":     { "exists": true, "condition": { "min": 70, "max": 90 } },
+        "changingRooms":    { "exists": true, "condition": { "min": 75, "max": 95 } },
+        "reception":        { "exists": true, "condition": { "min": 75, "max": 95 } },
+        "storage":          { "exists": true, "condition": { "min": 70, "max": 90 } },
+        "videoAnalysisRoom":{ "exists": true, "condition": { "min": 70, "max": 90 } }
+      },
+      "startingEquipment": [
+        { "typeId": "boxing_ring",   "count": 2,                        "condition": { "min": 75, "max": 95 } },
+        { "typeId": "heavy_bag",     "count": { "min": 8, "max": 15 },  "condition": { "min": 75, "max": 95 } },
+        { "typeId": "speed_bag",     "count": { "min": 3, "max": 6 },   "condition": { "min": 75, "max": 95 } },
+        { "typeId": "double_end_bag","count": { "min": 2, "max": 4 },   "condition": { "min": 70, "max": 90 } },
+        { "typeId": "maize_bag",     "count": { "min": 2, "max": 4 },   "condition": { "min": 70, "max": 90 } },
+        { "typeId": "focus_mitts",   "count": { "min": 5, "max": 10 },  "condition": { "min": 75, "max": 95 } },
+        { "typeId": "body_shield",   "count": { "min": 4, "max": 8 },   "condition": { "min": 70, "max": 90 } },
+        { "typeId": "skipping_ropes","count": { "min": 12, "max": 20 }, "condition": { "min": 70, "max": 90 } },
+        { "typeId": "dumbbells_set", "count": 1,                        "condition": { "min": 75, "max": 95 } },
+        { "typeId": "bench_press",   "count": { "min": 2, "max": 3 },   "condition": { "min": 70, "max": 90 } },
+        { "typeId": "pull_up_bar",   "count": { "min": 2, "max": 4 },   "condition": { "min": 75, "max": 95 } },
+        { "typeId": "squat_rack",    "count": { "min": 1, "max": 2 },   "condition": { "min": 70, "max": 90 } }
+      ],
+      "finances": {
+        "monthlyRent":        { "min": 1500,  "max": 4000  },
+        "startingBalance":    { "min": 10000, "max": 50000 },
+        "membershipFeeMonthly": { "min": 80,  "max": 150   }
+      },
+      "lockerCount": { "min": 120, "max": 250 },
+      "reputation": {
+        "local":         { "min": 80, "max": 100 },
+        "regional":      { "min": 50, "max": 80  },
+        "national":      { "min": 20, "max": 60  },
+        "international": 0
+      }
+    }
+  ],
+
+  "cityDistribution": {
+    "small_town": {
+      "rundown_community":    0.60,
+      "established_community":0.35,
+      "competition_gym":      0.05,
+      "elite_gym":            0.00
+    },
+    "mid_city": {
+      "rundown_community":    0.30,
+      "established_community":0.45,
+      "competition_gym":      0.20,
+      "elite_gym":            0.05
+    },
+    "capital": {
+      "rundown_community":    0.15,
+      "established_community":0.35,
+      "competition_gym":      0.35,
+      "elite_gym":            0.15
+    }
+  }
+}

@@ -20,7 +20,7 @@
 | [x] | `packages/engine/src/types/competition.ts` |
 | [x] | `packages/engine/src/types/index.ts` |
 | [x] | `packages/engine/src/types/fighter.ts` |
-| [~] | `packages/engine/src/types/gym.ts` |
+| [x] | `packages/engine/src/types/gym.ts` |
 | [~] | `packages/engine/src/types/coach.ts` |
 | [~] | `packages/engine/src/types/manager.ts` |
 | [~] | `packages/engine/src/types/clause.ts` |
@@ -49,6 +49,7 @@
 | [x] | `packages/engine/src/types/data/developmentProfiles.ts` |
 | [x] | `packages/engine/src/types/data/rewards.ts` |
 | [x] | `packages/engine/src/types/data/attributeAccumulation.ts` |
+| [x] | `packages/engine/src/types/data/gym.ts` |
 
 ## Engine — Utilities
 | State | File |
@@ -100,6 +101,7 @@
 | [x] | `packages/engine/data/universal/pro-fight-offer.json` |
 | [x] | `packages/engine/data/universal/attribute-accumulation.json` |
 | [x] | `packages/engine/data/universal/coach-styles.json` |
+| [x] | `packages/engine/data/universal/gym-equipment-types.json` |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -121,7 +123,7 @@
 ## Data — Gym
 | State | File |
 |-------|------|
-| [ ] | `packages/engine/data/gym/equipment/types.json` |
+| [x] | `packages/engine/data/nations/latvia/gym-starting-states.json` |
 | [ ] | `packages/engine/data/gym/staff-roles/definitions.json` |
 
 ## Data — Moments
