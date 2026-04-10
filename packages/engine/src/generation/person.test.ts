@@ -46,21 +46,23 @@ describe('generatePerson — required fields', () => {
 })
 
 describe('generatePerson — soul traits', () => {
-  it('has one trait per pair (8 traits total)', () => {
-    expect(person.soulTraits).toHaveLength(8)
+  it('has exactly 3 traits', () => {
+    expect(person.soulTraits).toHaveLength(3)
   })
 
-  it('no person holds both a trait and its opposite', () => {
+  it('no person holds both sides of a pair', () => {
     const assignedIds = new Set(person.soulTraits.map(t => t.traitId))
-    for (const trait of data.soulTraits.traits) {
-      if (assignedIds.has(trait.id)) {
-        expect(assignedIds.has(trait.opposite)).toBe(false)
-      }
+    for (const pair of data.soulTraits.pairs) {
+      const hasA = assignedIds.has(pair.sideA.id)
+      const hasB = assignedIds.has(pair.sideB.id)
+      expect(hasA && hasB).toBe(false)
     }
   })
 
   it('all assigned soul trait ids exist in data', () => {
-    const validIds = new Set(data.soulTraits.traits.map(t => t.id))
+    const validIds = new Set(
+      data.soulTraits.pairs.flatMap(p => [p.sideA.id, p.sideB.id])
+    )
     for (const assignment of person.soulTraits) {
       expect(validIds.has(assignment.traitId)).toBe(true)
     }
@@ -428,24 +430,27 @@ describe('generatePerson — ethnicity system (USA)', () => {
   })
 
   it('soul trait probabilities shift by ethnicity weights', () => {
-    // Mexican-Americans have brave: 1.5 — should appear at elevated rate in Oxnard.
-    // Run many Oxnard mexican_american persons and count brave vs coward.
+    // Mexican-Americans have brave: 1.5 — brave should appear more often than craven
+    // when the brave_craven pair is selected. Each person gets 3 of 8 pairs, so the
+    // pair is only selected in ~37.5% of cases. Test the within-pair rate instead.
     let braveCount = 0
+    let cravenCount = 0
     let mexicanCount = 0
-    for (let seed = 1; seed <= 200; seed++) {
+    for (let seed = 1; seed <= 400; seed++) {
       const p = generatePerson(data, createRng(seed), 'usa', 'usa-oxnard')
       if (p.ethnicityId === 'mexican_american') {
         mexicanCount++
         if (p.soulTraits.some(t => t.traitId === 'brave')) braveCount++
+        if (p.soulTraits.some(t => t.traitId === 'craven')) cravenCount++
       }
     }
-    // With 1.5 multiplier on brave vs 1.0 on coward, expected brave rate ≈ 60%.
-    // In 200 samples we should see at least some mexicans, and brave majority.
     expect(mexicanCount).toBeGreaterThan(0)
-    if (mexicanCount >= 10) {
-      const braveRate = braveCount / mexicanCount
-      // Brave should exceed 50% given the 1.5x multiplier.
-      expect(braveRate).toBeGreaterThan(0.5)
+    // Among persons who have the brave_craven pair, brave should dominate
+    // due to the 1.5x multiplier (65% base × 1.5 vs 35% base × 1.0 ≈ 74% brave).
+    const pairTotal = braveCount + cravenCount
+    if (pairTotal >= 5) {
+      const braveWithinPair = braveCount / pairTotal
+      expect(braveWithinPair).toBeGreaterThan(0.5)
     }
   })
 })

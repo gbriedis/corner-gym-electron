@@ -57,14 +57,19 @@
         "ring_generalship": 0.35,
         "counter_punching": 0.25,
         "finishing_instinct": 0.2,
-        "ring_iq": 0.4,
+        "ring_iq": 0.15,
         "composure": 0.3,
         "adaptability": 0.35,
         "heart": 0.2,
         "big_fight_experience": 0.1,
-        "output_volume": 0.2
+        "output_volume": 0.2,
+        "power": 0.4,
+        "hand_speed": 0.2,
+        "stamina": 0.3,
+        "chin": 0.3,
+        "durability": 0.2
       },
-      "note": "Amateur bouts produce meaningful mental growth. big_fight_experience grows slowly — most amateur bouts are not big fights. Opposition quality multiplier applies."
+      "note": "Amateur bouts produce meaningful mental growth and physical conditioning. Physical attributes grow significantly through fighting — a fight is high-intensity conditioning unlike training. Opposition quality multiplier applies. ring_iq uses a lower rate (0.15 vs 0.4) because the loss multiplier (1.2) and TKO multiplier (0.8) compound fast — veterans with 30+ bouts would otherwise cap at 20 far too early."
     },
     "pro_bout": {
       "gains": {
@@ -80,9 +85,14 @@
         "adaptability": 0.45,
         "heart": 0.35,
         "big_fight_experience": 0.25,
-        "output_volume": 0.2
+        "output_volume": 0.2,
+        "power": 0.15,
+        "hand_speed": 0.1,
+        "stamina": 0.1,
+        "chin": 0.1,
+        "durability": 0.1
       },
-      "note": "Pro bouts produce larger mental gains than amateur. The stakes are real."
+      "note": "Pro bouts produce larger mental gains than amateur. The stakes are real. Physical gains are slightly less than amateur — pros train more specifically between fights rather than developing through competition volume."
     },
     "title_fight": {
       "inheritsFrom": "pro_bout",
@@ -123,10 +133,10 @@
       "multiplier": 0.4,
       "attributeOverrides": {
         "composure": -0.5,
-        "heart": -0.3,
+        "heart": 0.0,
         "ring_iq": 0.8
       },
-      "note": "Getting stopped is harder to process. Composure and heart can regress. Soul traits determine whether the fighter comes back stronger or diminished."
+      "note": "Getting stopped is harder to process. Composure can regress. Heart is set to 0 (neutral) rather than negative — a stoppage loss tests heart but doesn't destroy it; the fighter either has it or they don't. Negative heart overrides pulled the mean well below the calibration target over 10 years of backrun simulation."
     }
   },
 
@@ -227,7 +237,7 @@
 
   "inactivityRegression": {
     "amateur": {
-      "regressionStartsWeeks": 12,
+      "regressionStartsWeeks": 28,
       "ratePerWeek": { "technical": 0.05, "mental": 0.08, "physical_non_genetic": 0.03 }
     },
     "pro": {
@@ -261,8 +271,8 @@
 
   "startingValueFormula": {
     "baseByYearsTraining": {
-      "0": 1, "1": 2, "2": 3, "3": 4, "5": 5, "7": 6, "10": 7,
-      "note": "Base developed attribute value by years of training. Linear interpolation between listed breakpoints."
+      "0": 2, "1": 3, "2": 5, "3": 6, "5": 8, "7": 10, "10": 12,
+      "note": "Base developed attribute value by years of training. Linear interpolation between listed breakpoints. Scale is calibrated so typical competing fighters (5-10 years training) start at 8-12, placing them in the range the bout simulation formula was designed for (average attribute ≈ 10)."
     },
     "mentalAttributeStartingCap": {
       "noBouts": 3,

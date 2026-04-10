@@ -115,47 +115,61 @@ function transitionCuriousToAspiring(
 // transitionCompetingToRetired checks whether a competing fighter hangs up
 // their gloves. Retirement can be driven by age, damage accumulation, or
 // soul trait satisfaction. Returns the retirement reason or null if no transition.
+//
+// Probabilities are intentionally low to preserve fighter careers over 10+ year
+// backlogs. At 3%/week a fighter has a 79% chance of retiring within a year of
+// hitting the threshold — sufficient turnover without gutting the active pool.
 function transitionCompetingToRetired(
   fighter: Fighter,
   _state: AdvanceWeekState,
   rng: RNG,
 ): 'age' | 'voluntary' | 'loss_of_drive' | null {
+  const totalBouts = fighter.competition.amateur.wins + fighter.competition.amateur.losses
+
+  // A fighter with zero bouts cannot retire — they never started.
+  // This prevents newly generated fighters from aging out before competing.
+  if (totalBouts === 0) return null
+
   let ageRetirementProb = 0
   let voluntaryProb = 0
 
-  // Age-based retirement: probability ramps up steeply after 38
-  if (fighter.age >= 38) {
-    ageRetirementProb = 0.05  // 5% per week at 38+
+  // Age-based retirement: ramps gradually rather than a cliff at 38.
+  // At 3%/week, a fighter turning 40 has ~79% chance of retiring within a year.
+  // At 1%/week, a fighter turning 37 has ~40% chance within a year.
+  if (fighter.age >= 40) {
+    ageRetirementProb = 0.03  // 3% per week at 40+
+  } else if (fighter.age >= 37) {
+    ageRetirementProb = 0.01  // 1% per week at 37+
   } else if (fighter.age >= 35) {
-    // Check if health is heavily damaged (chin or durability critical)
+    // Only trigger if health is heavily damaged (chin or durability critical)
     const chin = fighter.developedAttributes.find(a => a.attributeId === 'chin')
     const durability = fighter.developedAttributes.find(a => a.attributeId === 'durability')
     const healthBad =
       (chin !== undefined && chin.current <= 4) ||
       (durability !== undefined && durability.current <= 4)
-    if (healthBad) ageRetirementProb = 0.03
+    if (healthBad) ageRetirementProb = 0.01
   }
 
-  // Consecutive losses create a loss-of-drive retirement signal.
-  // Three losses in a row signals the arc is bending toward the exit.
-  const recentBouts = fighter.competition.amateur.boutIds.slice(-3)
-  const consecutiveLosses =
-    recentBouts.length === 3 &&
-    fighter.competition.amateur.losses >= 3
-  if (consecutiveLosses) ageRetirementProb += 0.01
+  // Three consecutive losses create a mild loss-of-drive signal for older fighters.
+  // Only applies at 28+ — young fighters bounce back from rough patches.
+  // Uses currentLosingStreak which resets on any win or draw, so this only fires
+  // during an actual current losing run, not just because a fighter has career losses.
+  if (fighter.age >= 28 && fighter.competition.amateur.currentLosingStreak >= 3) {
+    ageRetirementProb += 0.003
+  }
 
-  // Voluntary retirement: content fighters at 32+ who have no title ambitions
-  // are susceptible to deciding they've done enough
+  // Voluntary retirement: content fighters at 35+ who have only local ambitions
+  // are susceptible to deciding they've done enough — but only mildly.
   if (
-    fighter.age >= 32 &&
+    fighter.age >= 35 &&
     hasTrait(fighter, 'content') &&
     fighter.career.ambitions.level === 'local'
   ) {
-    voluntaryProb = 0.005
+    voluntaryProb = 0.002
   }
 
   if (ageRetirementProb > 0 && rng.next() < ageRetirementProb) {
-    return fighter.age >= 38 ? 'age' : 'loss_of_drive'
+    return fighter.age >= 40 ? 'age' : 'loss_of_drive'
   }
 
   if (voluntaryProb > 0 && rng.next() < voluntaryProb) {
@@ -187,6 +201,18 @@ export function runIdentityTick(state: AdvanceWeekState, _data: GameData, rng: R
         fighter.fighterIdentity.state = 'aspiring'
         fighter.fighterIdentity.stateChangedYear = state.year
         fighter.fighterIdentity.stateChangedWeek = state.week
+        // Register when committing to compete — aspiring fighters must be in the system
+        // before coachShouldEnterFighter will ever return true for them.
+        if (fighter.competition.status === 'unregistered') {
+          fighter.competition.status = 'amateur'
+        }
+        // Boost readiness to match generated aspiring fighters (40-60 range).
+        // Pipeline fighters are generated with unaware readiness (10-30). Without this
+        // boost they'd never reach the no-coach entry threshold of 35 and would
+        // stay stuck in aspiring forever — readiness has no growth mechanism in the sim.
+        if (fighter.career.readiness < 40) {
+          fighter.career.readiness = 40
+        }
         state.pendingFighterUpdates.add(fighterId)
         transitions++
       }
@@ -199,6 +225,16 @@ export function runIdentityTick(state: AdvanceWeekState, _data: GameData, rng: R
         fighter.fighterIdentity.retirementReason = retirementReason
         state.pendingFighterUpdates.add(fighterId)
         transitions++
+
+        // Track retirements by city so runAnnualPipeline can calibrate replacement seeding.
+        // A city that loses many fighters this year should seed more young ones next year.
+        if (gymId !== null) {
+          const gym = state.gyms.get(gymId)
+          if (gym !== undefined) {
+            const cityId = gym.cityId
+            state.annualRetirementCount[cityId] = (state.annualRetirementCount[cityId] ?? 0) + 1
+          }
+        }
       }
     }
   }

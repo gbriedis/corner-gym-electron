@@ -46,15 +46,22 @@ function buildAttributeCategories(data: GameData): {
   return { technical, mental, physical, physicalGenetic }
 }
 
-// decayEquipment reduces each equipment item's condition by its type's weekly decay rate.
-// Condition is clamped to 0 — a broken piece of equipment cannot decay further.
-// In live play, condition < 20 would surface a maintenance inbox event.
-// In the backrun we just decay silently to keep history realistic.
+// decayEquipment reduces each equipment item's condition by its type's weekly decay rate,
+// then auto-maintains any item that falls below condition 25.
+//
+// Auto-maintenance is intentionally limited by gym finances. A struggling gym that
+// cannot afford repairs runs degraded equipment — this is the simulation's consequence
+// for financial mismanagement, not a bug to be papered over.
+//
+// Repair cost = 15% of purchase cost. Condition restored to 75 (not 100) because
+// a quick repair doesn't fully restore old equipment.
 function decayEquipment(state: AdvanceWeekState, data: GameData): void {
-  // Build a lookup map from equipment typeId → conditionDecayPerWeek.
+  // Build lookup maps from equipment typeId.
   const decayByType = new Map<string, number>()
+  const costByType = new Map<string, number>()
   for (const eqType of data.gymEquipmentTypes.equipment) {
     decayByType.set(eqType.id, eqType.conditionDecayPerWeek)
+    costByType.set(eqType.id, eqType.purchaseCost)
   }
 
   for (const [gymId, gym] of state.gyms) {
@@ -65,7 +72,37 @@ function decayEquipment(state: AdvanceWeekState, data: GameData): void {
         item.condition = Math.max(0, item.condition - decay)
         changed = true
       }
+
+      // Auto-maintain degraded equipment when the gym can afford it.
+      if (item.condition < 25 && item.inUse) {
+        const purchaseCost = costByType.get(item.typeId) ?? 0
+        const repairCost = purchaseCost * 0.15
+        if (repairCost > 0 && gym.finances.balance >= repairCost) {
+          item.condition = Math.min(75, item.condition + 50)
+          item.lastMaintenanceYear = state.year
+          item.lastMaintenanceWeek = state.week
+          gym.finances.balance -= repairCost
+          changed = true
+        }
+      }
     }
+
+    // Monthly maintenance fee (every 4 weeks) for all in-use equipment.
+    // A gym with more equipment pays more to keep it operational.
+    if (state.week % WEEKS_PER_MONTH === 0) {
+      const monthlyCost = gym.equipment
+        .filter(e => e.inUse && e.condition > 0)
+        .reduce((sum, item) => {
+          const typeId = item.typeId
+          const eqType = data.gymEquipmentTypes.equipment.find(t => t.id === typeId)
+          return sum + (eqType?.maintenanceCostMonthly ?? 0)
+        }, 0)
+      if (monthlyCost > 0) {
+        gym.finances.balance -= monthlyCost
+        changed = true
+      }
+    }
+
     if (changed) {
       state.pendingGymUpdates.add(gymId)
     }
@@ -73,14 +110,17 @@ function decayEquipment(state: AdvanceWeekState, data: GameData): void {
 }
 
 // updateGymFinances computes weekly income and outgoings for every gym.
-// Income = (memberCount × monthlyMembershipFee) / 4
+// Income = ((casualMemberCount + fighterIds.length) × monthlyMembershipFee) / 4
 // Outgoings = (monthlyRent + totalStaffWages) / 4
 // A revenue record is added to revenueHistory once per month (every 4 weeks).
+//
+// Uses casualMemberCount (non-competing fitness members) + active fighters.
+// The old memberIds array is no longer the membership source of truth.
 function updateGymFinances(state: AdvanceWeekState): void {
   for (const [gymId, gym] of state.gyms) {
-    const memberCount = gym.memberIds.length
+    const totalMembers = gym.casualMemberCount + gym.fighterIds.length
 
-    const weeklyIncome = (memberCount * gym.finances.membershipFeeMonthly) / WEEKS_PER_MONTH
+    const weeklyIncome = (totalMembers * gym.finances.membershipFeeMonthly) / WEEKS_PER_MONTH
 
     const totalStaffWages = gym.staffMembers.reduce(
       (sum, staff) => sum + staff.wageMonthly,
@@ -137,10 +177,13 @@ function applyInactivityRegression(
     let weeksSinceLastBout: number
 
     if (lastBoutYear === null || lastBoutWeek === null) {
-      // Fighter has never competed — inactivity starts from their generation year.
-      // Use a large number so they are always in the regression window once they pass
-      // the aspiring threshold without fighting.
-      weeksSinceLastBout = 999
+      // Fighter has never competed — skip inactivity regression entirely.
+      // Inactivity regression represents de-training after an active career.
+      // A fighter who has never fought has no peak to decline from — applying
+      // regression to them would regress their attributes to floor before they
+      // ever enter their first bout, making the world's competing pool look like
+      // it started at 1 across all mental and technical attributes.
+      continue
     } else {
       weeksSinceLastBout =
         (state.year - lastBoutYear) * 52 + (state.week - lastBoutWeek)

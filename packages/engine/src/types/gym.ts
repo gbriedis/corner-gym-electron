@@ -207,6 +207,10 @@ export interface Gym {
   // Business
   finances: GymFinances
   lockerCount: number       // max total membership — separate from training capacity
+  // Non-competing members who train for fitness and pay dues.
+  // Not tracked individually — drives revenue and culture calculations.
+  // Roughly 40-70% of gym capacity at generation, varies by gym tier.
+  casualMemberCount: number
   kidsClass: GymKidsClass
 
   // Quality and identity

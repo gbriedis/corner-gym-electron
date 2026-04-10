@@ -23,7 +23,7 @@ import type {
   HealthValue,
   GiftFlawAssignment,
 } from '../types/person.js'
-import type { SoulTrait } from '../types/data/soulTraits.js'
+import type { SoulTraitPair } from '../types/data/soulTraits.js'
 import type { GiftOrFlaw } from '../types/data/giftsAndFlaws.js'
 import type { GenerationBand } from '../types/data/health.js'
 import type { DevelopmentProfile } from '../types/data/developmentProfiles.js'
@@ -123,20 +123,18 @@ function nudgedBandProbabilities(
 
 // ─── Gift / flaw helpers ──────────────────────────────────────────────────────
 
-// groupTraitPairs extracts the 8 unique opposite-pairs from the traits list.
-// Iterating in order and marking seen IDs guarantees we visit each pair exactly once.
-function groupTraitPairs(traits: SoulTrait[]): [SoulTrait, SoulTrait][] {
-  const seen = new Set<string>()
-  const pairs: [SoulTrait, SoulTrait][] = []
-  for (const trait of traits) {
-    if (seen.has(trait.id)) continue
-    const opposite = traits.find(t => t.id === trait.opposite)
-    if (opposite === undefined) throw new Error(`No opposite found for soul trait "${trait.id}"`)
-    pairs.push([trait, opposite])
-    seen.add(trait.id)
-    seen.add(trait.opposite)
+// shufflePairs returns a new array of pairs in a random order.
+// Fisher-Yates shuffle using the seeded RNG — ensures deterministic results
+// for the same seed. Used to pick 3 random pairs for each person.
+function shufflePairs<T>(items: T[], rng: RNG): T[] {
+  const arr = [...items]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = rng.nextInt(0, i)
+    const tmp = arr[i]
+    arr[i] = arr[j]!
+    arr[j] = tmp!
   }
-  return pairs
+  return arr
 }
 
 // rollGiftsAndFlaws runs independent probability rolls for each gift-eligible attribute.
@@ -236,7 +234,7 @@ function applyWeightedMultipliers(
 
 // ─── Main generation function ─────────────────────────────────────────────────
 
-export function generatePerson(data: GameData, rng: RNG, nationId: string, cityId: string): Person {
+export function generatePerson(data: GameData, rng: RNG, nationId: string, cityId: string, forceAge?: number): Person {
   // Step 1 — Identity
   //
   // Nation and city are provided by the caller; we validate city belongs to the nation.
@@ -255,7 +253,9 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
     throw new Error(`City "${cityId}" does not exist in nation "${nationId}"`)
   }
 
-  const age = rng.nextInt(16, 32)
+  // forceAge allows callers (world generation with cohort distribution) to specify
+  // the exact age. Without it a random age 16-31 is rolled.
+  const age = forceAge !== undefined ? forceAge : rng.nextInt(16, 32)
 
   // Step 0 — Ethnicity assignment
   //
@@ -319,20 +319,30 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
 
   // Step 2 — Soul traits
   //
-  // Each pair produces exactly one trait. No person can hold both sides of a pair —
-  // that would make their psychological core self-contradictory and break moment logic.
-  // Ethnicity soulTraitWeights shift the probability within each pair — a 1.4 multiplier
-  // on 'hungry' makes a hungry result more likely relative to its opposite 'content'.
-  const traitPairs = groupTraitPairs(data.soulTraits.traits)
-  const soulTraits: SoulTraitAssignment[] = traitPairs.map(pair => {
-    if (ethnicity === null || Object.keys(ethnicity.soulTraitWeights).length === 0) {
-      return { traitId: rng.pick(pair).id, revealed: false }
+  // Shuffle all 8 pairs, take the first 3, pick one side from each.
+  // Exactly 3 traits per person, guaranteed no contradictions — a person cannot
+  // hold both sides of any pair because only one pair member is ever picked.
+  // sideAWeight encodes the real-world frequency of each side.
+  // Ethnicity soulTraitWeights shift the final probability within a pair.
+  const shuffled = shufflePairs(data.soulTraits.pairs, rng)
+  const chosenPairs: SoulTraitPair[] = shuffled.slice(0, 3)
+  const soulTraits: SoulTraitAssignment[] = chosenPairs.map(pair => {
+    // Base probability from the pair's sideAWeight
+    let probA = pair.sideAWeight
+
+    // Apply ethnicity multiplier if present — shifts distribution without hard-capping.
+    if (ethnicity !== null) {
+      const wA = ethnicity.soulTraitWeights[pair.sideA.id] ?? 1.0
+      const wB = ethnicity.soulTraitWeights[pair.sideB.id] ?? 1.0
+      const baseA = pair.sideAWeight
+      const baseB = 1 - pair.sideAWeight
+      const adjustedA = baseA * wA
+      const adjustedB = baseB * wB
+      const total = adjustedA + adjustedB
+      probA = total > 0 ? adjustedA / total : pair.sideAWeight
     }
-    // Apply multipliers within the pair — pair[0] vs pair[1].
-    const w0 = ethnicity.soulTraitWeights[pair[0].id] ?? 1.0
-    const w1 = ethnicity.soulTraitWeights[pair[1].id] ?? 1.0
-    const total = w0 + w1
-    const traitId = rng.next() < w0 / total ? pair[0].id : pair[1].id
+
+    const traitId = rng.next() < probA ? pair.sideA.id : pair.sideB.id
     return { traitId, revealed: false }
   })
 

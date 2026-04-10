@@ -38,6 +38,7 @@ function circuitDisplayLabel(id: CircuitLevel): string {
     case 'european_championship': return 'European Championship'
     case 'world_championship':    return 'World Championship'
     case 'olympics':              return 'Olympics'
+    case 'golden_gloves':         return 'Golden Gloves'
   }
 }
 
@@ -50,6 +51,7 @@ function circuitBadgeVariant(id: CircuitLevel): BadgeVariant {
     case 'european_championship': return 'normal'
     case 'world_championship':    return 'hard'
     case 'olympics':              return 'hard'
+    case 'golden_gloves':         return 'hard'
   }
 }
 

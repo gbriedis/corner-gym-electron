@@ -124,7 +124,8 @@ corner-gym/
     │   │           ├── pro-title-belts.json         # 144 belts — all tiers × all bodies × 9 pro weight classes
     │   │           └── pro-rankings-structure.json  # Ranking rules, decay, mandatory defence, acquisition tiers
     │   ├── scripts/
-    │   │   └── inspect-save.ts        # CLI inspection tool — reads a .db save, prints world summary + bout health + attributes + financials + top fighters
+    │   │   ├── inspect-save.ts        # CLI inspection tool — reads a .db save, prints world summary + bout health + attributes + financials + top fighters
+    │   │   └── generate-test-save.ts  # CLI tool — generates a 10yr backrun save file for inspection and calibration testing
     │   └── src/
     │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + generateFighter + advanceWeek
     │       ├── types/
@@ -181,6 +182,7 @@ corner-gym/
     │       │   ├── bracket.test.ts    # 14 tests — structure, byes, determinism, seeding, days alignment
     │       │   ├── fighter.ts         # generateFighter — complete Fighter from Person + gym assignment
     │       │   ├── fighter.test.ts    # 17 tests — fields, weight class, mental caps, ambitions, style, coachability, determinism
+    │       │   ├── veteranCareer.ts   # generateVeteranCareer — statistical career record for fighters 29+ in world gen
     │       │   └── backrun.ts         # runBackrun — 520 weeks in memory; builds 10yr calendar; annual batch writes via onYearEnd
     │       └── engine/
     │           ├── advanceWeek.ts         # Full week tick — weeklyTick + identityTick + eventTick + year rollover
@@ -193,6 +195,7 @@ corner-gym/
     │           ├── boutAssessment.ts      # assessBout — derives FighterBoutState + BoutConditions from input + data
     │           ├── roundResolution.ts     # resolveRound — per-round dominance, damage, knockdowns, stoppages, soul traits
     │           ├── attributeEvents.ts     # calculateAttributeEvents — gain/regression rules from attribute-accumulation.json
+    │           ├── annualTick.ts          # runAnnualPipeline — seeds young fighters per city each year; calibrated replacement seeding
     │           ├── resolveBout.ts         # resolveBout — orchestrates assessment + round loop + judge scoring + damage + events
     │           └── resolveBout.test.ts    # 14 tests — determinism, skill disparity, KO, headgear, 3KD, decisions, attr events, fragile, stamina
     │

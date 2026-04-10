@@ -1,6 +1,6 @@
 export type { Meta } from './meta.js'
 
-export type { RevealDifficulty, SoulTrait, SoulTraitsData } from './soulTraits.js'
+export type { RevealDifficulty, SoulTraitDef, SoulTraitPair, SoulTraitsData } from './soulTraits.js'
 
 export type {
   AttributeCategory,

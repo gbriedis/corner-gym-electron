@@ -35,6 +35,7 @@ export interface YearEndBatch {
   // fighterId → attribute history events for this year
   pendingAttributeEvents: Map<string, AttributeHistoryEvent[]>
   pendingFighterUpdates: Set<string>
+  pendingNewFighterIds: Set<string>
   pendingGymUpdates: Set<string>
   fighters: Map<string, Fighter>
   gyms: Map<string, Gym>
@@ -46,6 +47,7 @@ function clearPendingState(state: AdvanceWeekState): void {
   state.pendingBoutResults = []
   state.pendingAttributeEvents = new Map()
   state.pendingFighterUpdates = new Set()
+  state.pendingNewFighterIds = new Set()
   state.pendingGymUpdates = new Set()
 }
 
@@ -98,6 +100,7 @@ function buildInitialState(
   }
 
   const fighterMap = new Map<string, Fighter>()
+  const backrunStartYear = config.startYear - 10
   for (const f of fighters) {
     // Aspiring fighters have made the commitment to compete — pre-register them.
     // In the live game, a player-managed fighter gets registered through the inbox.
@@ -108,6 +111,15 @@ function buildInitialState(
       (f.fighterIdentity.state === 'aspiring' || f.fighterIdentity.state === 'competing')
     ) {
       f.competition.status = 'amateur'
+    }
+    // Veterans generated with statistical careers have lastBoutYear=null.
+    // Without a real bout date, weeklyTick treats them as 999-weeks inactive and
+    // immediately regresses their mental attributes to 1 before they can fight.
+    // Set lastBoutYear to just before the backrun so regression doesn't fire on week 1.
+    const hasBoutRecord = f.competition.amateur.wins + f.competition.amateur.losses > 0
+    if (hasBoutRecord && f.career.lastBoutYear === null) {
+      f.career.lastBoutYear = backrunStartYear
+      f.career.lastBoutWeek = rng.nextInt(1, 52)
     }
     fighterMap.set(f.id, f)
   }
@@ -141,7 +153,9 @@ function buildInitialState(
     pendingBoutResults: [],
     pendingAttributeEvents: new Map(),
     pendingFighterUpdates: new Set(),
+    pendingNewFighterIds: new Set(),
     pendingGymUpdates: new Set(),
+    annualRetirementCount: {},
   }
 }
 
@@ -192,6 +206,7 @@ export async function runBackrun(
           pendingBoutResults: [...state.pendingBoutResults],
           pendingAttributeEvents: new Map(state.pendingAttributeEvents),
           pendingFighterUpdates: new Set(state.pendingFighterUpdates),
+          pendingNewFighterIds: new Set(state.pendingNewFighterIds),
           pendingGymUpdates: new Set(state.pendingGymUpdates),
           fighters: state.fighters,
           gyms: state.gyms,
@@ -225,6 +240,7 @@ export async function runBackrun(
       pendingBoutResults: [...state.pendingBoutResults],
       pendingAttributeEvents: new Map(state.pendingAttributeEvents),
       pendingFighterUpdates: new Set(state.pendingFighterUpdates),
+      pendingNewFighterIds: new Set(state.pendingNewFighterIds),
       pendingGymUpdates: new Set(state.pendingGymUpdates),
       fighters: state.fighters,
       gyms: state.gyms,

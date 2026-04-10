@@ -51,11 +51,11 @@
       "frequencyPerYear": 1,
       "typicalMonths": [11],
       "hostCityRotation": [
-        "usa-las-vegas",
-        "usa-new-york",
-        "usa-los-angeles",
-        "usa-philadelphia",
-        "usa-chicago"
+        "las-vegas",
+        "new-york",
+        "los-angeles",
+        "philadelphia",
+        "chicago"
       ],
       "venuePool": [
         "mgm_grand_garden_arena",
@@ -76,11 +76,11 @@
       "frequencyPerYear": 1,
       "typicalMonths": [4, 5],
       "hostCityRotation": [
-        "usa-new-york",
-        "usa-chicago",
-        "usa-las-vegas",
-        "usa-detroit",
-        "usa-los-angeles"
+        "new-york",
+        "chicago",
+        "las-vegas",
+        "detroit",
+        "los-angeles"
       ],
       "venuePool": [
         "madison_square_garden",

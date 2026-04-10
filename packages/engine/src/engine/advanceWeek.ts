@@ -15,6 +15,7 @@
 import { runWeeklyTick, advancePersonAges } from './weeklyTick.js'
 import { runIdentityTick } from './identityTick.js'
 import { runEventTick } from './eventTick.js'
+import { runAnnualPipeline } from './annualTick.js'
 
 import type { AdvanceWeekState, AdvanceWeekResult } from '../types/advanceWeek.js'
 import type { GameData } from '../data/loader.js'
@@ -44,6 +45,8 @@ export function advanceWeek(
   // not in weeklyTick where it would require a modular check every week.
   state.week += 1
   if (state.week > 52) {
+    // Seed new fighters before advancing the year — uses current year's retirement count.
+    runAnnualPipeline(state, data, rng)
     state.week = 1
     state.year += 1
     advancePersonAges(state, data)

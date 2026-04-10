@@ -6,8 +6,8 @@ import type { GameConfig } from '../types/gameConfig.js'
 
 let data: GameData
 
-// All tiers set to the same value so person-count assertions stay simple.
-// Production config uses different values per tier — that's tested separately.
+// populationPerCity is still in GameConfig but no longer drives fighter count.
+// Fighter count is determined by gym.lockerCount × talentDensity × 0.30.
 const FLAT_POP = 10
 
 const baseConfig: GameConfig = {
@@ -36,47 +36,29 @@ describe('generateWorld — determinism', () => {
     const a = generateWorld(baseConfig, data)
     const b = generateWorld(baseConfig, data)
     expect(JSON.stringify(a.worldState)).toBe(JSON.stringify(b.worldState))
-    expect(a.persons.length).toBe(b.persons.length)
-    expect(a.persons[0].id).toBe(b.persons[0].id)
+    expect(a.fighters.length).toBe(b.fighters.length)
+    expect(a.fighters[0]!.id).toBe(b.fighters[0]!.id)
   })
 
   it('produces a different world for a different seed', () => {
     const a = generateWorld(baseConfig, data)
     const b = generateWorld({ ...baseConfig, seed: 99 }, data)
     expect(a.worldState.seed).not.toBe(b.worldState.seed)
-    const aIds = new Set(a.persons.map(p => p.id))
-    const bIds = b.persons.map(p => p.id)
+    const aIds = new Set(a.fighters.map(f => f.id))
+    const bIds = b.fighters.map(f => f.id)
     const allMatch = bIds.every(id => aIds.has(id))
     expect(allMatch).toBe(false)
   })
 })
 
-describe('generateWorld — person count', () => {
-  it('generates populationPerCity persons per city (flat-pop config)', () => {
-    const { worldState, persons } = generateWorld(baseConfig, data)
-    const latviaBundle = data.nations['latvia']
-    expect(latviaBundle).toBeDefined()
-    const cityCount = latviaBundle!.cities.cities.length
-    // All tiers set to FLAT_POP so total = cityCount * FLAT_POP
-    expect(persons.length).toBe(cityCount * FLAT_POP)
+describe('generateWorld — fighter count', () => {
+  it('produces fighters for every rendered nation', () => {
+    const { fighters, worldState } = generateWorld(baseConfig, data)
+    expect(fighters.length).toBeGreaterThan(0)
     expect(Object.keys(worldState.nations)).toContain('latvia')
   })
 
-  it('capitals produce more persons than small towns with tier-based config', () => {
-    const tieredConfig: GameConfig = {
-      ...baseConfig,
-      worldSettings: {
-        populationPerCity: { small_town: 5, mid_city: 20, capital: 100 },
-        gymsPerCity: { small_town: 1, mid_city: 3, capital: 6 },
-      },
-    }
-    const flat = generateWorld(baseConfig, data)
-    const tiered = generateWorld(tieredConfig, data)
-    // Tiered should differ in person count (capital contributes 100 vs 10)
-    expect(tiered.persons.length).not.toBe(flat.persons.length)
-  })
-
-  it('scales person count by talentDensity multiplier', () => {
+  it('scales fighter count by talentDensity multiplier', () => {
     const hardConfig: GameConfig = {
       ...baseConfig,
       difficulty: 'hard',
@@ -84,7 +66,8 @@ describe('generateWorld — person count', () => {
     }
     const normal = generateWorld(baseConfig, data)
     const hard = generateWorld(hardConfig, data)
-    expect(hard.persons.length).toBeLessThan(normal.persons.length)
+    // Lower talentDensity → fewer fighters per gym
+    expect(hard.fighters.length).toBeLessThan(normal.fighters.length)
   })
 
   it('normal difficulty with empty modifiers produces same result as all-1.0 modifiers', () => {
@@ -102,7 +85,7 @@ describe('generateWorld — person count', () => {
     }
     const fromEmpty = generateWorld(baseConfig, data)
     const fromExplicit = generateWorld(explicitConfig, data)
-    expect(fromEmpty.persons.length).toBe(fromExplicit.persons.length)
+    expect(fromEmpty.fighters.length).toBe(fromExplicit.fighters.length)
     // Compare gym structure — same seed + config must produce same gyms
     const emptyGymIds = Object.keys(fromEmpty.worldState.gyms).sort()
     const explicitGymIds = Object.keys(fromExplicit.worldState.gyms).sort()
@@ -156,12 +139,12 @@ describe('generateWorld — player gym', () => {
 })
 
 describe('generateWorld — world structure', () => {
-  it('every gym memberIds references a real person', () => {
-    const { worldState, persons } = generateWorld(baseConfig, data)
-    const personIds = new Set(persons.map(p => p.id))
+  it('every gym fighterIds references a real fighter', () => {
+    const { worldState, fighters } = generateWorld(baseConfig, data)
+    const fighterIds = new Set(fighters.map(f => f.id))
     for (const gym of Object.values(worldState.gyms)) {
-      for (const pid of gym.memberIds) {
-        expect(personIds.has(pid)).toBe(true)
+      for (const fid of gym.fighterIds) {
+        expect(fighterIds.has(fid)).toBe(true)
       }
     }
   })
@@ -197,57 +180,29 @@ describe('generateWorld — world structure', () => {
 
 describe('generateWorld — gym generation', () => {
   it('generates correct number of gyms per city based on gymsPerCity × rivalGymDensity', () => {
-    const { worldState, persons } = generateWorld(baseConfig, data)
+    const { worldState } = generateWorld(baseConfig, data)
     const latviaBundle = data.nations['latvia']!
-    // Build person count per city to reproduce the cap logic from world.ts
-    const personCountByCity: Record<string, number> = {}
-    for (const city of latviaBundle.cities.cities) {
-      const baseCount = baseConfig.worldSettings.populationPerCity[city.population] ?? 150
-      personCountByCity[city.id] = Math.max(1, Math.round(baseCount))
-    }
     for (const city of latviaBundle.cities.cities) {
       const cityState = worldState.cities[city.id]
       expect(cityState).toBeDefined()
-      const baseCount  = baseConfig.worldSettings.gymsPerCity[city.population] ?? 1
-      const rawCount   = Math.max(1, Math.round(baseCount * city.rivalGymDensity))
-      const expected   = Math.min(rawCount, personCountByCity[city.id] ?? 1)
+      const baseCount = baseConfig.worldSettings.gymsPerCity[city.population] ?? 1
+      const expected  = Math.max(1, Math.round(baseCount * city.rivalGymDensity))
       expect(cityState!.gymIds.length).toBe(expected)
     }
   })
 
-  it('every gym has at least one member', () => {
+  it('every gym has at least one fighter', () => {
     const { worldState } = generateWorld(baseConfig, data)
     for (const gym of Object.values(worldState.gyms)) {
-      expect(gym.memberIds.length).toBeGreaterThan(0)
+      expect(gym.fighterIds.length).toBeGreaterThan(0)
     }
   })
 
-  it('total persons = gym members + free agents (no person lost)', () => {
-    const { worldState, persons } = generateWorld(baseConfig, data)
-    const gymMemberIds = new Set<string>()
+  it('every gym has a positive casualMemberCount', () => {
+    const { worldState } = generateWorld(baseConfig, data)
     for (const gym of Object.values(worldState.gyms)) {
-      for (const id of gym.memberIds) gymMemberIds.add(id)
+      expect(gym.casualMemberCount).toBeGreaterThan(0)
     }
-    const freeAgents = persons.filter(p => !gymMemberIds.has(p.id))
-    expect(gymMemberIds.size + freeAgents.length).toBe(persons.length)
-  })
-
-  it('free agents exist when gym capacity is exceeded', () => {
-    // 200 persons per city with 1 small gym (lockerCount ~10-25) → many free agents
-    const highPopConfig: GameConfig = {
-      ...baseConfig,
-      worldSettings: {
-        populationPerCity: { small_town: 200, mid_city: 200, capital: 200 },
-        gymsPerCity: { small_town: 1, mid_city: 1, capital: 1 },
-      },
-    }
-    const { worldState, persons } = generateWorld(highPopConfig, data)
-    const gymMemberIds = new Set<string>()
-    for (const gym of Object.values(worldState.gyms)) {
-      for (const id of gym.memberIds) gymMemberIds.add(id)
-    }
-    const freeAgentCount = persons.length - gymMemberIds.size
-    expect(freeAgentCount).toBeGreaterThan(0)
   })
 
   it('gym has a full quality object with all required fields', () => {
@@ -284,13 +239,13 @@ describe('generateWorld — fighters', () => {
     }
   })
 
-  it('every fighterIds entry in a gym also appears in memberIds', () => {
-    const { worldState } = generateWorld(baseConfig, data)
-    for (const gym of Object.values(worldState.gyms)) {
-      const memberSet = new Set(gym.memberIds)
-      for (const fid of gym.fighterIds) {
-        expect(memberSet.has(fid)).toBe(true)
-      }
-    }
+  it('fighters span multiple age cohorts (13-40 range populated)', () => {
+    const { fighters } = generateWorld(baseConfig, data)
+    const hasYoung = fighters.some(f => f.age >= 13 && f.age <= 22)
+    const hasMid   = fighters.some(f => f.age >= 23 && f.age <= 28)
+    const hasOld   = fighters.some(f => f.age >= 29 && f.age <= 40)
+    expect(hasYoung).toBe(true)
+    expect(hasMid).toBe(true)
+    expect(hasOld).toBe(true)
   })
 })

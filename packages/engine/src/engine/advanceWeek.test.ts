@@ -4,6 +4,7 @@ import { generateWorld } from '../generation/world.js'
 import { advanceWeek } from './advanceWeek.js'
 import { coachShouldEnterFighter } from './coachEntryDecision.js'
 import { runBackrun } from '../generation/backrun.js'
+import { runIdentityTick } from './identityTick.js'
 import { createRng } from '../utils/rng.js'
 
 import type { GameData } from '../data/loader.js'
@@ -67,7 +68,9 @@ function buildTestState(seed = 42, year = 2020, week = 1): AdvanceWeekState {
     pendingBoutResults: [],
     pendingAttributeEvents: new Map(),
     pendingFighterUpdates: new Set(),
+    pendingNewFighterIds: new Set(),
     pendingGymUpdates: new Set(),
+    annualRetirementCount: {},
   }
 }
 
@@ -221,16 +224,23 @@ describe('identity transitions', () => {
     if (unawareFighterId === null) return  // no unaware fighters in this world
 
     // Force hungry + way_out to maximise transition probability per tick (~1.5% per week).
-    // 500 ticks gives >99.97% probability of at least one transition.
+    // Use runIdentityTick directly to avoid RNG drift from event processing.
+    // Isolate this fighter by removing all others so the RNG sequence is deterministic
+    // regardless of world size — this fighter gets the RNG values, not other fighters.
     const fighter = state.fighters.get(unawareFighterId)!
     if (!fighter.soulTraits.some(t => t.traitId === 'hungry')) {
       fighter.soulTraits.push({ traitId: 'hungry', revealed: false })
     }
     fighter.reasonForBoxingId = 'way_out'
 
+    // Keep only this fighter in the state so RNG is consumed only by this transition.
+    // This makes the test fully deterministic and independent of world composition.
+    state.fighters.clear()
+    state.fighters.set(unawareFighterId, fighter)
+
     const rng = createRng(999)
     for (let i = 0; i < 500; i++) {
-      advanceWeek(state, data, rng, true)
+      runIdentityTick(state, data, rng)
       const f = state.fighters.get(unawareFighterId)
       if (f === undefined || f.fighterIdentity.state !== 'unaware') break
     }

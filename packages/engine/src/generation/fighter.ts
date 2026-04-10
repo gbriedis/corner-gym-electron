@@ -250,17 +250,19 @@ export function generateFighter(
     const olderUntrained = person.age > 30 && yearsTraining === 0
 
     if (highDrive && yearsTraining >= 2) {
-      identityState = rng.next() < 0.6 ? 'aspiring' : 'competing'
+      // High-drive fighters are committed to competing but haven't competed yet —
+      // 'competing' requires actual bout history, which is set above for existingRecord.
+      identityState = 'aspiring'
     } else if (lowDrive || olderUntrained) {
       identityState = rng.next() < 0.7 ? 'unaware' : 'curious'
     } else if (yearsTraining === 0) {
       identityState = rng.next() < 0.5 ? 'unaware' : 'curious'
     } else {
-      // Middle ground: anyone with training years has at least encountered competition
+      // Middle ground: training years indicate intent but not competition.
+      // 'competing' requires actual bout history — cap at 'aspiring' here.
       const roll = rng.next()
       if (roll < 0.2) identityState = 'curious'
-      else if (roll < 0.6) identityState = 'aspiring'
-      else identityState = 'competing'
+      else identityState = 'aspiring'
     }
   }
 
@@ -467,6 +469,7 @@ export function generateFighter(
     lastBoutYear: null,
     lastBoutWeek: null,
     coachingHistory: [],
+    peakCircuitLevel: null,
   }
 
   // ─── Step 8: Competition Record ───────────────────────────────────────────────
@@ -488,6 +491,7 @@ export function generateFighter(
     wins: amateurWins,
     losses: amateurLosses,
     boutIds: [],
+    currentLosingStreak: 0,
     titles: [],
     medals: [],
     rankings: [],

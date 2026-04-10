@@ -157,6 +157,7 @@ export interface AmateurCareer {
   wins: number
   losses: number
   boutIds: string[]
+  currentLosingStreak: number  // consecutive losses, resets to 0 on any win or draw
   titles: AmateurTitle[]
   medals: Medal[]
   rankings: AmateurRanking[]
@@ -213,6 +214,10 @@ export interface FighterCareerState {
   lastBoutYear: number | null
   lastBoutWeek: number | null
   coachingHistory: PastCoachRecord[]
+  // Highest circuit level reached — set by veteran career generation for fighters aged 29+,
+  // updated when a fighter wins a bout at a higher circuit level during the simulation.
+  // Used by coach generation to derive quality from former-fighter careers.
+  peakCircuitLevel: string | null
 }
 
 export interface PlayerKnowledge {

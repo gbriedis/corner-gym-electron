@@ -25,7 +25,11 @@ export interface AdvanceWeekState {
   pendingBoutResults: BoutResolutionResult[]
   pendingAttributeEvents: Map<string, AttributeHistoryEvent[]>  // fighterId → events
   pendingFighterUpdates: Set<string>   // fighter ids that need SQLite update
+  pendingNewFighterIds: Set<string>    // fighter ids created during simulation — need INSERT not UPDATE
   pendingGymUpdates: Set<string>
+  // Counts retirements per city per year — reset at year end.
+  // Used by runAnnualPipeline to calibrate how many young fighters to seed.
+  annualRetirementCount: Record<string, number>
 }
 
 export interface AdvanceWeekResult {

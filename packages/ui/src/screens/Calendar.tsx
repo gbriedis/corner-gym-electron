@@ -26,6 +26,7 @@ function circuitCellBgColor(level: CalendarEvent['circuitLevel']): string {
     case 'club_card':             return 'rgba(218,212,201,0.06)'
     case 'regional_tournament':   return 'rgba(90,139,222,0.2)'
     case 'national_championship': return 'rgba(238,178,74,0.2)'
+    case 'golden_gloves':         return 'rgba(238,178,74,0.15)'
     case 'baltic_championship':   return 'rgba(85,146,127,0.2)'
     case 'european_championship': return 'rgba(33,82,165,0.2)'
     case 'world_championship':    return 'rgba(255,209,131,0.2)'
@@ -209,6 +210,7 @@ function circuitBadgeVariant(level: CalendarEvent['circuitLevel']): BadgeVariant
     case 'club_card':             return 'neutral'
     case 'regional_tournament':   return 'normal'
     case 'national_championship': return 'hard'
+    case 'golden_gloves':         return 'hard'
     case 'baltic_championship':   return 'easy'
     case 'european_championship': return 'normal'
     case 'world_championship':    return 'hard'
@@ -221,6 +223,7 @@ function circuitLabel(level: CalendarEvent['circuitLevel']): string {
     case 'club_card':             return 'Club Card'
     case 'regional_tournament':   return 'Regional'
     case 'national_championship': return 'Nationals'
+    case 'golden_gloves':         return 'Golden Gloves'
     case 'baltic_championship':   return 'Baltic'
     case 'european_championship': return 'European'
     case 'world_championship':    return 'Worlds'
@@ -270,6 +273,7 @@ function governingBody(level: CalendarEvent['circuitLevel']): string {
     case 'club_card':
     case 'regional_tournament':
     case 'national_championship':
+    case 'golden_gloves':
       return 'Latvian Boxing Federation (LBF)'
     case 'baltic_championship':
     case 'european_championship':
@@ -286,6 +290,7 @@ function governingBodyId(level: CalendarEvent['circuitLevel']): string {
     case 'club_card':
     case 'regional_tournament':
     case 'national_championship':
+    case 'golden_gloves':
       return 'lbf'
     case 'baltic_championship':
     case 'european_championship':
@@ -402,6 +407,7 @@ function circuitAccentColor(level: CalendarEvent['circuitLevel']): string {
     case 'european_championship': return 'var(--color-accent-blue-dark)'
     case 'world_championship':    return 'var(--color-accent-gold)'
     case 'olympics':              return 'var(--color-accent-gold)'
+    case 'golden_gloves':         return 'var(--color-accent-amber)'
   }
 }
 

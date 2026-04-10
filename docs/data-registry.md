@@ -71,6 +71,7 @@
 | [x] | `packages/engine/src/generation/bracket.ts` |
 | [x] | `packages/engine/src/generation/fighter.ts` |
 | [x] | `packages/engine/src/generation/coach.ts` |
+| [x] | `packages/engine/src/generation/veteranCareer.ts` — generateVeteranCareer: statistical career record for 29+ world gen fighters |
 
 ## Engine — Loop
 | State | File |
@@ -84,6 +85,8 @@
 | [x] | `packages/engine/src/engine/boutAssessment.ts` |
 | [x] | `packages/engine/src/engine/roundResolution.ts` |
 | [x] | `packages/engine/src/engine/attributeEvents.ts` |
+| [x] | `packages/engine/src/engine/annualTick.ts` — runAnnualPipeline: yearly young fighter seeding, calibrated replacement |
+| [x] | `packages/engine/scripts/generate-test-save.ts` — CLI tool: generates backrun save file for calibration inspection |
 | [x] | `packages/engine/src/engine/resolveBout.ts` |
 | [x] | `packages/engine/src/generation/backrun.ts` |
 | [ ] | `packages/engine/src/engine/world.ts` |
@@ -213,6 +216,7 @@
 | [x] | `packages/desktop/src/preload.cts` |
 | [x] | `packages/desktop/src/ipc.ts` |
 | [x] | `packages/desktop/src/db.ts` — gyms, coaches, bouts, cards, tournament_brackets, multi_day_events tables + typed functions |
+| [x] | `packages/desktop/src/db-dev.ts` — dev mode read-only queries: world summary, fighter list/detail, attribute distributions, bout log, gym financials |
 
 ## UI — Assets & Styles
 | State | File |

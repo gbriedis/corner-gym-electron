@@ -6,7 +6,7 @@
     {
       "id": "brownsville_boxing_club",
       "name": "Brownsville Boxing Club",
-      "city": "usa-brownsville-brooklyn",
+      "city": "brownsville-brooklyn",
       "country": "usa",
       "capacity": 150,
       "description": "A working boxing gym in Brownsville, Brooklyn. Club shows here are fought in the most concentrated boxing neighbourhood in American history. The building has seen it all — debut bouts, local feuds, coaches who went on to train world champions. You can feel the weight of the place.",
@@ -15,7 +15,7 @@
     {
       "id": "gleasons_gym",
       "name": "Gleason's Gym",
-      "city": "usa-new-york",
+      "city": "new-york",
       "country": "usa",
       "capacity": 200,
       "description": "The oldest boxing gym in New York, operating since 1937. Gleason's has trained Muhammad Ali, Jake LaMotta, Roberto Duran, and hundreds more. Located under the Brooklyn Bridge in DUMBO, it hosts club-level amateur shows alongside its professional training operations. A living museum of American boxing.",
@@ -24,7 +24,7 @@
     {
       "id": "kronk_gym",
       "name": "Kronk Gym",
-      "city": "usa-detroit",
+      "city": "detroit",
       "country": "usa",
       "capacity": 250,
       "description": "Emanuel Steward's gym on McGraw Avenue in Detroit — the birthplace of the Kronk style. Thomas Hearns turned professional here. Lennox Lewis, Julio César Chávez Jr., and dozens of world champions trained in this building. The gym hosts club-level events but its significance dwarfs its capacity. There are gyms in American boxing and there is Kronk.",
@@ -33,7 +33,7 @@
     {
       "id": "pal_boxing_philadelphia",
       "name": "Police Athletic League Gym — Philadelphia",
-      "city": "usa-philadelphia",
+      "city": "philadelphia",
       "country": "usa",
       "capacity": 200,
       "description": "The PAL gym in North Philadelphia, one of the foundational institutions of Philly boxing. Club shows here are entry-level but the standard is high — coaches who trained Bernard Hopkins have walked through this building. The ring sits in a converted community centre that smells like history.",
@@ -42,7 +42,7 @@
     {
       "id": "lowell_boxing_club",
       "name": "Lowell Boxing Club",
-      "city": "usa-lowell",
+      "city": "lowell",
       "country": "usa",
       "capacity": 150,
       "description": "The main boxing club in Lowell, Massachusetts — a city that produced Micky Ward and carries the boxing culture in its working-class Irish, Cambodian, and Latino communities. Small shows here draw loyal crowds from the mill town neighbourhoods.",
@@ -51,7 +51,7 @@
     {
       "id": "chicago_pal_boxing",
       "name": "Chicago PAL Boxing",
-      "city": "usa-chicago",
+      "city": "chicago",
       "country": "usa",
       "capacity": 300,
       "description": "The Police Athletic League boxing programme in Chicago, operating across multiple gym facilities on the south and west sides. Club events draw fighters from across the city's neighbourhood gym network.",
@@ -60,7 +60,7 @@
     {
       "id": "houston_boxing_academy",
       "name": "Houston Boxing Academy",
-      "city": "usa-houston",
+      "city": "houston",
       "country": "usa",
       "capacity": 200,
       "description": "The main amateur boxing facility in Houston, operating as a community programme with youth development at its core. Club shows here draw from the city's Mexican-American and African-American communities.",
@@ -69,7 +69,7 @@
     {
       "id": "chicago_stadium_arena",
       "name": "Wintrust Arena",
-      "city": "usa-chicago",
+      "city": "chicago",
       "country": "usa",
       "capacity": 10000,
       "description": "Chicago's mid-size multipurpose arena, used for boxing cards, basketball, and major events. Regularly hosts regional boxing tournaments and Golden Gloves Chicago regional rounds.",
@@ -78,7 +78,7 @@
     {
       "id": "san_antonio_freeman_coliseum",
       "name": "Freeman Coliseum",
-      "city": "usa-san-antonio",
+      "city": "san-antonio",
       "country": "usa",
       "capacity": 11000,
       "description": "The major arena in San Antonio, used for boxing cards since the 1950s. Bob Arum has staged cards here; the city's boxing community turns out for major events. Regional tournament host for the Southwest circuit.",
@@ -87,7 +87,7 @@
     {
       "id": "houston_toyota_center",
       "name": "Toyota Center",
-      "city": "usa-houston",
+      "city": "houston",
       "country": "usa",
       "capacity": 18300,
       "description": "Houston's major arena and one of the larger boxing venues in Texas. Has hosted major title fights. Regional tournament host when the Southwest circuit comes to Houston.",
@@ -96,7 +96,7 @@
     {
       "id": "mgm_grand_garden_arena",
       "name": "MGM Grand Garden Arena",
-      "city": "usa-las-vegas",
+      "city": "las-vegas",
       "country": "usa",
       "capacity": 17000,
       "description": "The spiritual home of world championship boxing. More world title fights have been staged here than at any other single venue in history — Floyd Mayweather Jr. vs Manny Pacquiao, Mike Tyson, Evander Holyfield, Oscar De La Hoya. When something matters in professional boxing it is usually happening at the MGM Grand. Amateur boxing at this level is the rare national championship event that warrants the Strip.",
@@ -105,7 +105,7 @@
     {
       "id": "madison_square_garden",
       "name": "Madison Square Garden",
-      "city": "usa-new-york",
+      "city": "new-york",
       "country": "usa",
       "capacity": 20789,
       "description": "The most storied boxing arena in history. Madison Square Garden has hosted championship boxing since 1879 — Joe Louis, Sugar Ray Robinson, Willie Pep, Rocky Marciano, Muhammad Ali, Joe Frazier. The Golden Gloves New York finals have been held at MSG for decades. There is no building in American boxing with more history. The Mecca of Boxing.",
@@ -115,7 +115,7 @@
       "id": "crypto_arena_los_angeles",
       "name": "Crypto.com Arena",
       "formerName": "Staples Center",
-      "city": "usa-los-angeles",
+      "city": "los-angeles",
       "country": "usa",
       "capacity": 19395,
       "description": "Los Angeles's premier sports and entertainment arena, seating up to 19,395. Has hosted Oscar De La Hoya title fights, Manny Pacquiao appearances, and numerous world championship events. Scheduled to host boxing finals at the 2028 Summer Olympics. The National Championship and Golden Gloves West Coast finals are staged here when the tournament rotates to Los Angeles.",
@@ -124,7 +124,7 @@
     {
       "id": "spectrum_center_philadelphia",
       "name": "Wells Fargo Center",
-      "city": "usa-philadelphia",
+      "city": "philadelphia",
       "country": "usa",
       "capacity": 21000,
       "description": "Philadelphia's major arena. The city that gave boxing the Philly shell deserves a proper venue — Wells Fargo Center hosts major boxing cards and serves as the National Championship host when the tournament rotates to Philadelphia.",
@@ -133,7 +133,7 @@
     {
       "id": "ford_field_detroit",
       "name": "Little Caesars Arena",
-      "city": "usa-detroit",
+      "city": "detroit",
       "country": "usa",
       "capacity": 20000,
       "description": "Detroit's main multipurpose arena. When a major boxing event comes to the Motor City — and they do come, because this is still a boxing city — this is where it happens. National Championship host when the tournament comes to Detroit.",

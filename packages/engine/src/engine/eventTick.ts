@@ -94,8 +94,16 @@ function applyBoutResultToFighter(
   const fighterId = fighter.id
 
   fighter.competition.amateur.boutIds.push(boutId)
-  if (isWinner === true) fighter.competition.amateur.wins++
-  else if (isWinner === false) fighter.competition.amateur.losses++
+  if (isWinner === true) {
+    fighter.competition.amateur.wins++
+    fighter.competition.amateur.currentLosingStreak = 0
+  } else if (isWinner === false) {
+    fighter.competition.amateur.losses++
+    fighter.competition.amateur.currentLosingStreak++
+  } else {
+    // Draw resets the losing streak — a draw is not a loss
+    fighter.competition.amateur.currentLosingStreak = 0
+  }
 
   fighter.career.lastBoutYear = state.year
   fighter.career.lastBoutWeek = state.week
@@ -118,15 +126,34 @@ function applyBoutResultToFighter(
   state.pendingFighterUpdates.add(fighterId)
 }
 
-// applyBoutAttributeEvents merges attribute history events into pending state.
+// applyBoutAttributeEvents applies attribute gains from a bout directly to the fighter
+// and queues both the history events (for SQLite) and the fighter record (for persistence).
+// The delta must be applied in memory immediately — fighters must grow across the backrun,
+// not just have events queued that never touch developedAttributes.current.
 function applyBoutAttributeEvents(
   fighterId: string,
   events: import('../types/fighter.js').AttributeHistoryEvent[],
   state: AdvanceWeekState,
 ): void {
   if (events.length === 0) return
+
+  const fighter = state.fighters.get(fighterId)
+  if (fighter === undefined) return
+
+  // Apply each delta to the fighter's current attribute value
+  for (const event of events) {
+    const attr = fighter.developedAttributes.find(a => a.attributeId === event.attributeId)
+    if (attr !== undefined) {
+      attr.current = Math.min(attr.currentPotential, Math.max(0, attr.current + event.delta))
+    }
+  }
+
+  // Queue history events for SQLite persistence
   const existing = state.pendingAttributeEvents.get(fighterId) ?? []
   state.pendingAttributeEvents.set(fighterId, [...existing, ...events])
+
+  // Mark fighter dirty so the year-end batch writes updated attributes
+  state.pendingFighterUpdates.add(fighterId)
 }
 
 // resolveClubCard processes a club card event.
@@ -222,7 +249,8 @@ function resolveTournament(
   data: GameData,
   rng: RNG,
 ): number {
-  const isNational = event.circuitLevel === 'national_championship'
+  // Golden Gloves is equivalent to the national championship for title purposes
+  const isNational = event.circuitLevel === 'national_championship' || event.circuitLevel === 'golden_gloves'
 
   const eligible = collectEligibleFighters(
     event,
@@ -349,7 +377,8 @@ export function runEventTick(state: AdvanceWeekState, data: GameData, rng: RNG):
       totalBouts += resolveClubCard(event, state, data, rng)
     } else if (
       event.circuitLevel === 'regional_tournament' ||
-      event.circuitLevel === 'national_championship'
+      event.circuitLevel === 'national_championship' ||
+      event.circuitLevel === 'golden_gloves'
     ) {
       totalBouts += resolveTournament(event, state, data, rng)
     }

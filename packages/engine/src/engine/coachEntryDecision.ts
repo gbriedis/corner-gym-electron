@@ -44,6 +44,7 @@ function coachReadinessThreshold(coach: Coach | null): number {
 function minimumBoutsForCircuit(circuitLevel: string): number {
   if (circuitLevel === 'regional_tournament') return 1
   if (circuitLevel === 'national_championship') return 3
+  if (circuitLevel === 'golden_gloves') return 3
   return 0  // club_card and unknown levels are open
 }
 
@@ -69,8 +70,9 @@ export function coachShouldEnterFighter(
   const { state } = fighter.fighterIdentity
   if (state !== 'aspiring' && state !== 'competing') return false
 
-  // Inactivity check — 2+ years without a bout means the fighter is
-  // de-trained and needs reconditioning before returning to competition
+  // Recovery and inactivity checks — fighters need time between bouts.
+  // Real amateur fighters compete every 6-12 weeks at most; entering every
+  // event produces unrealistically inflated bout counts.
   if (fighter.career.lastBoutYear !== null && fighter.career.lastBoutWeek !== null) {
     const weeksSinceLastBout = calculateWeeksSince(
       fighter.career.lastBoutYear,
@@ -78,6 +80,17 @@ export function coachShouldEnterFighter(
       currentYear,
       currentWeek,
     )
+
+    // Minimum recovery between event entries scales with career experience.
+    // Tournament entries generate multiple bouts per event (rounds), so veterans
+    // who appear in every event quickly accumulate unrealistic bout totals.
+    // Increasing the gap for veterans brings career bout counts to realistic ranges.
+    const bouts = totalAmateurBouts(fighter)
+    const minWeeksBetweenBouts = bouts > 30 ? 26 : bouts > 10 ? 14 : 8
+    if (weeksSinceLastBout < minWeeksBetweenBouts) return false
+
+    // Long inactivity: 2+ years without a bout means the fighter is de-trained
+    // and needs reconditioning before returning to competition
     if (weeksSinceLastBout > 104) return false
   }
 

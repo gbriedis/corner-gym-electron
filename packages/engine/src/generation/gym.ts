@@ -360,8 +360,10 @@ export function calculateGymQuality(gym: Gym, data: GameData): GymQuality {
 // Called after fighters have been generated and assigned to a gym — coach generation
 // requires knowing who is actually in the gym before picking the best candidate.
 //
-// Returns null if no eligible fighter exists. The gym simply has no head coach at world start,
-// which is a valid state — the player can hire one or develop one over time.
+// Preference order:
+//   1. Retired fighters aged 28+ — they have stepped back and have time to develop others.
+//   2. Competing fighters aged 32+ — still fighting but also coaching is common at that age.
+//   3. null — gym has no head coach at world start. Valid: player can hire or develop one.
 export function assignGymHeadCoach(
   gym: Gym,
   nationId: string,
@@ -370,25 +372,36 @@ export function assignGymHeadCoach(
   rng: RNG,
   startYear?: number,
 ): Coach | null {
-  // Eligible: age > 28 and NOT in 'competing' identity state.
-  // We prefer someone who has stepped back from competition — they have experience
-  // to pass on and time to invest in developing others.
-  const eligible = gymFighters.filter(
-    ({ fighter, person }) => person.age > 28 && fighter.fighterIdentity.state !== 'competing',
+  // First choice: retired fighters aged 28+, ranked by overall attribute sum.
+  const retired = gymFighters.filter(
+    ({ fighter, person }) =>
+      person.age > 28 && fighter.fighterIdentity.state === 'retired',
   )
 
-  if (eligible.length === 0) return null
+  // Fallback: oldest competing fighter aged 32+. Still fighting but their coaching
+  // experience is plausible — many fighters start mentoring before they retire.
+  const competing = gymFighters.filter(
+    ({ fighter, person }) =>
+      person.age > 32 && fighter.fighterIdentity.state === 'competing',
+  )
+
+  const pool = retired.length > 0 ? retired : competing
+  if (pool.length === 0) return null
 
   // Highest combined developed attributes = most technically rounded former fighter.
   // This is a proxy for career depth — fighters who worked harder on more skills
   // generally went further and have more to teach.
-  const coachCandidate = eligible.reduce((best, current) => {
+  const coachCandidate = pool.reduce((best, current) => {
     const totalBest = best.fighter.developedAttributes.reduce((s, a) => s + a.current, 0)
     const totalCurrent = current.fighter.developedAttributes.reduce((s, a) => s + a.current, 0)
     return totalCurrent > totalBest ? current : best
   })
 
   const coachStartYear = startYear ?? 2026
+
+  // Use peakCircuitLevel set by veteranCareer generation — more accurate than title list
+  // because titles may be empty while the fighter did reach a peak circuit level.
+  const peakCircuit = coachCandidate.fighter.career.peakCircuitLevel ?? 'club_card'
 
   const coach = generateCoach(
     coachCandidate.person,
@@ -397,7 +410,7 @@ export function assignGymHeadCoach(
     rng,
     {
       formerFighter: true,
-      careerPeakCircuitLevel: coachCandidate.fighter.competition.amateur.titles[0]?.circuitLevel ?? 'club_card',
+      careerPeakCircuitLevel: peakCircuit,
       careerPeakPrestige: derivePrestige(coachCandidate.fighter, nationId, data),
       fightingStyleTendency: coachCandidate.fighter.style.currentTendency,
       isGymMemberFilling: true,
@@ -538,6 +551,7 @@ export function generateGym(
     fighterIds: [],
     finances,
     lockerCount,
+    casualMemberCount: 0,  // Set by world generation after fighter assignment
     kidsClass,
     quality: {
       trainingFloor: 0,

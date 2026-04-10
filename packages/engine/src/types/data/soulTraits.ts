@@ -3,14 +3,22 @@ import type { Meta } from './meta.js'
 
 export type RevealDifficulty = 'easy' | 'medium' | 'hard'
 
-export interface SoulTrait {
+export interface SoulTraitDef {
   id: string
-  opposite: string
   revealDifficulty: RevealDifficulty
   description: string
 }
 
+export interface SoulTraitPair {
+  id: string
+  // Probability (0.0-1.0) that sideA is chosen when this pair is selected.
+  // Reflects real-world distribution — brave more common than craven, etc.
+  sideAWeight: number
+  sideA: SoulTraitDef
+  sideB: SoulTraitDef
+}
+
 export interface SoulTraitsData {
   meta: Meta
-  traits: SoulTrait[]
+  pairs: SoulTraitPair[]
 }

@@ -38,6 +38,7 @@ function circuitLabel(level: CircuitLevel): string {
     case 'european_championship': return 'European Championship'
     case 'world_championship':    return 'World Championship'
     case 'olympics':              return 'Olympics'
+    case 'golden_gloves':         return 'Golden Gloves'
   }
 }
 
@@ -50,6 +51,7 @@ function circuitBadgeVariant(level: CircuitLevel): BadgeVariant {
     case 'european_championship': return 'normal'
     case 'world_championship':    return 'hard'
     case 'olympics':              return 'hard'
+    case 'golden_gloves':         return 'hard'
   }
 }
 
@@ -128,6 +130,7 @@ const WHY_IT_MATTERS: Record<CircuitLevel, string> = {
   club_card: 'A local card. One bout, go home. The starting point.',
   regional_tournament: 'First real tournament experience. Fighters advance through a bracket in a single day.',
   national_championship: 'The Latvian title. The ceiling of domestic amateur boxing and the gateway to international selection.',
+  golden_gloves: 'Open-entry national championship. Any registered amateur can enter. Career-defining for early-career fighters.',
   baltic_championship: 'Latvia, Lithuania, Estonia. Regional prestige.',
   european_championship: 'The highest level most Latvian fighters will ever compete at.',
   world_championship: 'World amateur title. Reached by very few.',

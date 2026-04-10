@@ -199,6 +199,9 @@ describe('resolveBout — KO conditions', () => {
 describe('resolveBout — headgear damage reduction', () => {
   it('bout without headgear produces more accumulated damage than bout with headgear', () => {
     const seed = 55555
+    // fB's chin is set to 15 so TKO threshold (15×0.7=10.5) exceeds rawDamage (~9)
+    // in both the headgear and no-headgear bouts. Both bouts run to full distance,
+    // making total damage a clean comparison of effectiveDamageMultiplier × rounds.
     const fighters = {
       fA: buildFighterWithAttributes(
         baseFighterA,
@@ -208,7 +211,7 @@ describe('resolveBout — headgear damage reduction', () => {
       fB: buildFighterWithAttributes(
         baseFighterB,
         { ring_generalship: 10, punch_accuracy:10, punch_selection: 10, defensive_skill: 8, output_volume: 10, ring_iq: 9 },
-        { power: 10, hand_speed: 10, chin: 8, durability: 9, stamina: 10 },
+        { power: 10, hand_speed: 10, chin: 15, durability: 9, stamina: 10 },
       ),
     }
 
@@ -237,32 +240,33 @@ describe('resolveBout — headgear damage reduction', () => {
 
 describe('resolveBout — three knockdown rule', () => {
   it('bout stops when fighter reaches 3 knockdowns and three knockdown rule applies', () => {
-    // Calibrated scenario — damage must sit in the KD-zone but below the TKO threshold.
-    // dominator (attrs=11): baseScore=11, damage = 0.35 × 40 × 1.0 ≈ 14.
-    // glassJaw (chin=5): KD threshold = 10, TKO threshold = 15.
-    // 14 > 10 (KD fires ~40% of rounds) and 14 < 15 (TKO never fires).
-    // With three_knockdown_rule=true (baltic_championship senior), bout stops in round 3
-    // when the third cumulative knockdown occurs. P(all 3 rounds with KD) ≈ 6.4% →
-    // over 100 seeds expect ~6 stoppages. No headgear at this level: effectiveMult = 1.0.
+    // Calibrated for scale=45, TKO threshold=0.7×chin.
+    // dominator (all attrs=20): baseScore=20, dominance=(20-4)/20=0.8.
+    // rawDamageToB = 0.8 × 45 × 1.0 = 36 (no headgear at baltic_championship).
+    // glassJaw (chin=24): KD prob = (36-24)/24 = 0.5 (50% per round).
+    // TKO stopProb = (36-16.8)/16.8 = 1.14; survivalMod = (20+20)/40 = 1.0 →
+    //   effective TKO prob = 1.14 × 0.5 = 0.57 per round.
+    // P(three_kd_rule) = P(R1: KD & no TKO) × P(R2: KD & no TKO) × P(R3: KD)
+    //   = (0.5×0.43) × (0.5×0.43) × 0.5 ≈ 2.3% per bout.
+    // Over 300 seeds: ~7 expected stoppages → toBeGreaterThan(0) reliably passes.
     //
     // Both fighters set to style='undefined' to eliminate unpredictable style modifiers.
-    // Style effects on base score could push damage out of the KD-zone and break the test.
     const dominatorBase = buildFighterWithAttributes(
       baseFighterA,
-      { ring_generalship: 11, punch_accuracy:11, punch_selection: 11, defensive_skill: 11, output_volume: 11, ring_iq: 11 },
-      { power: 11, hand_speed: 11, chin: 11, durability: 11, stamina: 11 },
+      { ring_generalship: 20, punch_accuracy: 20, punch_selection: 20, defensive_skill: 20, output_volume: 20, ring_iq: 20 },
+      { power: 20, hand_speed: 20, chin: 20, durability: 20, stamina: 20, heart: 20, recovery_rate: 20 },
     )
     const glassJawBase = buildFighterWithAttributes(
       baseFighterB,
-      { ring_generalship: 4, punch_accuracy:4, punch_selection: 4, defensive_skill: 4, output_volume: 4, ring_iq: 4 },
-      { power: 4, hand_speed: 4, chin: 5, durability: 4, stamina: 10, heart: 16, recovery_rate: 16 },
+      { ring_generalship: 4, punch_accuracy: 4, punch_selection: 4, defensive_skill: 4, output_volume: 4, ring_iq: 4, heart: 20 },
+      { power: 4, hand_speed: 4, chin: 24, durability: 4, stamina: 10, recovery_rate: 20 },
     )
     const noStyle: StyleTendency = 'undefined'
     const dominator = { ...dominatorBase, style: { ...dominatorBase.style, currentTendency: noStyle } }
     const glassJaw = { ...glassJawBase, style: { ...glassJawBase.style, currentTendency: noStyle } }
 
-    // 100 seeds — expect several three_knockdown_rule stoppages
-    const results = Array.from({ length: 100 }, (_, i) =>
+    // 300 seeds — expect ~7 three_knockdown_rule stoppages
+    const results = Array.from({ length: 300 }, (_, i) =>
       resolveBout(
         makeBoutInput({ fA: dominator, fB: glassJaw, circuitLevel: 'baltic_championship', ageCategoryId: 'senior' }),
         data,

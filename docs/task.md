@@ -1,188 +1,382 @@
 # Current Task
 
-## Task: Simulation Calibration Fixes
+## Task: Fighter Lifecycle + World Generation Rework
 
-### What To Fix
-Six issues identified from the CLI inspection report. Fix in order — each affects the next.
+### What To Build
+A complete rework of world generation to produce a living ecosystem with proper age distribution, career histories for veterans, annual replacement pipeline, and retirement tracking. Combined with the soul trait fix, person model removal, equipment maintenance, and gym finance calibration.
 
 ### Skill To Load
 `.claude/skills/engine/SKILL.md`
+`.claude/skills/new-feature/SKILL.md`
 
 ---
 
-## Fix 1 — USA Bouts: 0
+## Part 1 — Soul Traits: Exactly 3, No Contradictions
 
-**Root cause:** The event calendar is only generated for Latvia. USA events are never created so USA fighters never compete.
+**Location:** `packages/engine/src/generation/person.ts`
 
-**Location:** `packages/engine/src/generation/calendar.ts` and `packages/engine/src/generation/world.ts`
+A person has exactly 3 soul traits. Picked from 3 randomly chosen pairs. Cannot have both sides of any pair.
 
-`generateWorld` calls `generateCalendar` once. Check whether it passes all included nations or only the player nation. The calendar must generate domestic events for every nation in `config.includedNations` — not just the player nation.
+```typescript
+// 1. Take all 8 trait pairs from soul-traits.json
+// 2. Shuffle pairs using seeded RNG
+// 3. Pick first 3 pairs
+// 4. From each chosen pair, pick one side:
+//    - Roll against pair.sideAWeight (probability side A is chosen)
+//    - Some pairs favour one side — brave more common than craven etc
+// 5. Result: exactly 3 traits, guaranteed no contradictions
 
-Fix: `generateCalendar` must iterate over all included nations and generate domestic events for each. Latvia gets LBF events. USA gets USA Boxing events. Both appear on the shared calendar.
+const shuffledPairs = rng.shuffle([...data.soulTraits.traits])
+const chosenPairs = shuffledPairs.slice(0, 3)
+const traits = chosenPairs.map(pair =>
+  rng.next() < pair.sideAWeight
+    ? { traitId: pair.sideA.id, revealed: false }
+    : { traitId: pair.sideB.id, revealed: false }
+)
+```
 
-Also check `eventTick.ts` — verify it processes events for all nations, not just the player nation. The event loop must not filter by `nationId === playerNationId`.
+Add `sideAWeight` to soul-traits.json per pair — probability (0.0-1.0) that side A is picked. Reflects real world distribution — brave more common than craven, humble more common than arrogant etc:
+
+```json
+{ "id": "brave_craven",    "sideA": "brave",      "sideB": "craven",      "sideAWeight": 0.65 },
+{ "id": "humble_arrogant", "sideA": "humble",     "sideB": "arrogant",    "sideAWeight": 0.60 },
+{ "id": "patient_impatient","sideA": "patient",   "sideB": "impatient",   "sideAWeight": 0.50 },
+{ "id": "trusting_paranoid","sideA": "trusting",  "sideB": "paranoid",    "sideAWeight": 0.60 },
+{ "id": "disciplined_reckless","sideA":"disciplined","sideB":"reckless",   "sideAWeight": 0.55 },
+{ "id": "determined_fragile","sideA":"determined", "sideB":"fragile",     "sideAWeight": 0.65 },
+{ "id": "hungry_content",  "sideA": "hungry",     "sideB": "content",     "sideAWeight": 0.55 },
+{ "id": "proud_humble2",   "sideA": "proud",      "sideB": "shameful",    "sideAWeight": 0.70 }
+```
+
+Note: verify actual pair ids match soul-traits.json exactly.
+
+Update all soul trait checks in engine to use safe lookup:
+```typescript
+const hasTrait = (traitId: string) =>
+  entity.soulTraits.some(t => t.traitId === traitId)
+```
+
+Verify this pattern is used consistently in: `fighter.ts`, `coach.ts`, `roundResolution.ts`, `attributeEvents.ts`, `identityTick.ts`, `coachEntryDecision.ts`.
 
 ---
 
-## Fix 2 — Attributes Too Low
+## Part 2 — Remove Person as Standalone Entity
 
-**Root cause:** Attribute accumulation events are either not being applied to fighters after bouts, or the gain values produce negligible growth.
+**The new model:** Every entity is either a Fighter, a Coach, or doesn't exist. Gyms carry `casualMemberCount` as a number for revenue and culture.
 
-**Two things to check:**
+### Update `packages/engine/src/types/gym.ts`
 
-**Check A — Are attribute events being applied?**
-
-In `backrun.ts` or `ipc.ts`, after `resolveBout()` returns `fighterAAttributeEvents` and `fighterBAttributeEvents` — are these actually being written to the fighter's `attributeHistory` and applied to their `developedAttributes.current` values?
-
-The attribute events are calculated but may never be applied. Verify the flow:
-```
-resolveBout() → returns AttributeHistoryEvent[]
-→ must be applied: fighter.developedAttributes[attr].current += delta
-→ must be stored: fighter.attributeHistory[attr].events.push(event)
-→ fighter marked as pendingFighterUpdates
+Add field (may already exist — verify):
+```typescript
+casualMemberCount: number
+// Non-competing members who train for fitness and pay dues.
+// Not tracked individually — drives revenue and culture calculations.
+// Roughly 70% of gym capacity at generation, varies by gym tier.
 ```
 
-**Check B — Are gain values sufficient?**
+### Update `packages/engine/src/generation/world.ts`
 
-From `attribute-accumulation.json`, `amateur_bout` base gain for `ring_iq` is 0.4. With opposition quality multiplier of 1.0 and no soul trait bonus, a fighter gets 0.4 ring_iq per bout. After 50 bouts that's 20 points — but the cap is 20 so something else is wrong.
+Remove all Person pool generation. Replace with direct Fighter and Coach generation:
 
-With 132 bouts, even at 0.3 gain per bout for power = 39.6 total. Power should be near ceiling not at 8.3.
+```typescript
+// For each gym in each city:
+// 1. Calculate fighter count: floor(gym.lockerCount × city.talentDensity × 0.30)
+// 2. Calculate casual count: floor(gym.lockerCount × 0.70)
+// 3. Generate fighters with age distribution (see Part 3)
+// 4. Generate coaches from retired fighters in the gym (see Part 5)
+// 5. Set gym.casualMemberCount = casual count
+// 6. Set gym.fighterIds = generated fighter ids
+// 7. Set gym.memberIds = [] — no longer used, keep field for compatibility
+```
 
-The issue is likely that attribute events are calculated but not applied. Find where `pendingAttributeEvents` is consumed and verify the delta is actually added to `developedAttribute.current`.
+### Remove from IPC/SQLite
+
+Do not write to `persons` table during world generation. The table can remain for future use but world gen writes fighters and coaches only.
 
 ---
 
-## Fix 3 — Too Many Retirements (70%)
+## Part 3 — Age Distribution at Generation (2016)
 
-**Root cause:** Retirement probability is too high or triggering incorrectly.
+When generating fighters for a gym, use this age pyramid:
 
-**Location:** `packages/engine/src/engine/identityTick.ts`
-
-Current retirement rules fire at:
-- Age >= 38: 5% per week
-- Age >= 35 AND heavy damage: 3% per week  
-- 3 consecutive losses: 1% per week
-- Content + no title ambitions + age >= 32: 0.5% per week
-
-**Problem:** 5% per week at age 38 means a fighter has a 93% chance of retiring within a year of turning 38. Over 10 years with many fighters reaching 35+, most retire.
-
-**Fix — reduce retirement probabilities significantly:**
-```
-Age >= 40: 3% per week (was 38 at 5%)
-Age >= 37: 1% per week
-Age >= 35 AND health heavily damaged: 1% per week (was 3%)
-3 consecutive losses: 0.3% per week (was 1%)
-Content + no title ambitions + age >= 35: 0.2% per week (was 32 at 0.5%)
+```typescript
+const AGE_COHORTS = [
+  { minAge: 13, maxAge: 17, fraction: 0.15 },
+  { minAge: 18, maxAge: 22, fraction: 0.25 },
+  { minAge: 23, maxAge: 28, fraction: 0.30 },
+  { minAge: 29, maxAge: 34, fraction: 0.20 },
+  { minAge: 35, maxAge: 40, fraction: 0.10 },
+]
 ```
 
-Also add a minimum bout requirement — a fighter should not retire without having competed at all. If `totalBouts === 0`, retirement probability = 0 regardless of age.
+For N fighters to generate:
+- Roll age from cohort range using the fraction as weight
+- Pass age to `generateFighter` — it affects starting attributes, identity state, and whether a career history is needed
+
+**Identity state biases by cohort:**
+- 13-17: force `unaware` or `curious` (80/20 split)
+- 18-22: weighted toward `curious` or `aspiring` (30/70)
+- 23-28: weighted toward `aspiring` or `competing` (20/80)
+- 29-34: weighted toward `competing` (90%) or `retired` (10%)
+- 35-40: weighted toward `competing` (40%) or `retired` (60%)
 
 ---
 
-## Fix 4 — Gym Finances Wildly Inflated
+## Part 4 — Statistical Career Generation for Veterans
 
-**Root cause:** Income calculation is not dividing by 4 to convert monthly to weekly, OR member count is orders of magnitude too high, OR the revenue is compounding incorrectly over 520 weeks.
+Fighters aged 29+ at world generation start (2016) need plausible career histories. Generated in one pass — not simulated.
+
+**`packages/engine/src/generation/veteranCareer.ts`**
+
+```typescript
+// generateVeteranCareer produces a plausible career record for a fighter
+// who has been competing before world generation starts.
+// Not simulated — statistically generated based on attributes and years active.
+// Called from generateFighter when age > 28 and identityState is competing or retired.
+
+export function generateVeteranCareer(
+  fighter: Fighter,
+  yearsActive: number,   // age - firstCompetedAge (estimated ~18-20)
+  data: GameData,
+  rng: RNG
+): VeteranCareerRecord
+
+export interface VeteranCareerRecord {
+  amateurWins: number
+  amateurLosses: number
+  peakCircuitLevel: string
+  titlesHeld: string[]       // belt ids for national titles if earned
+  medals: Medal[]
+}
+```
+
+**Generation rules:**
+
+```typescript
+// Bouts per year: 3-8 depending on competition status and age
+// Older fighters fight less frequently
+const boutsPerYear = rng.nextInt(3, 8)
+const totalBouts = Math.round(yearsActive * boutsPerYear * rng.nextFloat(0.7, 1.0))
+
+// Win rate based on overall attribute quality
+// High attribute fighter: 60-75% win rate
+// Average: 45-60%
+// Low: 30-50%
+const attributeScore = calculateOverallAttributeScore(fighter)
+const winRate = mapAttributeScoreToWinRate(attributeScore, rng)
+
+const wins = Math.round(totalBouts * winRate)
+const losses = totalBouts - wins
+
+// Peak circuit level based on win rate and total bouts
+// Many wins vs quality opponents → reached national level
+// Moderate record → regional level
+// Weak record → club card level
+const peakCircuit = derivePeakCircuit(wins, losses, attributeScore, rng)
+
+// Titles: only if reached national_championship and win rate > 0.60
+const titlesHeld = []
+if (peakCircuit === 'national_championship' && winRate > 0.60 && rng.next() < 0.3) {
+  // Assign national title for their weight class
+  titlesHeld.push(`lbf_national_${fighter.competition.weightClassId}`)
+}
+```
+
+Apply the veteran career to the fighter record after generation. Update `developedAttributes` to reflect career history — a fighter with 50 amateur bouts has higher mental attributes than one who just started. Use the mental attribute caps from `attribute-accumulation.json` keyed on bout count.
+
+---
+
+## Part 5 — Coaches from Retired Fighters
+
+After generating all fighters for a gym, identify coaches:
+
+```typescript
+// Head coach selection:
+// Look for fighters in 'retired' identity state with age > 28
+// Pick the one with highest overall attribute score
+// If none retired: pick oldest 'competing' fighter age > 32 (still fighting but also coaching)
+// If neither: gym has no head coach (isGymMemberFilling: true with null personId)
+
+// Generate their Coach record using generateCoach() with formerFighter: true
+// careerPeakPrestige derived from their veteranCareer.peakCircuitLevel
+// yearsCoaching = max(0, currentAge - 32) — rough estimate of when they started coaching
+```
+
+---
+
+## Part 6 — Annual New Fighter Pipeline (Backrun)
+
+**Location:** `packages/engine/src/engine/advanceWeek.ts` or new `annualTick.ts`
+
+At week 52 of each simulated year, seed new young fighters into each city:
+
+```typescript
+// Annual pipeline seeding
+function runAnnualPipeline(state: AdvanceWeekState, data: GameData, rng: RNG): void {
+  for (const [nationId, nation] of state.worldState.nations) {
+    for (const city of nation.cities) {
+      // Base annual seed by city size
+      const baseSeed = city.population === 'large_city' ? 8
+                     : city.population === 'mid_city'   ? 4
+                     : 2  // small_town
+
+      // Adjust for talent density and retirements this year
+      const retiredThisYear = state.annualRetirementCount[city.id] ?? 0
+      const newCount = Math.max(
+        Math.round(baseSeed * city.talentDensity * rng.nextFloat(0.8, 1.2)),
+        Math.round(retiredThisYear * 0.8)  // replace 80% of retirements
+      )
+
+      // Generate new fighters aged 13-16
+      for (let i = 0; i < newCount; i++) {
+        const age = rng.nextInt(13, 16)
+        const gym = findGymWithCapacity(state, city.id, rng)
+        if (!gym) continue
+        const fighter = generateFighter(
+          createBasePerson(age, nationId, city.id, data, rng),
+          gym.id, null, data, rng,
+          { forceIdentityState: 'unaware' }
+        )
+        addFighterToWorld(state, fighter, gym)
+      }
+    }
+  }
+  // Reset annual retirement counter
+  state.annualRetirementCount = {}
+}
+```
+
+**Track retirements:** In `identityTick.ts`, when a fighter transitions to `retired`, increment `state.annualRetirementCount[fighter.cityId]`.
+
+Add `annualRetirementCount: Record<string, number>` to `AdvanceWeekState`.
+
+---
+
+## Part 7 — Equipment Auto-Maintenance
 
 **Location:** `packages/engine/src/engine/weeklyTick.ts`
 
-Check the weekly income formula:
+After equipment decay each week:
+
 ```typescript
-// WRONG — this adds full monthly income every week
-weeklyIncome = memberCount × monthlyMembershipFee
+for (const item of gym.equipment) {
+  if (item.condition < 25 && item.inUse) {
+    const equipType = data.gymEquipmentTypes.equipment.find(e => e.id === item.typeId)
+    if (!equipType) continue
+    const repairCost = equipType.purchaseCost * 0.15
+    if (gym.finances.balance >= repairCost) {
+      item.condition = Math.min(75, item.condition + 50)
+      item.lastMaintenanceYear = state.year
+      item.lastMaintenanceWeek = state.week
+      gym.finances.balance -= repairCost
+    }
+    // Cannot afford: equipment stays degraded
+    // Struggling gyms produce worse training — intentional
+  }
+}
 
-// CORRECT — divide by 4 to get weekly portion
-weeklyIncome = (memberCount × monthlyMembershipFee) / 4
+// Monthly maintenance cost (every 4 weeks)
+if (state.week % 4 === 0) {
+  const monthlyCost = gym.equipment
+    .filter(e => e.inUse && e.condition > 0)
+    .reduce((sum, item) => {
+      const type = data.gymEquipmentTypes.equipment.find(t => t.id === item.typeId)
+      return sum + (type?.maintenanceCostMonthly ?? 0)
+    }, 0)
+  gym.finances.balance -= monthlyCost
+}
 ```
-
-Also check member count — 3,250 persons in Latvia across 23 gyms = ~141 members per gym average. If all 141 members pay €30/month that's €4,230/month = €1,057/week. Over 520 weeks with no expenses that's €549,640. But Olimps Rīga has €3.8 million — so either the member count is wrong or the income formula is multiplying incorrectly.
-
-Check if `memberIds.length` is being used vs a fixed count. Also verify outgoings (rent + wages) are being deducted each week.
-
-**Target after fix:** A healthy gym after 10 years should have €10,000-€80,000. A struggling gym should be in deficit or near zero.
 
 ---
 
-## Fix 5 — Fighter Bouts Too Frequent (132 bouts in 10 years)
+## Part 8 — Gym Finances Using casualMemberCount
 
-**Root cause:** `coachShouldEnterFighter` is entering fighters into every available event with insufficient restriction.
+**Location:** `packages/engine/src/engine/weeklyTick.ts`
 
-**Location:** `packages/engine/src/engine/coachEntryDecision.ts`
-
-132 bouts over 520 weeks = ~0.25 bouts per week = fighting roughly every 4 weeks. Real amateur fighters compete every 6-12 weeks at most.
-
-**Fix — add minimum weeks between bouts:**
 ```typescript
-// Fighter must have at least 6 weeks recovery between bouts
-// For aspiring fighters: 8 weeks minimum
-// For competing veterans with high bout count: 6 weeks minimum
-const weeksSinceLastBout = calculateWeeksSince(
-  fighter.career.lastBoutYear,
-  fighter.career.lastBoutWeek,
-  currentYear,
-  currentWeek
+// Weekly income
+const totalMembers = gym.casualMemberCount + gym.fighterIds.length
+const weeklyIncome = (totalMembers * gym.finances.membershipFeeMonthly) / 4
+
+// Weekly outgoings
+const weeklyRent = gym.finances.monthlyRent / 4
+const weeklyWages = gym.staffMembers
+  .reduce((sum, s) => sum + s.wageMonthly / 4, 0)
+const weeklyOutgoings = weeklyRent + weeklyWages
+
+gym.finances.balance += (weeklyIncome - weeklyOutgoings)
+```
+
+**Calibrate `casualMemberCount` at gym generation:**
+
+```typescript
+// In generateGym():
+const casualMultiplier = {
+  rundown_community: 0.60,
+  established_community: 0.55,
+  competition_gym: 0.40,
+  elite_gym: 0.25,
+}
+gym.casualMemberCount = Math.round(
+  gym.lockerCount * casualMultiplier[templateId] * rng.nextFloat(0.8, 1.2)
 )
-const minWeeksBetweenBouts = fighter.competition.amateur.wins + fighter.competition.amateur.losses > 20
-  ? 6
-  : 8
-if (weeksSinceLastBout < minWeeksBetweenBouts) return false
 ```
-
-Also check if the event generation is creating too many events per city per year. If Riga has 20 club cards per year and a fighter enters all of them, the bout count explodes.
 
 ---
 
-## Fix 6 — USA Competing Fighters at 0-0
+## Verification — Expected CLI Output
 
-This is a consequence of Fix 1. Once USA events generate and USA fighters compete, their records will populate. No separate fix needed — verify after Fix 1 is applied.
-
-However also check: USA fighters are marked `competing` in identity state despite never having competed. The `aspiring → competing` transition should only happen when a fighter actually enters and completes a bout — not on a probability roll alone.
-
-**Location:** `packages/engine/src/engine/identityTick.ts` and `packages/engine/src/engine/eventTick.ts`
-
-The `competing` state should be set in `eventTick` when a fighter completes their first bout — not in `identityTick` as a probability transition. A fighter is `competing` when they have competed, not when they intend to.
-
-Fix: Remove `aspiring → competing` probability transition from `identityTick`. Instead, in `eventTick`, after a fighter completes their first bout, set their identity state to `competing`.
-
----
-
-## Verification
-
-After all fixes, run the CLI tool again. Expected output:
+Run CLI after all fixes. Target ranges:
 
 ```
-BOUT RESULTS HEALTH CHECK
-KO/TKO        30-40%   ← was 13.1%, too low
-Decision      60-70%
+latvia
+├─ Fighters: 150-220
+│    competing: 50-80  aspiring: 50-70  retired: 20-40  unaware: 20-40
+└─ Bouts resolved: 1,500-2,500
 
-ATTRIBUTE DISTRIBUTIONS (latvia fighters)
-power    mean: 7-10   ← was 2.5, too low
-ring_iq  mean: 3-6    ← was 1.2, appropriate range
+BOUT RESULTS
+KO/TKO: 25-40%
+Decision: 60-75%
 
-GYM FINANCIALS (latvia)
-Most profitable: €20,000-€80,000   ← was €3.8M, absurd
+ATTRIBUTES (latvia competing fighters only)
+power    mean: 7-11
+ring_iq  mean: 4-8
+heart    mean: 3-6
 
-TOP FIGHTERS BY RECORD
-1. Fighter  12-2   ← was 132-1, unrealistic
+GYM FINANCIALS
+Gyms in deficit: 15-30%
+Most profitable: €15,000-€80,000
+
+TOP FIGHTERS
+Record range: 15-40 bouts total for top fighters
+Age range: 26-36 for top competitors
 ```
+
+Include full CLI output in the commit message.
 
 ---
 
 ### Definition Of Done
-- [ ] Fix 1 — USA bouts > 0 after backrun
-- [ ] Fix 2 — Latvia attribute means: power ~8, chin ~8, ring_iq ~3-5
-- [ ] Fix 3 — Retired fighters < 30% of total Latvia fighters
-- [ ] Fix 4 — Most profitable gym < €100,000 after 10 years
-- [ ] Fix 5 — Top fighter record < 60 bouts total
-- [ ] Fix 6 — USA competing fighters have real records
-- [ ] Run CLI tool and paste output to verify all six fixes
+- [ ] Soul traits: every fighter has exactly 3, no contradictions, sideAWeight in soul-traits.json
+- [ ] No Person records generated — fighters and coaches only
+- [ ] `casualMemberCount` on gym, calibrated per template
+- [ ] Age distribution pyramid — 5 cohorts at world generation
+- [ ] `generateVeteranCareer` — plausible records for fighters aged 29+
+- [ ] Veteran attributes reflect career history (mental attribute caps applied)
+- [ ] Annual new fighter pipeline — seeds young fighters each year
+- [ ] `annualRetirementCount` tracked, drives replacement rate
+- [ ] Equipment auto-maintenance — gyms repair when affordable
+- [ ] Gym finances use `casualMemberCount` — no person record dependency
+- [ ] CLI output within expected ranges above
 - [ ] `pnpm typecheck` clean
 - [ ] `pnpm test` passing
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `fix: simulation calibration`
+- [ ] Committed with full CLI output in commit message: `fix: fighter lifecycle + world generation rework`
 
 ### Notes
-- Fix in order — Fix 1 (USA events) and Fix 2 (attribute application) are the most critical
-- Fix 6 resolves automatically once Fix 1 is done
-- Do not change attribute gain values in attribute-accumulation.json until confirming events are being applied — the values may be correct, the application may be broken
-- After each fix, run the CLI tool to verify before moving to the next
-- The retirement probability reduction (Fix 3) should be conservative — we want fighters to have careers, not fight forever
+- Read engine skill fully before touching any code
+- Fix soul traits first — affects every downstream generation step
+- veteranCareer is statistical generation not simulation — one pass, no loops
+- Annual pipeline uses annualRetirementCount to calibrate replacement — track retirements in identityTick
+- Equipment maintenance is intentionally limited by finances — struggling gyms degrade, that's correct
+- After all fixes, rebuild, generate new save, run CLI, verify numbers before committing
