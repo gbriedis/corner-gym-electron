@@ -123,6 +123,8 @@ corner-gym/
     │   │           ├── pro-sanctioning-bodies.json  # WBC, WBA, IBF, WBO, Ring Magazine
     │   │           ├── pro-title-belts.json         # 144 belts — all tiers × all bodies × 9 pro weight classes
     │   │           └── pro-rankings-structure.json  # Ranking rules, decay, mandatory defence, acquisition tiers
+    │   ├── scripts/
+    │   │   └── inspect-save.ts        # CLI inspection tool — reads a .db save, prints world summary + bout health + attributes + financials + top fighters
     │   └── src/
     │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + generateFighter + advanceWeek
     │       ├── types/
