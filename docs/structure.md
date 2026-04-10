@@ -70,7 +70,8 @@ corner-gym/
     │   │   │   ├── coach-styles.json          # Coach style dimensions — emphasis, methodology, communication types
     │   │   │   ├── gym-equipment-types.json   # 12 equipment types — zone, decay, cost, training benefit
     │   │   │   ├── style-matchups.json        # 13 style matchup entries + styleThresholds per style
-    │   │   │   └── style-development.json     # tendencyStrength growth, coach influence, compatibility formula
+    │   │   │   ├── style-development.json     # tendencyStrength growth, coach influence, compatibility formula
+    │   │   │   └── reasons-for-boxing.json    # Universal reason definitions — metadata for moment/ambition systems
     │   │   ├── nations/
     │   │   │   └── latvia/
     │   │   │       ├── nation.json
@@ -93,7 +94,25 @@ corner-gym/
     │   │   │           ├── lbf-rules.json           # LBF bout rules — 3 circuit levels × 3 age categories
     │   │   │           ├── pro-ecosystem.json       # Pro development levels 0–4 — requirements, unlocks, inbox messages
     │   │   │           └── promoters.json           # Empty promoter list — Latvian voice lines for procedural generation
-    │   │   └── international/
+    │   │   └── usa/
+    │   │       ├── nation.json                  # USA nation — boxing culture 5, pro ecosystem starts at 4, performanceHint
+    │   │       ├── cities.json                  # 20 US cities with modifiers — Las Vegas through Lowell
+    │   │       ├── ethnicities.json             # 6 ethnicities with physical profiles, trait weights, city distributions
+    │   │       ├── names.json                   # By ethnicity — 6 pools, 20+ names each
+    │   │       ├── economic-statuses.json       # 6 US economic statuses — welfare through upper middle class
+    │   │       ├── reasons-for-boxing.json      # 8 reasons including family_tradition and community_identity
+    │   │       ├── gym-names.json               # 90+ full names — PAL, surname gyms, community names
+    │   │       ├── coach-generation.json        # Higher quality ranges than Latvia — boxing culture 5
+    │   │       ├── gym-starting-states.json     # 4 templates + large_city distribution
+    │   │       └── boxing/
+    │   │           ├── sanctioning-bodies.json  # USA Boxing — national amateur body, affiliates to IBA
+    │   │           ├── amateur-circuit.json     # 4 levels — club, regional, nationals, Golden Gloves
+    │   │           ├── usab-rules.json          # USA Boxing rules — 4 circuit levels × 3 age categories
+    │   │           ├── event-templates.json     # 4 event templates including Golden Gloves
+    │   │           ├── venues.json              # 15 venues — Kronk, MSG, MGM Grand, Gleason's
+    │   │           ├── pro-ecosystem.json       # Starts at level 4 — all thresholds pre-met
+    │   │           └── promoters.json           # US promoter voice lines — direct, business-focused
+    │   └── international/
     │   │       └── boxing/
     │   │           ├── sanctioning-bodies.json      # EUBC (continental) + IBA (international)
     │   │           ├── circuits.json                # Baltic, European, World, Olympics circuit levels
@@ -141,6 +160,7 @@ corner-gym/
     │       │       ├── coachVoice.ts
     │       │       ├── developmentProfiles.ts
     │       │       ├── rewards.ts     # RewardsData — per circuit level reward definitions
+    │       │       ├── ethnicities.ts # EthnicitiesData, Ethnicity, EthnicityPhysicalProfile
     │       │       └── boxing.ts      # All boxing data types — sanctioning bodies, circuits, templates, venues
     │       ├── data/
     │       │   └── loader.ts          # loadGameData() — GameData + NationBoxingData + InternationalData + attributeAccumulation

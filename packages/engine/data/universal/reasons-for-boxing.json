@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Universal definitions for reasons a person starts boxing. These definitions include metadata used by future systems (soul trait affinities, ambition biases, note on the psychological arc). Nation-specific files assign weights and local descriptions — this file is the canonical source of what each reason means mechanically and narratively. The moment system and ambition system will read these definitions when they are built."
+  },
+  "reasons": [
+    {
+      "id": "outlet",
+      "label": "Needed an Outlet",
+      "soulTraitAffinities": ["hungry", "determined"],
+      "soulTraitRisks": ["fragile"],
+      "ambitionBias": "none",
+      "note": "The anger or pain that drove them to boxing can sustain a long career — or, if the underlying wound never heals, become a liability under pressure."
+    },
+    {
+      "id": "prove_something",
+      "label": "Had Something to Prove",
+      "soulTraitAffinities": ["proud", "determined"],
+      "soulTraitRisks": ["fragile"],
+      "ambitionBias": "national_or_title",
+      "note": "The chip never fully goes away. Their ambition is tied to external validation — which is fuel, but also risk if the validation never comes."
+    },
+    {
+      "id": "way_out",
+      "label": "Saw It as a Way Out",
+      "soulTraitAffinities": ["hungry", "brave"],
+      "soulTraitRisks": [],
+      "ambitionBias": "professional_or_title",
+      "note": "The most motivated fighters at the start. The danger is that once they've escaped, the hunger sometimes goes with the escape."
+    },
+    {
+      "id": "passion",
+      "label": "Pure Passion for the Sport",
+      "soulTraitAffinities": ["disciplined", "calm"],
+      "soulTraitRisks": [],
+      "ambitionBias": "none",
+      "note": "Passion-driven fighters tend to last longer and train harder — the sport is its own reward. Less likely to burn out, less likely to cut corners."
+    },
+    {
+      "id": "fell_into_it",
+      "label": "Fell Into It",
+      "soulTraitAffinities": [],
+      "soulTraitRisks": [],
+      "ambitionBias": "none",
+      "note": "No strong pull in any direction. Their trajectory depends almost entirely on what they find at the gym and who coaches them."
+    },
+    {
+      "id": "family_tradition",
+      "label": "Family Tradition",
+      "soulTraitAffinities": ["proud", "determined"],
+      "soulTraitRisks": ["fragile"],
+      "ambitionBias": "national_or_title",
+      "note": "family_tradition fighters often struggle if they fail to live up to legacy. The same pride that drives them can break them."
+    },
+    {
+      "id": "community_identity",
+      "label": "Community Identity",
+      "soulTraitAffinities": ["brave", "proud", "hungry"],
+      "soulTraitRisks": [],
+      "ambitionBias": "competing_matters_as_much_as_winning",
+      "note": "community_identity fighters get something extra from a crowd. The occasion lifts them."
+    },
+    {
+      "id": "friend_brought_me",
+      "label": "A Friend Brought Me",
+      "soulTraitAffinities": [],
+      "soulTraitRisks": [],
+      "ambitionBias": "none",
+      "note": "The simplest origin. The friend may have quit. They didn't."
+    }
+  ]
+}

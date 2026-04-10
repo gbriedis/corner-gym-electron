@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Economic background statuses for US fighters. Weights sum to 1.0 and are rolled once at generation — the result is permanent background context. The US economic spectrum is broader and more stratified than Latvia's. Descriptions reference real American economic context. The majority of American fighters come from the bottom half of this distribution — boxing is not a sport that attracts the comfortable."
+  },
+  "statuses": [
+    {
+      "id": "welfare",
+      "label": "On Welfare",
+      "weight": 0.12,
+      "description": "Government assistance. Food stamps, housing vouchers, a mother working two jobs that barely cover both. Boxing is sometimes a gym that provides structure, sometimes a way to eat, sometimes the only thing that makes sense about the world. Fighters from this background have had to fight before they ever stepped in a ring."
+    },
+    {
+      "id": "working_poor",
+      "label": "Working Poor",
+      "weight": 0.25,
+      "description": "Employed but paycheck to paycheck. Maybe a father on a warehouse floor, a mother taking night shifts at a hospital. Never quite broke, never quite stable. Boxing is both an escape and a shot — the one option that doesn't require a degree or a connection. The most common background in American boxing."
+    },
+    {
+      "id": "working_class",
+      "label": "Working Class",
+      "weight": 0.30,
+      "description": "Stable employment, modest means. Union work, trade work, small business. Bought the house, kept the lights on. Boxing is something the neighbourhood does — a tradition, a discipline, an identity. Not desperate, but not comfortable either."
+    },
+    {
+      "id": "lower_middle",
+      "label": "Lower Middle Class",
+      "weight": 0.18,
+      "description": "Some financial cushion. Homeownership possible. A two-income household that isn't always counting. Boxing is a choice here — a real one, made for love of the sport or a desire to prove something rather than pure necessity."
+    },
+    {
+      "id": "middle_class",
+      "label": "Middle Class",
+      "weight": 0.11,
+      "description": "Comfortable. College was always assumed. A neighbourhood where the gyms are clean and the equipment is new. Boxing is a passion project, a serious commitment, sometimes even a statement. The least common background in American boxing — comfort rarely creates the hunger the sport demands."
+    },
+    {
+      "id": "upper_middle",
+      "label": "Upper Middle Class",
+      "weight": 0.04,
+      "description": "Professional income, significant assets. This person has other options and chose boxing anyway — which says something. Either genuine obsession, a chip on the shoulder that money couldn't fix, or a family tradition that transcends class. Rare in the sport. The ones who make it tend to be the most disciplined fighters in the building."
+    }
+  ]
+}

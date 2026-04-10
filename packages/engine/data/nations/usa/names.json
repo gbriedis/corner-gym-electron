@@ -1,0 +1,136 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Name pool for USA fighters, structured by ethnicity. When an ethnicity is assigned, the engine picks from byEthnicity[ethnicityId].male. Names reflect real naming patterns for each community in American boxing context — fighters' names, not generic lists. Male only for V1."
+  },
+  "nation": "usa",
+  "byEthnicity": {
+    "african_american": {
+      "male": {
+        "firstNames": [
+          "DeShawn", "Marcus", "Darnell", "Tyrone", "Jamal", "Terrence", "Lamar", "Malik",
+          "Devon", "Kendrick", "Darius", "Antoine", "Desmond", "Jermaine", "Cornelius",
+          "Rasheed", "Tavon", "Marquis", "Dontae", "Javion", "Elijah", "Damien", "Isaiah",
+          "Royce", "Quincy", "Jerome", "Broderick", "Cedric", "Deandre", "Treyvon",
+          "Kareem", "Hakeem", "Javonte", "Maurice", "Darrell", "Rodney", "Calvin",
+          "Donnell", "Earnest", "Floyd", "Tyrell", "Reggie", "Wendell", "Carlton"
+        ],
+        "surnames": [
+          "Washington", "Johnson", "Williams", "Robinson", "Jackson", "Harris", "Davis",
+          "Martin", "Thompson", "White", "Clark", "Lewis", "Walker", "Hall", "Allen",
+          "Young", "King", "Scott", "Green", "Adams", "Baker", "Carter", "Mitchell",
+          "Perez", "Roberts", "Turner", "Phillips", "Campbell", "Parker", "Evans",
+          "Edwards", "Collins", "Stewart", "Sanchez", "Morris", "Rogers", "Reed",
+          "Cook", "Morgan", "Bell", "Murphy", "Bailey", "Rivera", "Cooper", "Richardson"
+        ]
+      }
+    },
+    "mexican_american": {
+      "male": {
+        "firstNames": [
+          "Miguel", "Carlos", "Juan", "Eduardo", "Ricardo", "Fernando", "Antonio",
+          "Alejandro", "Diego", "Marco", "Rodrigo", "Rafael", "Héctor", "Ernesto",
+          "Ramón", "Enrique", "Gerardo", "Armando", "Francisco", "Salvador",
+          "Jesús", "Óscar", "Rubén", "Arturo", "Víctor", "Sergio", "Guillermo",
+          "Roberto", "Javier", "Raúl", "Manuel", "Alfredo", "Ignacio", "Pedro",
+          "Jorge", "Luis", "Andrés", "Erick", "Julio", "Omar", "Félix", "Aurelio",
+          "Gilberto", "Héctor"
+        ],
+        "surnames": [
+          "García", "Martínez", "López", "González", "Rodríguez", "Hernández", "Pérez",
+          "Sánchez", "Ramírez", "Torres", "Flores", "Rivera", "Gómez", "Díaz", "Reyes",
+          "Morales", "Jiménez", "Cruz", "Guerrero", "Mendoza", "Vargas", "Ruiz",
+          "Aguilar", "Medina", "Castillo", "Ortiz", "Alvarez", "Ramos", "Vega",
+          "Herrera", "Salinas", "Delgado", "Figueroa", "Campos", "Acosta", "Rojas",
+          "Fuentes", "Cabrera", "Lara", "Carrillo", "Estrada", "Contreras", "Zamora",
+          "Guerrero", "Navarro"
+        ]
+      }
+    },
+    "irish_american": {
+      "male": {
+        "firstNames": [
+          "Patrick", "Sean", "Michael", "Kevin", "Brendan", "Danny", "James", "Ryan",
+          "Brian", "Conor", "Kieran", "Timothy", "Liam", "Declan", "Aidan", "Shane",
+          "Cormac", "Rory", "Finnegan", "Eamon", "Colm", "Dermot", "Ciarán", "Niall",
+          "Padraig", "Ronan", "Seamus", "Tommy", "Mick", "Terry", "Eddie", "Johnny",
+          "Billy", "Bobby", "Jimmy", "Jackie", "Marty", "Dennis", "Francis", "Gerald",
+          "Cornelius", "Eugene", "Gerry", "Paudie", "Cathal"
+        ],
+        "surnames": [
+          "Murphy", "Kelly", "Sullivan", "Walsh", "O'Brien", "Ryan", "McCarthy", "O'Connor",
+          "Doyle", "Kennedy", "Quinn", "Carroll", "Brennan", "Burke", "Collins", "Connolly",
+          "Doherty", "Duffy", "Farrell", "Fitzgerald", "Flynn", "Gallagher", "Griffin",
+          "Hayes", "Higgins", "Kane", "Lynch", "Malone", "Nolan", "O'Neill", "Reilly",
+          "Regan", "Sheridan", "Ward", "Brady", "Burns", "Callahan", "Delaney", "Donnelly",
+          "Foley", "Hanlon", "Hogan", "Hughes", "Keane", "McLaughlin"
+        ]
+      }
+    },
+    "puerto_rican_american": {
+      "male": {
+        "firstNames": [
+          "Carlos", "Juan", "Miguel", "José", "Luis", "Roberto", "Héctor", "Orlando",
+          "Frankie", "Alex", "Edwin", "Nelson", "Wilfredo", "Ricardo", "Emmanuel",
+          "Santos", "Félix", "Ángel", "Víctor", "Rafael", "Diego", "Armando",
+          "Wilfredo", "Alexis", "Julio", "Esteban", "Noel", "Ricky", "Samuel",
+          "Pedro", "Antonio", "Enrique", "Manuel", "Ramón", "Erick", "Osvaldo",
+          "Bernardo", "Ismael", "Ezequiel", "Humberto", "Rogelio", "Iván", "Aurelio",
+          "Adalberto", "Wilfedo"
+        ],
+        "surnames": [
+          "Colón", "Rivera", "Torres", "Rodríguez", "García", "Reyes", "Ortiz",
+          "Díaz", "Pérez", "Cruz", "Figueroa", "Morales", "Soto", "Vélez", "Medina",
+          "Ramos", "Vega", "Ayala", "Nazario", "Delgado", "Cortés", "Cotto",
+          "Trinidad", "Santiago", "Rosa", "Ocasio", "Aponte", "Maldonado", "Ortega",
+          "Serrano", "Caraballo", "Benítez", "Acosta", "Báez", "Irizarry", "Lozada",
+          "Nieves", "Padilla", "Quiñones", "Serrano", "Villegas", "Zayas", "Crespo",
+          "Feliciano", "Hernández"
+        ]
+      }
+    },
+    "eastern_european_american": {
+      "male": {
+        "firstNames": [
+          "Dmitri", "Alexei", "Mikhail", "Vitali", "Yuri", "Igor", "Pavel", "Sergei",
+          "Andrei", "Nikolai", "Anton", "Bogdan", "Vasyl", "Taras", "Roman", "Oleg",
+          "Stefan", "Piotr", "Tomas", "Lev", "Boris", "Gennady", "Evgeny", "Viktor",
+          "Vladimir", "Stanislav", "Artur", "Maxim", "Kazimir", "Damir",
+          "Radovan", "Zoran", "Marko", "Dragan", "Mirko", "Slaven", "Branko",
+          "Dusan", "Rajko", "Srdjan", "Milan", "Mladen", "Drago", "Goran", "Vlatko"
+        ],
+        "surnames": [
+          "Petrov", "Volkov", "Kovalev", "Morozov", "Sokolov", "Popov", "Mikhailov",
+          "Novak", "Kowalski", "Wiśniewski", "Wójcik", "Kowalczyk", "Kaminski",
+          "Lewandowski", "Zielinski", "Szymanski", "Woźniak", "Kozlowski",
+          "Kovalenko", "Shevchenko", "Bondarenko", "Tkachenko", "Kravchenko",
+          "Melnyk", "Marchenko", "Savchenko", "Petrenko", "Lysenko", "Moroz",
+          "Pavlenko", "Karpenko", "Rudenko", "Fedorenko", "Sydorenko",
+          "Ivanov", "Smirnov", "Vasiliev", "Zaitsev", "Popescu", "Ionescu",
+          "Dumitru", "Constantin", "Draghici", "Stanescu", "Marinescu"
+        ]
+      }
+    },
+    "white_american": {
+      "male": {
+        "firstNames": [
+          "Tyler", "Brandon", "Cody", "Kyle", "Travis", "Austin", "Zach", "Matt",
+          "Josh", "Chase", "Dakota", "Colton", "Brent", "Brett", "Blake", "Hunter",
+          "Garrett", "Derek", "Shane", "Wade", "Chad", "Todd", "Kurt", "Lance",
+          "Scott", "Craig", "Greg", "Brad", "Kent", "Troy", "Dustin", "Randy",
+          "Gary", "Dale", "Bobby", "Jimmy", "Eddie", "Ronnie", "Donnie", "Ray",
+          "Earl", "Gene", "Clyde", "Rex", "Jack", "Bill", "Tom", "Mike"
+        ],
+        "surnames": [
+          "Smith", "Jones", "Brown", "Johnson", "Miller", "Davis", "Wilson", "Moore",
+          "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin",
+          "Thompson", "Garcia", "Martinez", "Robinson", "Clark", "Rodriguez",
+          "Lewis", "Lee", "Walker", "Hall", "Allen", "Young", "Hernandez", "King",
+          "Wright", "Lopez", "Hill", "Scott", "Green", "Adams", "Baker", "Gonzalez",
+          "Nelson", "Carter", "Mitchell", "Perez", "Roberts", "Turner", "Phillips",
+          "Campbell", "Parker", "Evans", "Edwards", "Collins", "Stewart"
+        ]
+      }
+    }
+  }
+}

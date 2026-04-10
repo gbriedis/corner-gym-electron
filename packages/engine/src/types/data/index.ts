@@ -73,6 +73,12 @@ export type {
 } from './gym.js'
 
 export type {
+  EthnicityPhysicalProfile,
+  Ethnicity,
+  EthnicitiesData,
+} from './ethnicities.js'
+
+export type {
   StyleTendencyId,
   StyleThresholds,
   StyleWildcard,

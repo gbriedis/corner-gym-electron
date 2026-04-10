@@ -1,7 +1,7 @@
 import { useState, useEffect, type JSX } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { getNewGameOptions, generateAndSave } from '../ipc/client'
-import type { NewGameOptions, DifficultyPreset, CityOption } from '../electron'
+import type { NewGameOptions, DifficultyPreset, CityOption, NationOption } from '../electron'
 import type { GameConfig } from '@corner-gym/engine'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -23,6 +23,9 @@ export default function NewGame(): JSX.Element {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 999999).toString())
   const [seedError, setSeedError] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Additional nations the player wants included in world generation.
+  // Player nation is always included. Extra nations are optional.
+  const [extraNations, setExtraNations] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     getNewGameOptions()
@@ -42,10 +45,31 @@ export default function NewGame(): JSX.Element {
       ? (options.nationCities[selectedNation] ?? []).filter((c: CityOption) => c.isStartingOption)
       : []
 
-  const nationOptions = (options?.defaults.renderedNations ?? []).map((n) => ({
-    value: n,
-    label: n.charAt(0).toUpperCase() + n.slice(1),
-  }))
+  const nationOptions = (options?.availableNations ?? [])
+    .filter(n => n.id === selectedNation || (options?.nationCities[n.id] ?? []).length > 0)
+    .map((n) => ({ value: n.id, label: n.label }))
+
+  // Nations available for optional world inclusion — excludes the player's own nation.
+  const additionalNations: NationOption[] = (options?.availableNations ?? []).filter(
+    n => n.id !== selectedNation,
+  )
+
+  // Total estimated fighters and generation seconds across all included nations.
+  const playerNationHint = options?.availableNations.find(n => n.id === selectedNation)
+  const extraNationHints = additionalNations.filter(n => extraNations.has(n.id))
+  const totalFighters = (playerNationHint?.estimatedFighters ?? 0)
+    + extraNationHints.reduce((s, n) => s + n.estimatedFighters, 0)
+  const totalSeconds = (playerNationHint?.estimatedGenerationSeconds ?? 0)
+    + extraNationHints.reduce((s, n) => s + n.estimatedGenerationSeconds, 0)
+
+  function toggleExtraNation(nationId: string): void {
+    setExtraNations(prev => {
+      const next = new Set(prev)
+      if (next.has(nationId)) next.delete(nationId)
+      else next.add(nationId)
+      return next
+    })
+  }
 
   const cityOptions = availableCities.map((c) => ({ value: c.id, label: c.label }))
 
@@ -77,7 +101,7 @@ export default function NewGame(): JSX.Element {
       gymName: gymName.trim(),
       playerCityId: selectedCity,
       playerNationId: selectedNation,
-      renderedNations: options.defaults.renderedNations,
+      renderedNations: [selectedNation, ...Array.from(extraNations)],
       difficulty,
       difficultyModifiers: selectedDifficultyPreset.modifiers,
       leagues: options.defaults.leagues,
@@ -130,6 +154,60 @@ export default function NewGame(): JSX.Element {
             gap: 'var(--space-6)',
           }}
         >
+          {/* World Configuration */}
+          {additionalNations.length > 0 && (
+            <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+              <span style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '11px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: 'var(--color-text-muted)',
+              }}>
+                World Configuration
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                {selectedNation !== '' && playerNationHint !== undefined && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-2) 0', opacity: 0.7 }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                      ☑ {playerNationHint.label} <span style={{ color: 'var(--color-text-muted)', fontSize: '11px' }}>(your nation)</span>
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                      ~{playerNationHint.estimatedFighters.toLocaleString()} fighters · ~{playerNationHint.estimatedGenerationSeconds}s
+                    </span>
+                  </div>
+                )}
+                {additionalNations.map(nation => (
+                  <div
+                    key={nation.id}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-2) 0', cursor: 'pointer' }}
+                    onClick={() => toggleExtraNation(nation.id)}
+                  >
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-text-primary)' }}>
+                      {extraNations.has(nation.id) ? '☑' : '☐'} {nation.label}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                      ~{nation.estimatedFighters.toLocaleString()} fighters · ~{nation.estimatedGenerationSeconds}s
+                    </span>
+                  </div>
+                ))}
+                <div style={{
+                  borderTop: '1px solid var(--color-border)',
+                  paddingTop: 'var(--space-2)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '11px',
+                  color: 'var(--color-text-muted)',
+                }}>
+                  <span>Estimated total</span>
+                  <span>~{totalFighters.toLocaleString()} fighters · ~{totalSeconds}s generation</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Left column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             <Input

@@ -1,0 +1,95 @@
+{
+  "meta": {
+    "description": "Templates for generating domestic US boxing events on the calendar. The US has four distinct event types — club shows, regional tournaments, the National Championship, and the Golden Gloves — each with different scope, frequency, and prestige. Venue pools are filtered to the host city at generation time. The national events rotate host cities on a schedule tracked in world state."
+  },
+  "eventTemplates": [
+    {
+      "id": "usa_club_show",
+      "circuitLevel": "club_card",
+      "label": "Club Show",
+      "boutCount": { "min": 6 },
+      "weightClassCount": { "min": 3, "max": 8 },
+      "locationScope": "city",
+      "frequencyPerYear": { "min": 6, "max": 12 },
+      "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
+      "venuePool": [
+        "brownsville_boxing_club",
+        "gleasons_gym",
+        "kronk_gym",
+        "pal_boxing_philadelphia",
+        "lowell_boxing_club",
+        "chicago_pal_boxing",
+        "houston_boxing_academy"
+      ],
+      "description": "Local club show sanctioned by USA Boxing. Organised by individual gyms, Police Athletic Leagues, community boxing programmes, and amateur clubs. The entry point into competitive boxing for American fighters. Fields drawn from the host city and clubs within driving distance."
+    },
+    {
+      "id": "usa_regional_tournament",
+      "circuitLevel": "regional_tournament",
+      "label": "Regional Open",
+      "boutCount": { "min": 16 },
+      "weightClassCount": { "min": 6, "max": 10 },
+      "locationScope": "regional",
+      "frequencyPerYear": { "min": 3, "max": 5 },
+      "typicalMonths": [2, 3, 4, 9, 10, 11],
+      "venuePool": [
+        "chicago_stadium_arena",
+        "san_antonio_freeman_coliseum",
+        "houston_toyota_center",
+        "spectrum_center_philadelphia",
+        "ford_field_detroit"
+      ],
+      "description": "Multi-state regional tournament drawing from a broad geographic area. Includes state championships, Golden Gloves regional qualifiers, and open invitational tournaments. Results here inform national tournament seeding and qualification. The competitive step before the national championship."
+    },
+    {
+      "id": "usa_national_championship_annual",
+      "circuitLevel": "national_championship",
+      "label": "USA Boxing National Championships",
+      "boutCount": { "min": 40 },
+      "weightClassCount": 10,
+      "locationScope": "national",
+      "frequencyPerYear": 1,
+      "typicalMonths": [11],
+      "hostCityRotation": [
+        "usa-las-vegas",
+        "usa-new-york",
+        "usa-los-angeles",
+        "usa-philadelphia",
+        "usa-chicago"
+      ],
+      "venuePool": [
+        "mgm_grand_garden_arena",
+        "madison_square_garden",
+        "crypto_arena_los_angeles",
+        "spectrum_center_philadelphia",
+        "chicago_stadium_arena"
+      ],
+      "description": "Annual USA Boxing National Championships, held in November. Crowns USA National Champions in all weight classes. Primary selection event for US national team assignments. Host city rotates on a fixed schedule tracked in world state. Entry is application-based: coaches apply, USA Boxing evaluates and announces the accepted field."
+    },
+    {
+      "id": "usa_golden_gloves_annual",
+      "circuitLevel": "golden_gloves",
+      "label": "National Golden Gloves",
+      "boutCount": { "min": 40 },
+      "weightClassCount": 10,
+      "locationScope": "national",
+      "frequencyPerYear": 1,
+      "typicalMonths": [4, 5],
+      "hostCityRotation": [
+        "usa-new-york",
+        "usa-chicago",
+        "usa-las-vegas",
+        "usa-detroit",
+        "usa-los-angeles"
+      ],
+      "venuePool": [
+        "madison_square_garden",
+        "chicago_stadium_arena",
+        "mgm_grand_garden_arena",
+        "ford_field_detroit",
+        "crypto_arena_los_angeles"
+      ],
+      "description": "The National Golden Gloves — the most storied amateur tournament in American boxing history. Held each spring. Draws regional Golden Gloves champions from across the country. Winning the Golden Gloves is a separate achievement from the USA Boxing National Championship — fighters who win both in a year have made as clear a statement as American amateur boxing allows."
+    }
+  ]
+}

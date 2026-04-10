@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Coach generation parameters for the USA. Higher quality ranges than Latvia reflecting boxing culture 5 and a deeper, more professionalised coaching tradition. The USA has more specialist coaches because the infrastructure and economics support specialisation. formerFighterCoachProbability is high — the pro scene produces a steady stream of ex-fighters who transition to coaching."
+  },
+  "specialistCoachProbability": 0.20,
+  "specialistQualityByExperience": {
+    "new":         { "qualityRange": [6, 10],  "potentialBonus": [2, 4] },
+    "experienced": { "qualityRange": [10, 15], "potentialBonus": [1, 3] },
+    "veteran":     { "qualityRange": [13, 17], "potentialBonus": [1, 2] }
+  },
+  "formerFighterCoachProbability": 0.80,
+  "qualityGrowthPerYear": 0.5,
+  "styleCertaintyGrowthPerYear": 4.0,
+  "maximumStyleCertaintyGymMember": 80,
+  "maximumStyleCertaintyHiredCoach": 95
+}

@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "description": "Domestic boxing sanctioning bodies in the USA. This file covers national amateur bodies only. International bodies (EUBC, IBA) live in international/boxing/sanctioning-bodies.json. USA Boxing affiliates to IBA directly — the US does not compete under EUBC. Pro sanctioning bodies (WBC, WBA, IBF, WBO) are international and live in international/boxing/pro-sanctioning-bodies.json.",
+    "scope": "national",
+    "nation": "usa"
+  },
+  "sanctioningBodies": [
+    {
+      "id": "usa_boxing",
+      "label": "USA Boxing",
+      "level": "national",
+      "affiliation": "iba",
+      "description": "USA Boxing is the national governing body for Olympic-style amateur boxing in the United States. It sanctions all domestic amateur tournaments and championships, selects national team fighters for international competitions including the World Championships and Olympic Games, and maintains the official US amateur rankings. Founded in 1888 as the Amateur Athletic Union boxing programme, reorganised as USA Boxing in 1978. Headquartered in Colorado Springs, CO. Member of the International Boxing Association (IBA).",
+      "titlesPerWeightClass": [
+        "usa_national_champion",
+        "usa_golden_gloves_champion"
+      ],
+      "rankingSystem": {
+        "id": "usab_national_rankings",
+        "description": "Points-based system. Points awarded per win at sanctioned events weighted by circuit level. National Championship final and Golden Gloves championship count highest. Rankings inform national team selection for international events.",
+        "resetMonth": 12
+      },
+      "calendarRules": {
+        "competitionSeasonMonths": [1, 2, 3, 4, 5, 6, 9, 10, 11, 12],
+        "clubTournament": {
+          "minWeeksBetweenEvents": 2
+        },
+        "regionalOpen": {
+          "minWeeksBetweenEvents": 4,
+          "windows": [
+            { "months": [2, 3, 4], "label": "spring" },
+            { "months": [9, 10, 11], "label": "fall" }
+          ]
+        }
+      }
+    }
+  ]
+}

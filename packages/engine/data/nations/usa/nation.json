@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "United States of America nation definition. Boxing culture 5 — the deepest pro infrastructure in the world. Pro ecosystem starts at level 4. Large fighter pool across ethnically diverse communities each with distinct boxing traditions. Physical profiles are driven by ethnicity-level biases rather than nation-level band overrides — the ethnicity system applies its own multipliers during generation. performanceHint gives the UI accurate estimates for new game configuration."
+  },
+  "id": "usa",
+  "label": "United States",
+  "demonym": "American",
+  "language": "en",
+  "currency": "USD",
+  "boxingCulture": 5,
+  "proEcosystemStartLevel": 4,
+  "physicalStatsProfile": {
+    "heightCmMale": { "mean": 178, "stdDev": 7 },
+    "weightKgAtFlyweight": { "mean": 50, "stdDev": 2 },
+    "reachCmBias": 1.02,
+    "note": "US fighters skew slightly taller than global average with proportionally longer reach. Ethnicity-level biases further differentiate within this national baseline."
+  },
+  "physicalProfile": {
+    "note": "US fighter physical profiles are driven by ethnicity-level biases rather than nation-level band overrides. Ethnicity physicalProfile biases are applied at generation time and supersede this empty profile."
+  },
+  "performanceHint": {
+    "estimatedFighters": 2400,
+    "estimatedGyms": 180,
+    "estimatedGenerationSeconds": 6
+  }
+}

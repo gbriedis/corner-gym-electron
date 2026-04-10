@@ -52,6 +52,7 @@
 | [x] | `packages/engine/src/types/data/rewards.ts` |
 | [x] | `packages/engine/src/types/data/attributeAccumulation.ts` |
 | [x] | `packages/engine/src/types/data/gym.ts` — CoachGenerationData added |
+| [x] | `packages/engine/src/types/data/ethnicities.ts` — EthnicitiesData, Ethnicity, EthnicityPhysicalProfile |
 
 ## Engine — Utilities
 | State | File |
@@ -113,6 +114,7 @@
 | [x] | `packages/engine/data/universal/gym-equipment-types.json` |
 | [x] | `packages/engine/data/universal/style-matchups.json` |
 | [x] | `packages/engine/data/universal/style-development.json` |
+| [x] | `packages/engine/data/universal/reasons-for-boxing.json` — universal definitions with metadata for future systems |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -125,6 +127,26 @@
 | [x] | `packages/engine/data/nations/latvia/coach-voice/attributes.json` |
 | [x] | `packages/engine/data/nations/latvia/coach-voice/physical-stats.json` |
 | [x] | `packages/engine/data/nations/latvia/coach-voice/gifts-and-flaws.json` |
+
+## Data — Nations: USA
+| State | File |
+|-------|------|
+| [x] | `packages/engine/data/nations/usa/nation.json` |
+| [x] | `packages/engine/data/nations/usa/cities.json` — 20 cities |
+| [x] | `packages/engine/data/nations/usa/ethnicities.json` — 6 ethnicities with physical profiles |
+| [x] | `packages/engine/data/nations/usa/names.json` — by ethnicity, 20+ names per pool |
+| [x] | `packages/engine/data/nations/usa/economic-statuses.json` |
+| [x] | `packages/engine/data/nations/usa/reasons-for-boxing.json` |
+| [x] | `packages/engine/data/nations/usa/gym-names.json` — 90+ names |
+| [x] | `packages/engine/data/nations/usa/coach-generation.json` |
+| [x] | `packages/engine/data/nations/usa/gym-starting-states.json` |
+| [x] | `packages/engine/data/nations/usa/boxing/sanctioning-bodies.json` |
+| [x] | `packages/engine/data/nations/usa/boxing/amateur-circuit.json` — club, regional, nationals, Golden Gloves |
+| [x] | `packages/engine/data/nations/usa/boxing/usab-rules.json` |
+| [x] | `packages/engine/data/nations/usa/boxing/event-templates.json` |
+| [x] | `packages/engine/data/nations/usa/boxing/venues.json` — 15 venues including MGM, MSG, Kronk |
+| [x] | `packages/engine/data/nations/usa/boxing/pro-ecosystem.json` — starts at level 4 |
+| [x] | `packages/engine/data/nations/usa/boxing/promoters.json` |
 
 ## Data — People
 | State | File |

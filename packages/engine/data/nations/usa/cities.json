@@ -1,0 +1,348 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "All playable cities in the USA for V1. Population types: small_town, mid_city, large_city. boxingCultureOverride is 3-5 — cities above the national baseline have historic boxing identity that concentrates talent. All modifiers are relative to 1.0. Brownsville Brooklyn and Oxnard have exceptional talentDensity despite small_town population — hyper-concentrated talent pools historically producing world champions per capita unlike anywhere else."
+  },
+  "cities": [
+    {
+      "id": "usa-las-vegas",
+      "label": "Las Vegas",
+      "state": "NV",
+      "population": "large_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 3, "max": 5 },
+        "regional_tournament": { "min": 2, "max": 3 }
+      },
+      "rentModifier": 1.4,
+      "talentDensity": 1.3,
+      "rivalGymDensity": 1.4,
+      "description": "The fight capital of the world. Everything major happens here — title fights, HBO main events, the Strip casinos with their giant arenas. The city is built around spectacle and Las Vegas boxing gyms are populated by professionals chasing the marquee. Talent floods in from everywhere because this is where the money is. You're competing with every other gym in the country for the same fighters, and the promoters are circling. High rent, high stakes, high ceiling."
+    },
+    {
+      "id": "usa-new-york",
+      "label": "New York City",
+      "state": "NY",
+      "population": "large_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 4, "max": 6 },
+        "regional_tournament": { "min": 2, "max": 4 }
+      },
+      "rentModifier": 1.8,
+      "talentDensity": 1.4,
+      "rivalGymDensity": 1.5,
+      "description": "Madison Square Garden is the cathedral. New York has been the centre of American boxing since the bare-knuckle era — it has produced more world champions than any city in history, drawn from five boroughs each with their own boxing traditions and neighbourhood gyms. The talent is real and the competition for it is vicious. Gyms in the Bronx, Harlem, Brooklyn, and Queens are all fighting for the same prospects. The most expensive operating environment in American boxing but the prestige ceiling is higher than anywhere else in the world."
+    },
+    {
+      "id": "usa-brownsville-brooklyn",
+      "label": "Brownsville, Brooklyn",
+      "state": "NY",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 4 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 1.6,
+      "talentDensity": 1.8,
+      "rivalGymDensity": 0.8,
+      "description": "This is the hardest start in the game. Brownsville is a neighbourhood, not a city — a square mile of Brooklyn that has produced more world champions per capita than anywhere on earth. Mike Tyson came out of here. So did Mark Breland, Riddick Bowe, Shannon Briggs. The poverty is real, the stakes are real, and the boys who walk into a gym here have often already survived things most fighters will never face. The talent density is extraordinary — but so is the cost of getting there and the weight of what this place means. You are not just running a gym in Brownsville. You are carrying something."
+    },
+    {
+      "id": "usa-los-angeles",
+      "label": "Los Angeles",
+      "state": "CA",
+      "population": "large_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 3, "max": 5 },
+        "regional_tournament": { "min": 2, "max": 3 }
+      },
+      "rentModifier": 1.6,
+      "talentDensity": 1.3,
+      "rivalGymDensity": 1.4,
+      "description": "The second fight capital. Los Angeles has a boxing ecosystem shaped by its enormous Mexican-American community and a film and media industry that treats prizefighting as entertainment — which means big venues, big cards, and cameras everywhere. East LA and Compton gyms produce a specific kind of fighter: aggressive, pressure-based, built for the crowd. The Staples Center and the Forum host title fights routinely. Rivalry between gyms in this city is intense, costs are high, but the infrastructure for building a star is unmatched."
+    },
+    {
+      "id": "usa-philadelphia",
+      "label": "Philadelphia",
+      "state": "PA",
+      "population": "large_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 3, "max": 5 },
+        "regional_tournament": { "min": 2, "max": 3 }
+      },
+      "rentModifier": 1.1,
+      "talentDensity": 1.5,
+      "rivalGymDensity": 1.3,
+      "description": "The city that made the Philly shell. Philadelphia is to boxing what Boston is to basketball — a city-wide religion with its own identity, its own style, and its own demands of fighters. Joe Frazier trained here. Bernard Hopkins grew up here. The style is defensive without being passive, disciplined without being static, and Philly fighters have a reputation for being exceptionally hard to stop. The city produces pressure fighters and counterpunchers in equal measure. Costs are manageable compared to New York, talent density is exceptional, and the local fight fan is among the most knowledgeable in the country."
+    },
+    {
+      "id": "usa-chicago",
+      "label": "Chicago",
+      "state": "IL",
+      "population": "large_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 4 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 1.2,
+      "talentDensity": 1.2,
+      "rivalGymDensity": 1.2,
+      "description": "Chicago has always had boxing. The south and west side gyms have produced champions across generations — the city's hardest neighbourhoods creating the sport's hardest fighters. It is not the fight capital but it is a serious boxing city with deep amateur infrastructure and access to the broader midwest competition circuit. Costs are moderate by big-city standards, the talent pool is solid, and the city's residents take the sport seriously."
+    },
+    {
+      "id": "usa-houston",
+      "label": "Houston",
+      "state": "TX",
+      "population": "large_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 4 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 0.9,
+      "talentDensity": 1.2,
+      "rivalGymDensity": 1.1,
+      "description": "One of the fastest-growing cities in America and a significant boxing town fed by its large Mexican-American and African-American communities. Houston gyms have produced world champions and the city hosts major cards regularly. Costs are lower than the coastal cities, the talent pool is growing, and proximity to the Texas and Gulf Coast fight circuits provides regular competition. A solid place to build quietly without paying New York rent."
+    },
+    {
+      "id": "usa-detroit",
+      "label": "Detroit",
+      "state": "MI",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 4 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 0.6,
+      "talentDensity": 1.4,
+      "rivalGymDensity": 0.9,
+      "description": "Kronk. One word. Emanuel Steward's gym on McGraw Avenue produced Thomas Hearns, Lennox Lewis, Julio César Chávez Jr., and dozens of world champions across fifty years. The Kronk style — aggressive, high-output, built on combination punching — became a school that other gyms studied and could not replicate. The city is economically battered but that has always been the soil that boxing grows in. Operating costs are among the lowest of any significant boxing city in America. The talent that comes through Detroit gyms is real, tested, and arrives without illusions."
+    },
+    {
+      "id": "usa-miami",
+      "label": "Miami",
+      "state": "FL",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 3 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 1.3,
+      "talentDensity": 1.1,
+      "rivalGymDensity": 1.0,
+      "description": "Miami's boxing scene is shaped by its Cuban-American community, which brings with it one of the deepest amateur traditions in the world — Cuba's Olympic programme has always produced technically sophisticated fighters. The Fifth Street Gym where Muhammad Ali trained is the mythological address. The city hosts major cards, the Latin boxing community is passionate, and the fight infrastructure is genuine. Costs run high and the tourism economy means gym space competes with everything else."
+    },
+    {
+      "id": "usa-oakland",
+      "label": "Oakland",
+      "state": "CA",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 4 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 1.4,
+      "talentDensity": 1.5,
+      "rivalGymDensity": 0.9,
+      "description": "Oscar De La Hoya grew up in East Los Angeles but Oakland has its own claim — Andre Ward, one of the most technically complete fighters in modern history, is Oakland's son. The city's gyms are serious and unpretentious. The African-American boxing community here has roots going back decades, the talent density is exceptional for a mid-city, and the costs, while high by national standards, remain below San Francisco next door. Fewer rival gyms than most serious boxing cities means less pressure on recruitment."
+    },
+    {
+      "id": "usa-san-antonio",
+      "label": "San Antonio",
+      "state": "TX",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 3 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 0.7,
+      "talentDensity": 1.2,
+      "rivalGymDensity": 0.9,
+      "description": "San Antonio is a military city and a Mexican-American city — both of which feed the boxing culture in specific ways. Military gyms provide structured competition for young fighters before they transition to the club circuit; the Mexican-American community brings cultural weight and generational connections to the sport. Costs are low, competition with rival gyms is manageable, and the city sits well within the Texas fight circuit."
+    },
+    {
+      "id": "usa-new-orleans",
+      "label": "New Orleans",
+      "state": "LA",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 3,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 2 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.7,
+      "talentDensity": 1.1,
+      "rivalGymDensity": 0.7,
+      "description": "New Orleans has a boxing history but not a boxing infrastructure. The city's culture is broad and music, food, and carnival absorb much of the energy that in other cities goes into sport. There are genuine fighters here and the low cost of operating is attractive — but the competition circuit is thin, the talent pool is modest, and building something here requires patience and the willingness to travel for quality opposition."
+    },
+    {
+      "id": "usa-oxnard",
+      "label": "Oxnard",
+      "state": "CA",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 5,
+      "boxingActivityLevel": "high",
+      "eventHostingFrequency": {
+        "club_card": { "min": 2, "max": 3 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 1.1,
+      "talentDensity": 1.6,
+      "rivalGymDensity": 0.7,
+      "description": "The most improbable boxing city in America. Oxnard is a small agricultural city in Ventura County, and it has produced an extraordinary concentration of world champions — Manny Pacquiao chose to base himself here, and the existing Mexican-American boxing culture made clear why. The Ventura County area has a deep tradition of blue-collar Mexican-American fighters and the gyms here are no-nonsense. The talentDensity is exceptional. Few rival gyms means less competition for the fighters who do emerge. A legitimate dark-horse starting city for a coach who knows what they're looking at."
+    },
+    {
+      "id": "usa-stockton",
+      "label": "Stockton",
+      "state": "CA",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 3 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.8,
+      "talentDensity": 1.4,
+      "rivalGymDensity": 0.6,
+      "description": "Stockton sits in California's Central Valley, a hard agricultural city with significant poverty and a boxing tradition that reflects it. Victor Ortiz grew up here. The Mexican-American and Filipino-American communities both carry boxing in their bones. Low rent, limited rival gyms, and a surprisingly deep talent pool for the city's size. The Central Valley circuit provides regular competition for fighters developed here."
+    },
+    {
+      "id": "usa-flint",
+      "label": "Flint",
+      "state": "MI",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 2 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.4,
+      "talentDensity": 1.5,
+      "rivalGymDensity": 0.5,
+      "description": "Flint is one of the most economically devastated cities in America and its boxing culture reflects that directly — the sport is a lifeline here in the most literal sense. The same conditions that destroyed the city create fighters. Operating costs are among the lowest in the country; the talent that emerges from Flint gyms has already been tested harder than most competition will ever test them. Few rivals, deep talent per capita, rock-bottom overhead. The grimmest and most honest start in the Midwest."
+    },
+    {
+      "id": "usa-youngstown",
+      "label": "Youngstown",
+      "state": "OH",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 2 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.4,
+      "talentDensity": 1.4,
+      "rivalGymDensity": 0.5,
+      "description": "A steel city that has been bleeding population since the mills closed. What remains is a tight community with a serious boxing tradition — Kelly Pavlik won a world title out of Youngstown and the city celebrated like it had won something back. Costs are very low, rivals are few, and the fighters who come out of this part of Ohio have the kind of durability that comes from a place that doesn't offer easy alternatives."
+    },
+    {
+      "id": "usa-brockton",
+      "label": "Brockton",
+      "state": "MA",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 2 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.9,
+      "talentDensity": 1.3,
+      "rivalGymDensity": 0.6,
+      "description": "Brockton is the City of Champions — Rocky Marciano and Marvelous Marvin Hagler both came from here, which is a coincidence that no statistician would accept as accidental. The city is industrial, working-class, and Cape Verdean-American in significant part. The boxing culture is embedded in the identity of the place. Building a gym here carries the weight of that history — and access to New England's fight circuit and the Boston market nearby."
+    },
+    {
+      "id": "usa-albuquerque",
+      "label": "Albuquerque",
+      "state": "NM",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 3 },
+        "regional_tournament": { "min": 1, "max": 2 }
+      },
+      "rentModifier": 0.6,
+      "talentDensity": 1.2,
+      "rivalGymDensity": 0.7,
+      "description": "Albuquerque is an altitude city — training at 5,300 feet produces a measurable cardio advantage, and the serious gyms here know it. The Mexican-American community is large and the boxing tradition is genuine. Holly Holm trained here; Bob Arum's promotion network has run cards in this city for decades. Low costs, light rival gym pressure, and a Southwest fight circuit that includes Arizona, Texas, and Nevada create a viable path for fighters developed here."
+    },
+    {
+      "id": "usa-cleveland",
+      "label": "Cleveland",
+      "state": "OH",
+      "population": "mid_city",
+      "isStartingOption": true,
+      "boxingCultureOverride": 3,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 2 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.5,
+      "talentDensity": 1.1,
+      "rivalGymDensity": 0.7,
+      "description": "Cleveland has a boxing history and a working-class infrastructure that keeps gyms operating, but it has not produced the concentration of champions that nearby Youngstown and Pittsburgh have. The city is affordable, the talent pool is adequate rather than exceptional, and the Midwest circuit provides access to regular competition. A solid mid-tier starting city for a patient builder."
+    },
+    {
+      "id": "usa-lowell",
+      "label": "Lowell",
+      "state": "MA",
+      "population": "small_town",
+      "isStartingOption": true,
+      "boxingCultureOverride": 4,
+      "boxingActivityLevel": "medium",
+      "eventHostingFrequency": {
+        "club_card": { "min": 1, "max": 2 },
+        "regional_tournament": { "min": 0, "max": 1 }
+      },
+      "rentModifier": 0.8,
+      "talentDensity": 1.3,
+      "rivalGymDensity": 0.5,
+      "description": "Lowell is one of the most diverse small cities in New England — a large Cambodian-American community and a significant Latino population sit alongside the older Irish-American and Portuguese-American neighbourhoods. Micky Ward — the real one, the Artie Ward story — is from Lowell. The city's boxing culture is insular, tight, and intensely proud. Costs are low by New England standards, rivals are few, and the fighters that come from Lowell gyms tend to have the kind of heart that can't be trained."
+    }
+  ]
+}

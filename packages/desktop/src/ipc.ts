@@ -3,7 +3,7 @@
 // World generation is synchronous here — the UI shows a spinner fed by progress events.
 
 import { ipcMain } from 'electron'
-import { readFileSync } from 'fs'
+import { readFileSync, readdirSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -36,9 +36,9 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
   }
 
   // ipc: get-new-game-options
-  // Returns the rendered nations, their starting cities, difficulty presets, and
-  // config defaults for the new game form. The UI builds the full GameConfig from
-  // this data before submitting — nothing is hardcoded in the renderer.
+  // Returns the rendered nations, their starting cities, difficulty presets,
+  // all available nations (for world configuration), and config defaults.
+  // The UI builds the full GameConfig from this data before submitting.
   ipcMain.handle('get-new-game-options', () => {
     const defaults = JSON.parse(
       readFileSync(join(DATA_ROOT, 'universal/game-config-defaults.json'), 'utf-8'),
@@ -48,19 +48,47 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
       readFileSync(join(DATA_ROOT, 'universal/difficulties.json'), 'utf-8'),
     ) as { difficulties: Array<{ id: string; label: string; modifiers: Record<string, number> }> }
 
-    // Load city data for each rendered nation so the UI can populate the city dropdown.
+    // Discover all available nation folders for world configuration UI.
+    const nationsDir = join(DATA_ROOT, 'nations')
+    const nationFolders = readdirSync(nationsDir, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => entry.name)
+
+    const availableNations: Array<{ id: string; label: string; estimatedFighters: number; estimatedGenerationSeconds: number }> = []
     const nationCities: Record<string, Array<{ id: string; label: string; population: string; isStartingOption: boolean }>> = {}
-    for (const nationId of defaults.renderedNations) {
-      const citiesRaw = JSON.parse(
-        readFileSync(join(DATA_ROOT, `nations/${nationId}/cities.json`), 'utf-8'),
-      ) as { cities: Array<{ id: string; label: string; population: string; isStartingOption: boolean }> }
-      nationCities[nationId] = citiesRaw.cities
+
+    for (const nationId of nationFolders) {
+      const nationPath = join(nationsDir, nationId, 'nation.json')
+      if (!existsSync(nationPath)) continue
+      const nationRaw = JSON.parse(readFileSync(nationPath, 'utf-8')) as {
+        label?: string
+        performanceHint?: { estimatedFighters: number; estimatedGenerationSeconds: number }
+      }
+      availableNations.push({
+        id: nationId,
+        label: nationRaw.label ?? nationId,
+        estimatedFighters: nationRaw.performanceHint?.estimatedFighters ?? 0,
+        estimatedGenerationSeconds: nationRaw.performanceHint?.estimatedGenerationSeconds ?? 1,
+      })
+
+      // Load city data so the UI can populate the city dropdown for any selected nation.
+      const citiesPath = join(nationsDir, nationId, 'cities.json')
+      if (existsSync(citiesPath)) {
+        const citiesRaw = JSON.parse(readFileSync(citiesPath, 'utf-8')) as {
+          cities: Array<{ id: string; label: string; population: string; isStartingOption?: boolean }>
+        }
+        nationCities[nationId] = citiesRaw.cities.map(c => ({
+          ...c,
+          isStartingOption: c.isStartingOption ?? true,
+        }))
+      }
     }
 
     return {
       defaults,
       difficulties: difficultiesRaw.difficulties,
       nationCities,
+      availableNations,
     }
   })
 

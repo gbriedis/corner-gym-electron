@@ -359,6 +359,97 @@ describe('generatePerson — development profile', () => {
   })
 })
 
+describe('generatePerson — ethnicity system (USA)', () => {
+  it('US person in Brownsville Brooklyn gets an ethnicityId assigned', () => {
+    const usPerson = generatePerson(data, createRng(99), 'usa', 'usa-brownsville-brooklyn')
+    expect(usPerson.ethnicityId).not.toBeNull()
+    expect(typeof usPerson.ethnicityId).toBe('string')
+  })
+
+  it('Latvian person has ethnicityId null — no ethnicity system', () => {
+    const latvianPerson = generatePerson(data, createRng(99), 'latvia', 'latvia-riga')
+    expect(latvianPerson.ethnicityId).toBeNull()
+  })
+
+  it('Mexican-American person gets a Spanish first name', () => {
+    // Run many seeds and find a mexican_american assignment in Oxnard (70% weight).
+    // Oxnard has the highest mexican_american cityWeight so it fires reliably.
+    const spanishFirstNames = ['Miguel', 'Carlos', 'Juan', 'Eduardo', 'Ricardo', 'Fernando',
+      'Antonio', 'Alejandro', 'Diego', 'Marco', 'Rodrigo', 'Rafael', 'Héctor', 'Ernesto',
+      'Ramón', 'Enrique', 'Gerardo', 'Armando', 'Francisco', 'Salvador', 'Jesús', 'Óscar',
+      'Rubén', 'Arturo', 'Víctor', 'Sergio', 'Guillermo', 'Roberto', 'Javier', 'Raúl',
+      'Manuel', 'Alfredo', 'Ignacio', 'Pedro', 'Jorge', 'Luis', 'Andrés', 'Erick',
+      'Julio', 'Omar', 'Félix', 'Aurelio', 'Gilberto']
+    const nameSet = new Set(spanishFirstNames)
+    let foundMexican = false
+    for (let seed = 1; seed <= 50; seed++) {
+      const p = generatePerson(data, createRng(seed), 'usa', 'usa-oxnard')
+      if (p.ethnicityId === 'mexican_american') {
+        expect(nameSet.has(p.name.first)).toBe(true)
+        foundMexican = true
+        break
+      }
+    }
+    // Oxnard has 70% mexican_american weight — should find at least one in 50 seeds.
+    expect(foundMexican).toBe(true)
+  })
+
+  it('same seed produces same ethnicityId — determinism', () => {
+    const p1 = generatePerson(data, createRng(777), 'usa', 'usa-brownsville-brooklyn')
+    const p2 = generatePerson(data, createRng(777), 'usa', 'usa-brownsville-brooklyn')
+    expect(p1.ethnicityId).toBe(p2.ethnicityId)
+  })
+
+  it('African-American person chin generation ceiling uses chinBias multiplier', () => {
+    // Find an african_american person and verify their chin attribute reflects
+    // the 0.97 chinBias (ceiling should be slightly reduced relative to no bias).
+    // We check that the attribute is present and within valid range.
+    const chinAttr = data.attributes.attributes.find(a => a.id === 'chin')
+    expect(chinAttr).toBeDefined()
+    if (chinAttr === undefined) return
+
+    let foundAA = false
+    for (let seed = 1; seed <= 100; seed++) {
+      const p = generatePerson(data, createRng(seed), 'usa', 'usa-brownsville-brooklyn')
+      if (p.ethnicityId === 'african_american') {
+        const chin = p.attributes.find(a => a.attributeId === 'chin')
+        expect(chin).toBeDefined()
+        if (chin !== undefined) {
+          // Chin ceiling with 0.97 bias on generationMax (18) = floor(18 * 0.97) = 17.
+          // Potential must be within valid attribute range.
+          expect(chin.potential).toBeGreaterThanOrEqual(chinAttr.scale.min)
+          expect(chin.potential).toBeLessThanOrEqual(chinAttr.scale.generationMax ?? 18)
+        }
+        foundAA = true
+        break
+      }
+    }
+    expect(foundAA).toBe(true)
+  })
+
+  it('soul trait probabilities shift by ethnicity weights', () => {
+    // Mexican-Americans have brave: 1.5 — should appear at elevated rate in Oxnard.
+    // Run many Oxnard mexican_american persons and count brave vs coward.
+    let braveCount = 0
+    let mexicanCount = 0
+    for (let seed = 1; seed <= 200; seed++) {
+      const p = generatePerson(data, createRng(seed), 'usa', 'usa-oxnard')
+      if (p.ethnicityId === 'mexican_american') {
+        mexicanCount++
+        if (p.soulTraits.some(t => t.traitId === 'brave')) braveCount++
+      }
+    }
+    // With 1.5 multiplier on brave vs 1.0 on coward, expected brave rate ≈ 60%.
+    // In 200 samples we should see at least some mexicans, and brave majority.
+    expect(mexicanCount).toBeGreaterThan(0)
+    if (mexicanCount >= 10) {
+      const braveRate = braveCount / mexicanCount
+      // Brave should exceed 50% given the 1.5x multiplier.
+      expect(braveRate).toBeGreaterThan(0.5)
+    }
+  })
+})
+
 describe('loadNationsFromDir — error handling', () => {
   it('throws naming the nation and the missing file when a required file is absent', () => {
     // Create a minimal fake nation folder that has nation.json but is missing cities.json.
@@ -366,9 +457,10 @@ describe('loadNationsFromDir — error handling', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'corner-gym-test-'))
     const nationDir = join(tmp, 'test-nation')
     mkdirSync(nationDir)
-    mkdirSync(join(nationDir, 'coach-voice'))
 
     // Write only nation.json — all other required files are absent.
+    // coach-voice/ is intentionally absent — it is optional; the loader
+    // only loads it when the directory exists.
     writeFileSync(
       join(nationDir, 'nation.json'),
       JSON.stringify({

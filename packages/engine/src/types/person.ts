@@ -38,6 +38,9 @@ export interface Person {
   age: number
   nationId: string
   cityId: string
+  // null for nations without an ethnicity system (Latvia).
+  // string referencing ethnicities.json id for nations that use it (USA).
+  ethnicityId: string | null
   economicStatusId: string
   reasonForBoxingId: string
   developmentProfileId: string // references development-profiles.json id

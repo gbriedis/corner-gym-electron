@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Why a person started boxing — US version. Weights sum to 1.0. US boxing culture is built on two things: the way out and the community. The way_out weight is higher here than in any other nation because the economic stakes are higher. family_tradition and community_identity are more prominent here than in most nations — American boxing has deep generational and neighbourhood roots. Descriptions reflect American boxing context."
+  },
+  "reasons": [
+    {
+      "id": "outlet",
+      "label": "Needed an Outlet",
+      "weight": 0.18,
+      "description": "Anger, pain, energy with nowhere to go. A coach or a relative pointed them at a gym instead of somewhere worse. Boxing absorbed it. The gym became the place where the noise went quiet. They kept coming back because nothing else worked the same way."
+    },
+    {
+      "id": "prove_something",
+      "label": "Had Something to Prove",
+      "weight": 0.14,
+      "description": "Someone underestimated them. A teacher, a scout, a neighbourhood, a father who left. The chip on the shoulder became a training schedule. American boxing has always run on this — fighters who were told no and needed to make it yes."
+    },
+    {
+      "id": "way_out",
+      "label": "Saw It as a Way Out",
+      "weight": 0.22,
+      "description": "The block, the job your father worked, the life that was already decided. Boxing was the door nobody told you existed. The money is real, the opportunity is real, and you were fast enough to see it. Every gym in Brownsville, Flint, Oxnard, and Youngstown is full of fighters who are here because they need this to be a way out."
+    },
+    {
+      "id": "passion",
+      "label": "Pure Passion for the Sport",
+      "weight": 0.10,
+      "description": "Watched it on TV and something clicked. Went to a gym and it clicked harder. No complicated story — just the sport itself, the craft of it, the chess game inside the violence. These fighters often have the most technical discipline because they're here for the love of the thing, not just what it might get them."
+    },
+    {
+      "id": "fell_into_it",
+      "label": "Fell Into It",
+      "weight": 0.12,
+      "description": "The gym was nearby, the coach was a family friend, a youth programme had free sessions after school. Didn't plan it. Tried it. Found out they were good at it. One thing led to another. A lot of American boxing happens this way — through access programmes, Police Athletic Leagues, church gyms, Boys and Girls Clubs."
+    },
+    {
+      "id": "family_tradition",
+      "label": "Family Tradition",
+      "weight": 0.14,
+      "description": "The old man boxed. Or an uncle who had the pictures on the wall. Or a grandfather who told the stories. This person walked into a gym because someone in their family already had, and boxing was just what you did. They carry the expectation and the pride into every session — and every fight is partly for someone who isn't in the building."
+    },
+    {
+      "id": "community_identity",
+      "label": "Community Identity",
+      "weight": 0.07,
+      "description": "You fight because your neighbourhood fights. Because your people fight. Because when the card comes to town, the whole block turns out and your name is on it. American boxing has always been tied to immigrant and minority communities — Irish, Mexican, Puerto Rican, Black — where boxing was the sport that represented you when nothing else would."
+    },
+    {
+      "id": "friend_brought_me",
+      "label": "A Friend Brought Me",
+      "weight": 0.03,
+      "description": "Simple. A friend said come try this. The friend may have stopped coming. They didn't."
+    }
+  ]
+}

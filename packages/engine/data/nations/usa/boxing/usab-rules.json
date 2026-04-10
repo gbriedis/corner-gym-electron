@@ -1,0 +1,196 @@
+{
+  "meta": {
+    "description": "USA Boxing rules govern all domestic amateur competition in the United States. Rules vary by circuit level and age category. Headgear is required for all non-elite-level competition — USA Boxing lifted the headgear requirement for Elite (senior) men in 2016 following the IOC decision, but sub-elite competitions retain it. The engine reads these when determining bout parameters."
+  },
+  "sanctioningBodyId": "usa_boxing",
+  "ageCategories": [
+    {
+      "id": "junior",
+      "label": "Junior",
+      "minAge": 13,
+      "maxAge": 14
+    },
+    {
+      "id": "youth",
+      "label": "Youth",
+      "minAge": 15,
+      "maxAge": 17
+    },
+    {
+      "id": "senior",
+      "label": "Senior",
+      "minAge": 18,
+      "maxAge": 40
+    }
+  ],
+  "circuitRules": [
+    {
+      "circuitLevel": "club_card",
+      "ageCategory": "junior",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 2,
+      "description": "USA Boxing junior rules for club competition. Shorter rounds reflect developing physical capacity."
+    },
+    {
+      "circuitLevel": "club_card",
+      "ageCategory": "youth",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 2,
+      "description": "USA Boxing youth rules for club competition."
+    },
+    {
+      "circuitLevel": "club_card",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 2,
+      "description": "Standard USA Boxing senior amateur rules for club competition. Headgear retained at club level per USA Boxing policy."
+    },
+    {
+      "circuitLevel": "regional_tournament",
+      "ageCategory": "junior",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "USA Boxing junior rules for regional tournament competition."
+    },
+    {
+      "circuitLevel": "regional_tournament",
+      "ageCategory": "youth",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "USA Boxing youth rules for regional tournament competition."
+    },
+    {
+      "circuitLevel": "regional_tournament",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "USA Boxing senior rules for regional tournament competition."
+    },
+    {
+      "circuitLevel": "national_championship",
+      "ageCategory": "junior",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "USA Boxing junior rules for the National Championship."
+    },
+    {
+      "circuitLevel": "national_championship",
+      "ageCategory": "youth",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "USA Boxing youth rules for the National Championship."
+    },
+    {
+      "circuitLevel": "national_championship",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": false,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "USA Boxing Elite senior rules for the National Championship. Headgear not required at elite senior level following 2016 USA Boxing policy change aligning with IOC standards."
+    },
+    {
+      "circuitLevel": "golden_gloves",
+      "ageCategory": "junior",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "Golden Gloves junior rules."
+    },
+    {
+      "circuitLevel": "golden_gloves",
+      "ageCategory": "youth",
+      "rounds": 3,
+      "roundDurationMinutes": 2,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": true,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "Golden Gloves youth rules."
+    },
+    {
+      "circuitLevel": "golden_gloves",
+      "ageCategory": "senior",
+      "rounds": 3,
+      "roundDurationMinutes": 3,
+      "restDurationMinutes": 1,
+      "scoringSystem": "10_point_must",
+      "headgearRequired": false,
+      "gloveWeightOz": 10,
+      "standingEightCount": true,
+      "threeKnockdownRule": true,
+      "maxBoutsPerDay": 1,
+      "description": "Golden Gloves senior open rules. The championship bouts of the Golden Gloves are among the most watched amateur boxing events in America."
+    }
+  ]
+}

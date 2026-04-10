@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "description": "Domestic US amateur boxing circuit levels. Club cards through Golden Gloves and USA Boxing National Championships. International circuits (World Championships, Olympics) live in international/boxing/circuits.json. The Golden Gloves and National Championship are distinct prestigious events at the same circuit level — both crown national-calibre champions. The Golden Gloves predates USA Boxing and carries enormous cultural weight in American boxing history.",
+    "scope": "national",
+    "nation": "usa"
+  },
+  "circuitLevels": [
+    {
+      "id": "club_card",
+      "label": "Club Card",
+      "prestige": 1,
+      "sanctioningBody": "usa_boxing",
+      "format": "card",
+      "typicalMonths": [1, 2, 3, 4, 5, 9, 10, 11],
+      "locationScope": "city",
+      "minimumBouts": 0,
+      "frequencyPerYear": 10,
+      "description": "Entry-level amateur competitions sanctioned by USA Boxing and organised through local clubs, Police Athletic Leagues, community centres, and gym programmes. Open to all registered USA Boxing members. The starting point for every American fighter — from debut bouts in a gym basement to the first real competition card. Fields are drawn from the host city and surrounding clubs within driving distance."
+    },
+    {
+      "id": "regional_tournament",
+      "label": "Regional Tournament",
+      "prestige": 3,
+      "sanctioningBody": "usa_boxing",
+      "format": "tournament_bracket",
+      "multiDay": false,
+      "typicalMonths": [2, 3, 4, 9, 10, 11],
+      "locationScope": "regional",
+      "minimumBouts": 4,
+      "frequencyPerYear": 4,
+      "description": "Regional-level open tournaments drawing fighters from a broad geographic area — a state championship, multi-state regional open, or Golden Gloves local qualifier. Stronger fields than club level. Results at regional tournaments inform Golden Gloves and National Championship qualification. The path from club card to nationals runs through regional competition."
+    },
+    {
+      "id": "national_championship",
+      "label": "USA Boxing National Championships",
+      "prestige": 8,
+      "sanctioningBody": "usa_boxing",
+      "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Preliminary Rounds", "roundNumber": 1 },
+        { "day": 2, "label": "Quarterfinals", "roundNumber": 2 },
+        { "day": 3, "label": "Semifinals", "roundNumber": 3 },
+        { "day": 4, "label": "Finals", "roundNumber": 4 }
+      ],
+      "typicalMonths": [11],
+      "locationScope": "national",
+      "minimumBouts": 12,
+      "frequencyPerYear": 1,
+      "description": "The USA Boxing National Championships, held annually in November. The pinnacle of domestic US amateur boxing — crowns USA National Champions in all weight classes and serves as the primary selection event for US national team assignments to World Championships and Pan American Games. Application-based entry: coaches submit fighters, USA Boxing evaluates against eligibility criteria and announces the field. The tournament rotates host city annually."
+    },
+    {
+      "id": "golden_gloves",
+      "label": "Golden Gloves",
+      "prestige": 8,
+      "sanctioningBody": "usa_boxing",
+      "format": "tournament_bracket",
+      "multiDay": true,
+      "daysStructure": [
+        { "day": 1, "label": "Preliminaries", "roundNumber": 1 },
+        { "day": 2, "label": "Quarterfinals", "roundNumber": 2 },
+        { "day": 3, "label": "Semifinals", "roundNumber": 3 },
+        { "day": 4, "label": "Championship Night", "roundNumber": 4 }
+      ],
+      "typicalMonths": [4, 5],
+      "locationScope": "national",
+      "minimumBouts": 12,
+      "frequencyPerYear": 1,
+      "description": "The Golden Gloves is the most storied amateur boxing tournament in American history. First held in 1923, it has been fought by nearly every great American professional fighter at some point in their amateur career — Sugar Ray Robinson, Joe Louis, Muhammad Ali, Floyd Mayweather, Oscar De La Hoya. Separate from the USA Boxing National Championships in calendar and tradition; winning both in the same year is the clearest statement an American amateur can make. The Golden Gloves crown carries weight that any American boxing fan immediately recognises."
+    }
+  ]
+}

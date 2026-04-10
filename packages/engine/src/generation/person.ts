@@ -27,6 +27,7 @@ import type { SoulTrait } from '../types/data/soulTraits.js'
 import type { GiftOrFlaw } from '../types/data/giftsAndFlaws.js'
 import type { GenerationBand } from '../types/data/health.js'
 import type { DevelopmentProfile } from '../types/data/developmentProfiles.js'
+import type { Ethnicity } from '../types/data/ethnicities.js'
 
 // ─── Identity helpers ────────────────────────────────────────────────────────
 
@@ -197,6 +198,42 @@ function collectPhysicalModifiers(
   return modifiers
 }
 
+// ─── Ethnicity helpers ────────────────────────────────────────────────────────
+
+// pickEthnicity selects an ethnicity for a person based on their city.
+// Each ethnicity defines cityWeights — the probability of that ethnicity in each city.
+// Unlisted cities get a weight of 0 for that ethnicity, then a residual "none" catch catches
+// the remainder if weights don't sum to 1.0. We normalise and pick.
+// Returns null if the nation has no ethnicity system defined.
+function pickEthnicity(ethnicities: Ethnicity[], cityId: string, rng: RNG): Ethnicity | null {
+  if (ethnicities.length === 0) return null
+
+  const weights = ethnicities.map(e => e.cityWeights[cityId] ?? 0)
+  const total = weights.reduce((s, w) => s + w, 0)
+
+  // If no ethnicity claims meaningful presence in this city, pick uniformly.
+  // This prevents crashes for cities with no explicit cityWeights entries.
+  if (total <= 0) return rng.pick(ethnicities)
+
+  // Normalise so weights sum to 1.0 — cityWeights may not be exhaustive.
+  const normalised = weights.map(w => w / total)
+  return rng.weightedPick(ethnicities, normalised)
+}
+
+// applyWeightedMultipliers applies a multiplier map to a base probability array.
+// Used to shift soul trait and reason-for-boxing probabilities by ethnicity weights.
+// multipliers is a Record<id, multiplier> — absent ids default to 1.0.
+function applyWeightedMultipliers(
+  ids: string[],
+  baseWeights: number[],
+  multipliers: Record<string, number>,
+): number[] {
+  const shifted = ids.map((id, i) => (baseWeights[i] ?? 1) * (multipliers[id] ?? 1.0))
+  const total = shifted.reduce((s, w) => s + w, 0)
+  // Renormalise so probabilities still sum to 1.0 after multipliers applied.
+  return total > 0 ? shifted.map(w => w / total) : baseWeights
+}
+
 // ─── Main generation function ─────────────────────────────────────────────────
 
 export function generatePerson(data: GameData, rng: RNG, nationId: string, cityId: string): Person {
@@ -220,9 +257,40 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
 
   const age = rng.nextInt(16, 32)
 
+  // Step 0 — Ethnicity assignment
+  //
+  // Picked before names and traits because it drives name pool selection,
+  // soul trait weight shifts, reason weight shifts, and physical attribute biases.
+  // For nations without an ethnicity system (Latvia), ethnicity is null throughout.
+  const nationEthnicities = nationBundle.ethnicities
+  const ethnicity: Ethnicity | null = nationEthnicities !== null
+    ? pickEthnicity(nationEthnicities.ethnicities, cityId, rng)
+    : null
+  const ethnicityId = ethnicity !== null ? ethnicity.id : null
+
+  // Name selection — use ethnicity-specific pool when available.
+  // Falls back to the nation-level flat pool (Latvia) when no ethnicity assigned.
   const names = nationBundle.names
-  const firstName = rng.pick(names.male.firstNames)
-  const surname = rng.pick(names.male.surnames)
+  let firstName: string
+  let surname: string
+  if (ethnicity !== null && names.byEthnicity !== undefined) {
+    const pool = names.byEthnicity[ethnicity.id]
+    if (pool !== undefined) {
+      firstName = rng.pick(pool.male.firstNames)
+      surname = rng.pick(pool.male.surnames)
+    } else {
+      // Ethnicity defined but no name pool for it — fall back to flat pool.
+      const flatMale = names.male
+      if (flatMale === undefined) throw new Error(`Nation "${nationId}" has no usable name pool`)
+      firstName = rng.pick(flatMale.firstNames)
+      surname = rng.pick(flatMale.surnames)
+    }
+  } else {
+    const flatMale = names.male
+    if (flatMale === undefined) throw new Error(`Nation "${nationId}" has no usable name pool`)
+    firstName = rng.pick(flatMale.firstNames)
+    surname = rng.pick(flatMale.surnames)
+  }
 
   const economicStatuses = nationBundle.economicStatuses.statuses
   const economicStatus = rng.weightedPick(
@@ -231,10 +299,17 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   )
 
   const reasons = nationBundle.reasonsForBoxing.reasons
-  const reasonForBoxing = rng.weightedPick(
-    reasons,
-    reasons.map(r => r.weight),
-  )
+  // Apply ethnicity reasonForBoxingWeights as multipliers on base probabilities.
+  // This shifts which reasons are more or less common for this ethnicity.
+  const reasonBaseWeights = reasons.map(r => r.weight ?? 1)
+  const reasonWeights = ethnicity !== null
+    ? applyWeightedMultipliers(
+        reasons.map(r => r.id),
+        reasonBaseWeights,
+        ethnicity.reasonForBoxingWeights,
+      )
+    : reasonBaseWeights
+  const reasonForBoxing = rng.weightedPick(reasons, reasonWeights)
 
   // Development profile is rolled in Step 1 because peakAge feeds the ageFactor
   // calculation in Step 6 — it must be known before attributes are rolled.
@@ -246,11 +321,20 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   //
   // Each pair produces exactly one trait. No person can hold both sides of a pair —
   // that would make their psychological core self-contradictory and break moment logic.
+  // Ethnicity soulTraitWeights shift the probability within each pair — a 1.4 multiplier
+  // on 'hungry' makes a hungry result more likely relative to its opposite 'content'.
   const traitPairs = groupTraitPairs(data.soulTraits.traits)
-  const soulTraits: SoulTraitAssignment[] = traitPairs.map(pair => ({
-    traitId: rng.pick(pair).id,
-    revealed: false,
-  }))
+  const soulTraits: SoulTraitAssignment[] = traitPairs.map(pair => {
+    if (ethnicity === null || Object.keys(ethnicity.soulTraitWeights).length === 0) {
+      return { traitId: rng.pick(pair).id, revealed: false }
+    }
+    // Apply multipliers within the pair — pair[0] vs pair[1].
+    const w0 = ethnicity.soulTraitWeights[pair[0].id] ?? 1.0
+    const w1 = ethnicity.soulTraitWeights[pair[1].id] ?? 1.0
+    const total = w0 + w1
+    const traitId = rng.next() < w0 / total ? pair[0].id : pair[1].id
+    return { traitId, revealed: false }
+  })
 
   // Step 3 — Physical profile
   //
@@ -261,10 +345,12 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   const physicalWeightClasses = data.weightClasses.weightClasses.filter(wc => wc.amateurOnly !== true)
   const physicalWeightClass = rng.pick(physicalWeightClasses)
 
+  // physicalProfile is optional on NationData — USA drives physical variation via
+  // ethnicity biases rather than nation-level band overrides.
   const nationProfile = nationBundle.nation.physicalProfile
 
   const heightBands = data.physicalStats.heightProfile.bands
-  const heightProbs = mergeNationProbabilities(heightBands, nationProfile.heightProfile)
+  const heightProbs = mergeNationProbabilities(heightBands, nationProfile?.heightProfile)
   const heightBand = rng.weightedPick(heightBands, heightProbs)
   const baseHeight = data.physicalStats.heightProfile.baseHeightByWeightClassCm[physicalWeightClass.id]
   if (baseHeight === undefined) {
@@ -273,7 +359,7 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   const heightCm = Math.round(baseHeight + heightBand.heightOffsetCm)
 
   const reachBands = data.physicalStats.reachProfile.bands
-  const reachProbs = mergeNationProbabilities(reachBands, nationProfile.reachProfile)
+  const reachProbs = mergeNationProbabilities(reachBands, nationProfile?.reachProfile)
   const reachBand = rng.weightedPick(reachBands, reachProbs)
   const reachCm = Math.round(heightCm * reachBand.ratioToHeight)
 
@@ -287,19 +373,19 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
   }
 
   const handBands = data.physicalStats.handSizeProfile.bands
-  const handProbs = mergeNationProbabilities(handBands, nationProfile.handSizeProfile)
+  const handProbs = mergeNationProbabilities(handBands, nationProfile?.handSizeProfile)
   const handBand = rng.weightedPick(handBands, handProbs)
 
   const neckBands = data.physicalStats.neckThicknessProfile.bands
-  const neckProbs = mergeNationProbabilities(neckBands, nationProfile.neckThicknessProfile)
+  const neckProbs = mergeNationProbabilities(neckBands, nationProfile?.neckThicknessProfile)
   const neckBand = rng.weightedPick(neckBands, neckProbs)
 
   const boneBands = data.physicalStats.boneDensityProfile.bands
-  const boneProbs = mergeNationProbabilities(boneBands, nationProfile.boneDensityProfile)
+  const boneProbs = mergeNationProbabilities(boneBands, nationProfile?.boneDensityProfile)
   const boneBand = rng.weightedPick(boneBands, boneProbs)
 
   const propBands = data.physicalStats.bodyProportionsProfile.bands
-  const propProbs = mergeNationProbabilities(propBands, nationProfile.bodyProportionsProfile)
+  const propProbs = mergeNationProbabilities(propBands, nationProfile?.bodyProportionsProfile)
   const propBand = rng.weightedPick(propBands, propProbs)
 
   const physicalProfile: PhysicalProfile = {
@@ -372,19 +458,40 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
 
   const factor = calculateAgeFactor(age, peakAge, profile)
 
+  // Build a lookup of ethnicity physical biases for attribute generation.
+  // These biases are multipliers on the generation ceiling — not hard caps.
+  // The map key matches attributeId to the relevant bias field name.
+  const ethnicityBiasMap: Record<string, number | undefined> = ethnicity !== null
+    ? {
+        hand_speed:  ethnicity.physicalProfile.handSpeedBias,
+        power:       ethnicity.physicalProfile.powerBias,
+        chin:        ethnicity.physicalProfile.chinBias,
+        durability:  ethnicity.physicalProfile.durabilityBias,
+        stamina:     ethnicity.physicalProfile.staminaBias,
+      }
+    : {}
+
   const attributes: AttributeValue[] = data.attributes.attributes.map(attr => {
     const isGiftEligible = attr.scale.generationMax !== undefined
     const hasGift = giftByAttribute.has(attr.id)
     const hasFlaw = flawByAttribute.has(attr.id)
 
-    // Determine generation ceiling before physical modifiers.
+    // Determine base generation ceiling before ethnicity bias.
     // Gift-eligible without a gift: generationMax (18). With a gift: absoluteMax (20).
     // Non-gift-eligible: max (20 always).
-    const genCap = isGiftEligible
+    const baseCap = isGiftEligible
       ? hasGift
         ? (attr.scale.absoluteMax ?? 20)
         : (attr.scale.generationMax ?? 18)
       : (attr.scale.max ?? 20)
+
+    // Apply ethnicity bias as a multiplier on the generation ceiling.
+    // Biases are capped at absoluteMax to prevent any attribute exceeding the hard ceiling.
+    // This is the core rule: biases shift distributions, never push above absoluteMax.
+    const ethnicityBias = ethnicityBiasMap[attr.id] ?? 1.0
+    const absoluteMax = attr.scale.absoluteMax ?? 20
+    const biasedCap = Math.min(absoluteMax, Math.round(baseCap * ethnicityBias))
+    const genCap = Math.max(attr.scale.min, biasedCap)
 
     // Roll base value. If a flaw is present, roll twice and take the minimum —
     // this naturally skews the distribution toward lower values without a hard floor shift.
@@ -397,7 +504,7 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
     base = base + physMod
 
     // Potential is the final generation ceiling value after clamping.
-    // Gift-eligible without gift must not exceed 18 even after physical modifiers.
+    // Gift-eligible without gift must not exceed generationMax even after physical modifiers.
     // This enforces the gift ceiling rule: a non-gifted attribute cannot accidentally
     // reach 19-20 just because physical profile modifiers pushed it there.
     const finalCap = isGiftEligible && !hasGift ? (attr.scale.generationMax ?? 18) : 20
@@ -416,6 +523,7 @@ export function generatePerson(data: GameData, rng: RNG, nationId: string, cityI
     age,
     nationId,
     cityId,
+    ethnicityId,
     economicStatusId: economicStatus.id,
     reasonForBoxingId: reasonForBoxing.id,
     developmentProfileId: profile.id,

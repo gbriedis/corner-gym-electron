@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "USA's pro boxing development system. The USA starts at level 4 — the most developed pro boxing infrastructure in the world. All thresholds are pre-met at game start. The US has full major promoter relationships, world title fight infrastructure, and is the reference point that all other nations measure themselves against. This is not something the player builds — it already exists. The player's job is to navigate it."
+  },
+  "nationId": "usa",
+  "currentLevel": 4,
+  "thresholds": [
+    {
+      "level": 1,
+      "label": "Emerging Scene",
+      "requirements": {
+        "activeProFighters": 3,
+        "highestCircuitReached": "regional_tournament"
+      },
+      "unlocks": [
+        "local_promoter_emerges",
+        "informal_pro_cards",
+        "small_venue_fights"
+      ],
+      "inboxMessage": "A local promoter has reached out. The pro scene in this area is beginning to develop."
+    },
+    {
+      "level": 2,
+      "label": "Recognised Scene",
+      "requirements": {
+        "activeProFighters": 8,
+        "highestCircuitReached": "national_championship",
+        "combinedGymReputation": 200
+      },
+      "unlocks": [
+        "regional_sanctioning",
+        "pro_rankings",
+        "regional_title_fights"
+      ],
+      "inboxMessage": "The local pro scene is getting noticed. Regional sanctioned cards are now available."
+    },
+    {
+      "level": 3,
+      "label": "Established Scene",
+      "requirements": {
+        "worldRankedFighters": 2,
+        "titleHeld": true,
+        "combinedGymReputation": 500
+      },
+      "unlocks": [
+        "pro_commission",
+        "national_title_belts",
+        "international_promoter_interest"
+      ],
+      "inboxMessage": "A Pro Boxing Commission is formally established in this area. National title fights are now available."
+    },
+    {
+      "level": 4,
+      "label": "Boxing Nation",
+      "requirements": {
+        "worldTitleContender": true,
+        "internationalCardsHosted": 3,
+        "combinedGymReputation": 1000
+      },
+      "unlocks": [
+        "full_sanctioning_body",
+        "world_title_fight_eligible",
+        "major_promoter_relationships",
+        "international_boxing_radar"
+      ],
+      "inboxMessage": "Already met. The United States is already a boxing nation. The world watches every card."
+    }
+  ]
+}

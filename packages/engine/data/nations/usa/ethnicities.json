@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Ethnicity definitions for USA. Physical profile biases reflect documented statistical distributions in professional boxing, not general population data. Boxing selects for certain physical attributes — these biases reflect who historically succeeds in the sport by ethnicity, not general population averages. All biases are modest multipliers on generation ceilings — no attribute is impossible for any ethnicity, distributions simply skew differently. cityWeights define the probability of a person in a given city belonging to this ethnicity — only cities with meaningful historical presence are listed; unlisted cities use the residual probability after all listed weights are summed. soulTraitWeights and reasonForBoxingWeights are multipliers on base probabilities — 1.4 means 40% more likely than the nation baseline, 0.7 means 30% less likely."
+  },
+  "ethnicities": [
+    {
+      "id": "african_american",
+      "label": "African American",
+      "cityWeights": {
+        "usa-brownsville-brooklyn": 0.70,
+        "usa-new-york": 0.30,
+        "usa-detroit": 0.60,
+        "usa-chicago": 0.35,
+        "usa-philadelphia": 0.40,
+        "usa-houston": 0.30,
+        "usa-los-angeles": 0.20,
+        "usa-miami": 0.25,
+        "usa-oakland": 0.45,
+        "usa-flint": 0.55,
+        "usa-youngstown": 0.40,
+        "usa-cleveland": 0.35,
+        "usa-new-orleans": 0.55,
+        "usa-las-vegas": 0.20,
+        "usa-brockton": 0.20
+      },
+      "soulTraitWeights": {
+        "hungry": 1.4,
+        "brave": 1.2,
+        "proud": 1.3,
+        "resilient": 1.1
+      },
+      "reasonForBoxingWeights": {
+        "way_out": 1.5,
+        "community_identity": 1.4,
+        "prove_something": 1.3,
+        "outlet": 1.2
+      },
+      "styleTendencyWeights": {
+        "pressure_fighter": 1.2,
+        "boxer_puncher": 1.3,
+        "out_boxer": 1.1
+      },
+      "physicalProfile": {
+        "heightBias": 1.01,
+        "reachBias": 1.04,
+        "handSpeedBias": 1.08,
+        "powerBias": 1.03,
+        "chinBias": 0.97,
+        "durabilityBias": 1.0,
+        "staminaBias": 1.02
+      },
+      "note": "Documented longer reach relative to height, exceptional hand speed — consistent across multiple independent studies of professional boxing physiology. Slight chin variance reflects real statistical distribution — not a penalty, a natural spread across a large population."
+    },
+    {
+      "id": "mexican_american",
+      "label": "Mexican American",
+      "cityWeights": {
+        "usa-los-angeles": 0.45,
+        "usa-oxnard": 0.70,
+        "usa-san-antonio": 0.55,
+        "usa-houston": 0.40,
+        "usa-stockton": 0.45,
+        "usa-chicago": 0.20,
+        "usa-albuquerque": 0.50,
+        "usa-las-vegas": 0.20,
+        "usa-new-york": 0.08,
+        "usa-miami": 0.10
+      },
+      "soulTraitWeights": {
+        "proud": 1.4,
+        "brave": 1.5,
+        "determined": 1.3,
+        "hungry": 1.2
+      },
+      "reasonForBoxingWeights": {
+        "family_tradition": 1.6,
+        "community_identity": 1.5,
+        "way_out": 1.3,
+        "passion": 1.2
+      },
+      "styleTendencyWeights": {
+        "pressure_fighter": 1.5,
+        "brawler": 1.3,
+        "boxer_puncher": 1.1
+      },
+      "physicalProfile": {
+        "heightBias": 0.97,
+        "reachBias": 0.98,
+        "weightBias": 1.03,
+        "handSpeedBias": 0.98,
+        "powerBias": 1.06,
+        "chinBias": 1.07,
+        "durabilityBias": 1.08,
+        "staminaBias": 1.03
+      },
+      "note": "Stockier build — shorter stature, broader frame, heavier for their height. Exceptional durability and chin — documented across generations of Mexican and Mexican-American fighters who consistently outperform expectations for punishment absorption. Superior power for their weight class. The tradition of coming forward and fighting through adversity is real and the physiology supports it."
+    },
+    {
+      "id": "irish_american",
+      "label": "Irish American",
+      "cityWeights": {
+        "usa-philadelphia": 0.25,
+        "usa-new-york": 0.20,
+        "usa-boston": 0.40,
+        "usa-brockton": 0.35,
+        "usa-lowell": 0.30,
+        "usa-chicago": 0.15,
+        "usa-cleveland": 0.15,
+        "usa-youngstown": 0.20
+      },
+      "soulTraitWeights": {
+        "brave": 1.4,
+        "resilient": 1.3,
+        "determined": 1.2,
+        "proud": 1.2
+      },
+      "reasonForBoxingWeights": {
+        "family_tradition": 1.5,
+        "community_identity": 1.3,
+        "prove_something": 1.2,
+        "outlet": 1.2
+      },
+      "styleTendencyWeights": {
+        "pressure_fighter": 1.4,
+        "brawler": 1.2,
+        "boxer_puncher": 1.1
+      },
+      "physicalProfile": {
+        "heightBias": 1.01,
+        "reachBias": 1.0,
+        "powerBias": 1.02,
+        "chinBias": 1.04,
+        "durabilityBias": 1.03,
+        "staminaBias": 1.02
+      },
+      "note": "Solid builds with good chin. Heart and communication are where Irish-American fighters are most distinctive — reflected in soul trait weights rather than physical profile. The durability and chin biases reflect a documented tradition of refusing to quit under punishment."
+    },
+    {
+      "id": "puerto_rican_american",
+      "label": "Puerto Rican American",
+      "cityWeights": {
+        "usa-new-york": 0.25,
+        "usa-philadelphia": 0.20,
+        "usa-chicago": 0.12,
+        "usa-miami": 0.15,
+        "usa-lowell": 0.15,
+        "usa-houston": 0.08,
+        "usa-brownsville-brooklyn": 0.12
+      },
+      "soulTraitWeights": {
+        "brave": 1.4,
+        "proud": 1.5,
+        "hungry": 1.3,
+        "passionate": 1.4
+      },
+      "reasonForBoxingWeights": {
+        "community_identity": 1.6,
+        "family_tradition": 1.4,
+        "prove_something": 1.3,
+        "way_out": 1.2
+      },
+      "styleTendencyWeights": {
+        "pressure_fighter": 1.4,
+        "boxer_puncher": 1.3,
+        "brawler": 1.1
+      },
+      "physicalProfile": {
+        "heightBias": 0.99,
+        "reachBias": 1.01,
+        "handSpeedBias": 1.05,
+        "powerBias": 1.04,
+        "chinBias": 1.05,
+        "durabilityBias": 1.05,
+        "staminaBias": 1.02
+      },
+      "note": "Athletic build combining hand speed with exceptional durability. Similar tradition to Mexican-American fighters but slightly taller on average. Puerto Rican boxing has produced an extraordinary number of world champions relative to population — the physiology and culture reinforce each other."
+    },
+    {
+      "id": "eastern_european_american",
+      "label": "Eastern European American",
+      "cityWeights": {
+        "usa-chicago": 0.10,
+        "usa-cleveland": 0.12,
+        "usa-youngstown": 0.15,
+        "usa-new-york": 0.07,
+        "usa-philadelphia": 0.08,
+        "usa-detroit": 0.08,
+        "usa-las-vegas": 0.05
+      },
+      "soulTraitWeights": {
+        "disciplined": 1.4,
+        "determined": 1.3,
+        "resilient": 1.2,
+        "calm": 1.2
+      },
+      "reasonForBoxingWeights": {
+        "family_tradition": 1.4,
+        "passion": 1.3,
+        "prove_something": 1.2
+      },
+      "styleTendencyWeights": {
+        "counter_puncher": 1.4,
+        "out_boxer": 1.3,
+        "boxer_puncher": 1.2
+      },
+      "physicalProfile": {
+        "heightBias": 1.02,
+        "reachBias": 1.01,
+        "powerBias": 1.03,
+        "chinBias": 1.05,
+        "durabilityBias": 1.04,
+        "staminaBias": 1.04
+      },
+      "note": "Strong amateur backgrounds from Eastern European boxing traditions — Poland, Ukraine, Russia, and the former Yugoslav states all have serious boxing programmes. Solid stamina from disciplined training cultures. Chin and durability reflect a tradition of technical boxing that also prepares fighters to absorb and respond to punishment."
+    },
+    {
+      "id": "white_american",
+      "label": "White American",
+      "cityWeights": {
+        "usa-las-vegas": 0.15,
+        "usa-new-york": 0.10,
+        "usa-philadelphia": 0.07,
+        "usa-chicago": 0.18,
+        "usa-los-angeles": 0.10,
+        "usa-houston": 0.12,
+        "usa-detroit": 0.12,
+        "usa-miami": 0.20,
+        "usa-oakland": 0.08,
+        "usa-san-antonio": 0.20,
+        "usa-new-orleans": 0.25,
+        "usa-stockton": 0.15,
+        "usa-flint": 0.20,
+        "usa-youngstown": 0.25,
+        "usa-brockton": 0.25,
+        "usa-albuquerque": 0.25,
+        "usa-cleveland": 0.30,
+        "usa-lowell": 0.25
+      },
+      "soulTraitWeights": {},
+      "reasonForBoxingWeights": {
+        "passion": 1.1,
+        "fell_into_it": 1.1
+      },
+      "styleTendencyWeights": {},
+      "physicalProfile": {
+        "heightBias": 1.0,
+        "reachBias": 1.0,
+        "powerBias": 1.0,
+        "chinBias": 1.0,
+        "durabilityBias": 1.0,
+        "staminaBias": 1.0
+      },
+      "note": "Broad category with no consistent physical lean — the baseline modifiers reflect a diverse population without a single dominant tradition. Soul trait and reason weights are minimal because this is a catch-all category spanning many distinct sub-communities (Irish-American, Italian-American, Polish-American, etc.) whose specific traditions are handled by dedicated ethnicity entries."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "US boxing promoters voice lines for procedurally generated regional promoters. Tone: direct, business-focused, American. The US promoter talks about money, opportunity, and leverage — a different register from the Latvian dry understatement. Named promoters like Bob Arum and Oscar De La Hoya are not hardcoded here — they are represented through the international named promoters in universal/promoters.json."
+  },
+  "nationId": "usa",
+  "promoters": [],
+  "generatedPromoterVoiceLines": {
+    "initialOffer": [
+      "I've been watching {fighterName}. I've got a card in {city} next month and I want them on it. Here are the numbers.",
+      "Your fighter has a good look. I can get them on television. Let's talk money.",
+      "Got a slot at {weightClass} on our {city} card. Your fighter fits. What do you need?",
+      "I run the {city} market. {fighterName} is the kind of fighter I can do business with. Call me.",
+      "We need a {weightClass} fighter for a March card at {venue}. Your guy ready to step up?",
+      "I saw {fighterName} fight last month. I can move this kid. Here's what I'm offering."
+    ],
+    "offerDeclined": [
+      "Your call. When you're ready to do business, you know where to find me.",
+      "Understood. Someone else will take the slot.",
+      "That's fine. Don't wait too long — this market moves fast.",
+      "OK. But I'll need an answer in 48 hours next time.",
+      "Alright. We'll talk when the timing works for you."
+    ],
+    "fightWon": [
+      "Good performance. I've got bigger plans for this kid. Let's sit down.",
+      "Perfect. The right people were watching tonight. Follow up with me Monday.",
+      "That's what I needed to see. We're moving up.",
+      "Solid win. I can sell this fighter nationally now. Let's talk.",
+      "People noticed. That's the business. What do you want next?"
+    ],
+    "fightLost": [
+      "Tough night. It happens in this business. Let's talk about where we go from here.",
+      "It happens. The question is how your fighter responds. I'll be watching.",
+      "Not the result we wanted but I can still work with this. Call me.",
+      "These things happen. Get back in the gym, get back in the ring. This isn't over.",
+      "Boxing is a long game. We move forward."
+    ],
+    "contractOffer": [
+      "I want to sign {fighterName} to a multi-fight deal. Here's what I'm offering — it's fair and I stand behind every number.",
+      "Ready to make this official. I want {fighterName} on my roster. Here's the contract.",
+      "Long-term relationship. I'm serious about building this fighter's career. Take a look at what I'm proposing.",
+      "I don't offer contracts to fighters I'm not serious about. Read this carefully.",
+      "We've done good business together. Time to formalise it. Here's the deal."
+    ]
+  }
+}

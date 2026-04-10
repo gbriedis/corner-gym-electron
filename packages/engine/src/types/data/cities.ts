@@ -1,7 +1,8 @@
-// Matches nations/latvia/cities.json
+// Matches nations/latvia/cities.json and nations/usa/cities.json.
+// USA introduces large_city population tier and state field.
 import type { Meta } from './meta.js'
 
-export type PopulationType = 'small_town' | 'mid_city' | 'capital'
+export type PopulationType = 'small_town' | 'mid_city' | 'large_city' | 'capital'
 export type RegionTag = 'rural' | 'urban' | 'coastal' | 'industrial' | 'high_altitude'
 export type BoxingActivityLevel = 'low' | 'medium' | 'high'
 
@@ -21,18 +22,22 @@ export interface EventHostingFrequency {
 export interface City {
   id: string
   label: string
-  regionTag: RegionTag
   population: PopulationType
-  isStartingOption: boolean
-  // Informational level used by UI to set tone for this city.
-  boxingActivityLevel: BoxingActivityLevel
-  // Per-event-type frequency ranges. Engine reads these instead of guessing.
-  eventHostingFrequency: EventHostingFrequency
   // All modifiers are relative to baseline 1.0.
   rentModifier: number
   talentDensity: number
   rivalGymDensity: number
+  // Per-event-type frequency ranges. Engine reads these instead of guessing.
+  eventHostingFrequency: EventHostingFrequency
   description: string
+  // Latvia-style fields — optional for nations like USA.
+  regionTag?: RegionTag
+  isStartingOption?: boolean
+  // Informational level used by UI to set tone for this city.
+  boxingActivityLevel?: BoxingActivityLevel
+  // USA-style fields — optional for Latvia.
+  state?: string
+  boxingCultureOverride?: number
 }
 
 export interface CitiesData {

@@ -14,11 +14,13 @@
     "populationPerCity": {
       "small_town": 150,
       "mid_city": 400,
+      "large_city": 800,
       "capital": 1200
     },
     "gymsPerCity": {
       "small_town": 1,
       "mid_city": 3,
+      "large_city": 5,
       "capital": 6
     }
   }

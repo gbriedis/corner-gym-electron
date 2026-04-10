@@ -46,6 +46,7 @@ import type {
   StyleMatchupsData,
   StyleDevelopmentData,
   CoachGenerationData,
+  EthnicitiesData,
 } from '../types/data/index.js'
 import type { RulesData } from '../types/competition.js'
 
@@ -88,7 +89,9 @@ export interface NationBundle {
   names: NamesData
   economicStatuses: EconomicStatusesData
   reasonsForBoxing: ReasonsForBoxingData
-  coachVoice: {
+  // coachVoice is undefined when the nation has no coach-voice/ folder.
+  // Nations can be loaded without coach voice — the UI shows no coach observations until voice is added.
+  coachVoice?: {
     attributes: CoachVoiceAttributesData
     physicalStats: CoachVoicePhysicalData
     giftsAndFlaws: CoachVoiceGiftsFlawsData
@@ -97,6 +100,9 @@ export interface NationBundle {
   coachGeneration: CoachGenerationData
   // gymNames is undefined when the nation has no gym-names.json — engine falls back to patterns.
   gymNames?: GymNamesData
+  // ethnicities is null when the nation has no ethnicities.json (e.g. Latvia).
+  // EthnicitiesData when the nation uses an ethnicity system (e.g. USA).
+  ethnicities: EthnicitiesData | null
   // boxing is undefined when the nation has no boxing/ folder — not an error.
   boxing?: NationBoxingData
 }
@@ -173,23 +179,44 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
     }
   }
 
+  // Coach voice is optional — nations can operate without voice lines.
+  // The coach-voice/ folder must exist and contain all three files.
+  // Nations without it (e.g. USA in V1) will have coachVoice undefined.
+  const coachVoiceDir = join(base, 'coach-voice')
+  let coachVoice: NationBundle['coachVoice']
+  if (existsSync(coachVoiceDir)) {
+    coachVoice = {
+      attributes: loadFile<CoachVoiceAttributesData>('coach-voice/attributes.json'),
+      physicalStats: loadFile<CoachVoicePhysicalData>('coach-voice/physical-stats.json'),
+      giftsAndFlaws: loadFile<CoachVoiceGiftsFlawsData>('coach-voice/gifts-and-flaws.json'),
+    }
+  }
+
+  // Ethnicities are optional — Latvia has no ethnicities.json.
+  // When the file exists, the nation uses an ethnicity system for name selection,
+  // trait weights, and physical biases. When absent, ethnicities is null.
+  const ethnicitiesPath = join(base, 'ethnicities.json')
+  const ethnicities: EthnicitiesData | null = existsSync(ethnicitiesPath)
+    ? loadFile<EthnicitiesData>('ethnicities.json')
+    : null
+
   const bundle: NationBundle = {
     nation,
     cities: loadFile<CitiesData>('cities.json'),
     names: loadFile<NamesData>('names.json'),
     economicStatuses: loadFile<EconomicStatusesData>('economic-statuses.json'),
     reasonsForBoxing: loadFile<ReasonsForBoxingData>('reasons-for-boxing.json'),
-    coachVoice: {
-      attributes: loadFile<CoachVoiceAttributesData>('coach-voice/attributes.json'),
-      physicalStats: loadFile<CoachVoicePhysicalData>('coach-voice/physical-stats.json'),
-      giftsAndFlaws: loadFile<CoachVoiceGiftsFlawsData>('coach-voice/gifts-and-flaws.json'),
-    },
     gymStartingStates: loadFile<GymStartingStatesData>('gym-starting-states.json'),
     coachGeneration: loadFile<CoachGenerationData>('coach-generation.json'),
+    ethnicities,
   }
 
   // Conditionally assign so exactOptionalPropertyTypes is satisfied —
   // the field must be absent (not undefined) when the file does not exist.
+
+  if (coachVoice !== undefined) {
+    bundle.coachVoice = coachVoice
+  }
 
   // gym-names.json is optional — nations can be added without a name pool.
   // Engine falls back to pattern-based generation when absent.

@@ -40,6 +40,13 @@ export interface DifficultyPreset {
   }>
 }
 
+export interface NationOption {
+  id: string
+  label: string
+  estimatedFighters: number
+  estimatedGenerationSeconds: number
+}
+
 export interface NewGameOptions {
   defaults: {
     renderedNations: string[]
@@ -49,6 +56,8 @@ export interface NewGameOptions {
   }
   difficulties: DifficultyPreset[]
   nationCities: Record<string, CityOption[]>
+  // All available nations with their performance hints for world configuration UI.
+  availableNations: NationOption[]
 }
 
 export interface ProgressEvent {
