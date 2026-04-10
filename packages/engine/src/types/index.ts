@@ -1,7 +1,7 @@
 export type {
   BoutStatus,
   BoutMethod,
-  JudgeScorecard,
+  BoutJudgeScore,
   BoutResult,
   Bout,
   CardVisibility,
@@ -21,6 +21,15 @@ export type { Gym } from './gym.js'
 export type { CoachStyle, CoachFighterRelationship, Coach } from './coach.js'
 export type { Manager } from './manager.js'
 export type { Clause } from './clause.js'
+
+export type {
+  ResolutionMethod,
+  BoutResolutionInput,
+  RoundScore,
+  DamageAccumulated,
+  JudgeScorecard,
+  BoutResolutionResult,
+} from './resolution.js'
 
 export type {
   FighterIdentityState,

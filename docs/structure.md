@@ -161,7 +161,12 @@ corner-gym/
     │       │   └── fighter.test.ts    # 17 tests — fields, weight class, mental caps, ambitions, style, coachability, determinism
     │       └── engine/
     │           ├── advanceWeek.ts     # Week tick entry point stub
-    │           └── styleEngine.ts     # getMatchup + getEffectiveModifiers — lookup helpers for exchange simulation
+    │           ├── styleEngine.ts     # getMatchup + getEffectiveModifiers — lookup helpers for exchange simulation
+    │           ├── boutAssessment.ts  # assessBout — derives FighterBoutState + BoutConditions from input + data
+    │           ├── roundResolution.ts # resolveRound — per-round dominance, damage, knockdowns, stoppages, soul traits
+    │           ├── attributeEvents.ts # calculateAttributeEvents — gain/regression rules from attribute-accumulation.json
+    │           ├── resolveBout.ts     # resolveBout — orchestrates assessment + round loop + judge scoring + damage + events
+    │           └── resolveBout.test.ts # 14 tests — determinism, skill disparity, KO, headgear, 3KD, decisions, attr events, fragile, stamina
     │
     ├── desktop/                       # Electron main process
     │   ├── package.json               # @corner-gym/desktop — depends on engine + better-sqlite3

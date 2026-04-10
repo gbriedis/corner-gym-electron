@@ -9,7 +9,7 @@ export type { GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings } f
 export { resolveModifiers } from './types/gameConfig.js'
 export type { CalendarEvent, CalendarData, EventStatus } from './types/calendar.js'
 export type {
-  Bout, BoutStatus, BoutMethod, BoutResult, JudgeScorecard,
+  Bout, BoutStatus, BoutMethod, BoutResult, BoutJudgeScore,
   Card, CardVisibility,
   TournamentBracket, TournamentEntrant, TournamentRound,
   MultiDayEvent, MultiDaySession,

@@ -22,7 +22,10 @@ export type BoutMethod =
   | 'no_contest'
   | 'draw'
 
-export interface JudgeScorecard {
+// Per-judge scorecard stored on a completed Bout — used in BoutResult.
+// Named BoutJudgeScore to distinguish from JudgeScorecard in resolution.ts,
+// which carries per-judge totals and a winner determination.
+export interface BoutJudgeScore {
   judgeId: string
   fighterAScore: number
   fighterBScore: number
@@ -32,7 +35,7 @@ export interface BoutResult {
   winnerId: string | null       // null = draw or no_contest
   method: BoutMethod
   endRound: number
-  judgeScores?: JudgeScorecard[]
+  judgeScores?: BoutJudgeScore[]
 }
 
 export interface Bout {

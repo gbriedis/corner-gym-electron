@@ -89,6 +89,10 @@ export interface DevelopedAttribute {
 
 export interface AttributeHistoryEvent {
   // Records every significant attribute change for history and dev mode analysis.
+  // attributeId identifies which developed attribute this event belongs to — required
+  // because calculateAttributeEvents returns a flat list that resolveBout routes into
+  // the correct AttributeHistory entry per attribute.
+  attributeId: string
   year: number
   week: number
   trigger: 'training' | 'sparring' | 'amateur_bout' | 'pro_bout' | 'title_fight' | 'olympic_bout' | 'inactivity' | 'age_regression'

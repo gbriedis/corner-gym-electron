@@ -22,6 +22,7 @@
 | [x] | `packages/engine/src/types/fighter.ts` |
 | [x] | `packages/engine/src/types/gym.ts` |
 | [x] | `packages/engine/src/types/coach.ts` |
+| [x] | `packages/engine/src/types/resolution.ts` |
 | [~] | `packages/engine/src/types/manager.ts` |
 | [~] | `packages/engine/src/types/clause.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
@@ -74,6 +75,10 @@
 |-------|------|
 | [ ] | `packages/engine/src/engine/advanceWeek.ts` |
 | [x] | `packages/engine/src/engine/styleEngine.ts` |
+| [x] | `packages/engine/src/engine/boutAssessment.ts` |
+| [x] | `packages/engine/src/engine/roundResolution.ts` |
+| [x] | `packages/engine/src/engine/attributeEvents.ts` |
+| [x] | `packages/engine/src/engine/resolveBout.ts` |
 | [ ] | `packages/engine/src/engine/world.ts` |
 | [ ] | `packages/engine/src/engine/gym.ts` |
 | [ ] | `packages/engine/src/engine/training.ts` |
