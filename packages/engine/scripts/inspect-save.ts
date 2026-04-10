@@ -32,7 +32,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ─── Args ─────────────────────────────────────────────────────────────────────
 
-const savePath = process.argv[2]
+// Skip the '--' separator that pnpm injects when using: pnpm inspect -- <path>
+const savePath = process.argv[2] === '--' ? process.argv[3] : process.argv[2]
 if (savePath === undefined || savePath === '') {
   console.error('Usage: tsx scripts/inspect-save.ts <path-to-save.db>')
   process.exit(1)
