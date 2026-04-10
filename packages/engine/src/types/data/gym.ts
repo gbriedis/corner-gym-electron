@@ -1,5 +1,20 @@
 import type { Meta } from './meta.js'
 
+export interface CoachGenerationData {
+  meta: Meta
+  specialistCoachProbability: number
+  specialistQualityByExperience: {
+    new: { qualityRange: [number, number]; potentialBonus: [number, number] }
+    experienced: { qualityRange: [number, number]; potentialBonus: [number, number] }
+    veteran: { qualityRange: [number, number]; potentialBonus: [number, number] }
+  }
+  formerFighterCoachProbability: number
+  qualityGrowthPerYear: number
+  styleCertaintyGrowthPerYear: number
+  maximumStyleCertaintyGymMember: number
+  maximumStyleCertaintyHiredCoach: number
+}
+
 export interface GymNamesData {
   meta: Meta
   patterns: {

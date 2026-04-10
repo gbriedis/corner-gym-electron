@@ -80,6 +80,7 @@ corner-gym/
     │   │   │       ├── reasons-for-boxing.json
     │   │   │       ├── gym-starting-states.json  # 4 templates + city distribution for gym generation
     │   │   │       ├── gym-names.json            # 50 full names + patterns for procedural rival gym naming
+    │   │   │       ├── coach-generation.json     # Specialist probability, quality ranges by tier, growth rates
     │   │   │       ├── coach-voice/
     │   │   │       │   ├── attributes.json
     │   │   │       │   ├── physical-stats.json
@@ -111,7 +112,7 @@ corner-gym/
     │       │   ├── person.ts          # Person, PhysicalProfile, AttributeValue, HealthValue, GiftFlawAssignment
     │       │   ├── fighter.ts         # Fighter + all sub-interfaces — extends Person, 9 layers
     │       │   ├── gym.ts             # Full Gym type — zones, equipment, staff, finances, quality, culture, reputation
-    │       │   ├── coach.ts           # Coach stub — CoachStyle + Coach; quality 1-20
+    │       │   ├── coach.ts           # Coach — full type: CoachStyle, CoachFighterRelationship, Coach
     │       │   ├── manager.ts         # Manager stub — id, name, reputation, nationality
     │       │   ├── clause.ts          # Clause stub — type, details, expiresYear, expiresWeek
     │       │   ├── location.ts        # Location stub

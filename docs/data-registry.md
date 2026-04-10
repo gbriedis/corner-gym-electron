@@ -21,7 +21,7 @@
 | [x] | `packages/engine/src/types/index.ts` |
 | [x] | `packages/engine/src/types/fighter.ts` |
 | [x] | `packages/engine/src/types/gym.ts` |
-| [~] | `packages/engine/src/types/coach.ts` |
+| [x] | `packages/engine/src/types/coach.ts` |
 | [~] | `packages/engine/src/types/manager.ts` |
 | [~] | `packages/engine/src/types/clause.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
@@ -50,7 +50,7 @@
 | [x] | `packages/engine/src/types/data/developmentProfiles.ts` |
 | [x] | `packages/engine/src/types/data/rewards.ts` |
 | [x] | `packages/engine/src/types/data/attributeAccumulation.ts` |
-| [x] | `packages/engine/src/types/data/gym.ts` |
+| [x] | `packages/engine/src/types/data/gym.ts` — CoachGenerationData added |
 
 ## Engine — Utilities
 | State | File |
@@ -67,6 +67,7 @@
 | [x] | `packages/engine/src/generation/calendar.ts` |
 | [x] | `packages/engine/src/generation/bracket.ts` |
 | [x] | `packages/engine/src/generation/fighter.ts` |
+| [x] | `packages/engine/src/generation/coach.ts` |
 
 ## Engine — Loop
 | State | File |
@@ -130,6 +131,7 @@
 |-------|------|
 | [x] | `packages/engine/data/nations/latvia/gym-starting-states.json` |
 | [x] | `packages/engine/data/nations/latvia/gym-names.json` |
+| [x] | `packages/engine/data/nations/latvia/coach-generation.json` |
 | [ ] | `packages/engine/data/gym/staff-roles/definitions.json` |
 
 ## Data — Moments
@@ -177,7 +179,7 @@
 | [x] | `packages/desktop/src/main.ts` |
 | [x] | `packages/desktop/src/preload.cts` |
 | [x] | `packages/desktop/src/ipc.ts` |
-| [x] | `packages/desktop/src/db.ts` — gyms, bouts, cards, tournament_brackets, multi_day_events tables + typed functions |
+| [x] | `packages/desktop/src/db.ts` — gyms, coaches, bouts, cards, tournament_brackets, multi_day_events tables + typed functions |
 
 ## UI — Assets & Styles
 | State | File |

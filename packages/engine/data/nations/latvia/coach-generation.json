@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Coach generation parameters for Latvia. Defines specialist coach probability, quality ranges by experience tier, and growth rates. The engine reads this when generating coaches during world creation. Most coaches at grassroots level are former fighters — specialists are rarer and more expensive but have a higher quality ceiling in specific areas."
+  },
+  "specialistCoachProbability": 0.15,
+  "specialistQualityByExperience": {
+    "new":        { "qualityRange": [5, 9],   "potentialBonus": [2, 4] },
+    "experienced":{ "qualityRange": [9, 14],  "potentialBonus": [1, 3] },
+    "veteran":    { "qualityRange": [12, 16], "potentialBonus": [1, 2] }
+  },
+  "formerFighterCoachProbability": 0.85,
+  "qualityGrowthPerYear": 0.5,
+  "styleCertaintyGrowthPerYear": 4.0,
+  "maximumStyleCertaintyGymMember": 80,
+  "maximumStyleCertaintyHiredCoach": 95
+}

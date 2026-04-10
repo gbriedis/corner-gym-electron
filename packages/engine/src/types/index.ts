@@ -18,7 +18,7 @@ export type {
 } from './competition.js'
 
 export type { Gym } from './gym.js'
-export type { CoachStyle, Coach } from './coach.js'
+export type { CoachStyle, CoachFighterRelationship, Coach } from './coach.js'
 export type { Manager } from './manager.js'
 export type { Clause } from './clause.js'
 
@@ -43,6 +43,7 @@ export type {
   AmateurCareer,
   ProCareer,
   FighterAmbitions,
+  PastCoachRecord,
   FighterCareerState,
   PlayerKnowledge,
   Fighter,

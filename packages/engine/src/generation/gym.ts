@@ -27,12 +27,54 @@ import type {
   GymReputation,
   GymTier,
 } from '../types/gym.js'
+import type { Coach } from '../types/coach.js'
+import type { Fighter } from '../types/fighter.js'
+import type { Person } from '../types/person.js'
 import type { GymStartingTemplate } from '../types/data/gym.js'
+import { generateCoach } from './coach.js'
 
 export interface GymGenerationOptions {
   forceTemplateId?: string         // override template selection — used for player gym
   startYear?: number               // world start year for equipment pre-date calculation
   usedNamesInCity?: Set<string>    // prevents duplicate gym names within the same city
+}
+
+// GymFighterWithPerson pairs a Fighter with their resolved Person for coach candidate selection.
+export interface GymFighterWithPerson {
+  fighter: Fighter
+  person: Person
+}
+
+// derivePrestige looks up the highest circuit prestige from a fighter's amateur title history.
+// Checks domestic nation circuits first, then international circuits.
+// Falls back to 0 if the fighter has no titles or the circuit level is unrecognised.
+//
+// Prestige is used to seed a former-fighter coach's quality floor — a coach who won
+// the national championship (prestige 7) starts with a much higher quality ceiling than
+// one whose titles were all club-level (prestige 1).
+function derivePrestige(fighter: Fighter, nationId: string, data: GameData): number {
+  let peak = 0
+  const nationBundle = data.nations[nationId]
+
+  for (const title of fighter.competition.amateur.titles) {
+    // Check domestic circuit levels first.
+    const domestic = nationBundle?.boxing?.amateurCircuit.circuitLevels.find(
+      l => l.id === title.circuitLevel,
+    )
+    if (domestic !== undefined && domestic.prestige > peak) {
+      peak = domestic.prestige
+    }
+
+    // Check international circuit levels — Baltic, European, World, Olympics.
+    const international = data.international.boxing.circuits.circuitLevels.find(
+      l => l.id === title.circuitLevel,
+    )
+    if (international !== undefined && international.prestige > peak) {
+      peak = international.prestige
+    }
+  }
+
+  return peak
 }
 
 // generateId produces a deterministic hex id from the seeded RNG.
@@ -314,6 +356,73 @@ export function calculateGymQuality(gym: Gym, data: GameData): GymQuality {
   }
 }
 
+// assignGymHeadCoach selects the best eligible fighter in a gym to fill the head coach role.
+// Called after fighters have been generated and assigned to a gym — coach generation
+// requires knowing who is actually in the gym before picking the best candidate.
+//
+// Returns null if no eligible fighter exists. The gym simply has no head coach at world start,
+// which is a valid state — the player can hire one or develop one over time.
+export function assignGymHeadCoach(
+  gym: Gym,
+  nationId: string,
+  gymFighters: GymFighterWithPerson[],
+  data: GameData,
+  rng: RNG,
+  startYear?: number,
+): Coach | null {
+  // Eligible: age > 28 and NOT in 'competing' identity state.
+  // We prefer someone who has stepped back from competition — they have experience
+  // to pass on and time to invest in developing others.
+  const eligible = gymFighters.filter(
+    ({ fighter, person }) => person.age > 28 && fighter.fighterIdentity.state !== 'competing',
+  )
+
+  if (eligible.length === 0) return null
+
+  // Highest combined developed attributes = most technically rounded former fighter.
+  // This is a proxy for career depth — fighters who worked harder on more skills
+  // generally went further and have more to teach.
+  const coachCandidate = eligible.reduce((best, current) => {
+    const totalBest = best.fighter.developedAttributes.reduce((s, a) => s + a.current, 0)
+    const totalCurrent = current.fighter.developedAttributes.reduce((s, a) => s + a.current, 0)
+    return totalCurrent > totalBest ? current : best
+  })
+
+  const coachStartYear = startYear ?? 2026
+
+  const coach = generateCoach(
+    coachCandidate.person,
+    gym.id,
+    data,
+    rng,
+    {
+      formerFighter: true,
+      careerPeakCircuitLevel: coachCandidate.fighter.competition.amateur.titles[0]?.circuitLevel ?? 'club_card',
+      careerPeakPrestige: derivePrestige(coachCandidate.fighter, nationId, data),
+      fightingStyleTendency: coachCandidate.fighter.style.currentTendency,
+      isGymMemberFilling: true,
+      yearsCoaching: Math.max(0, coachCandidate.person.age - 30),
+      role: 'head_coach',
+    },
+  )
+
+  gym.staffMembers.push({
+    personId: coachCandidate.person.id,
+    role: 'head_coach',
+    startedYear: coachStartYear,
+    startedWeek: 1,
+    wageMonthly: 0,
+    isGymMemberFilling: true,
+  })
+
+  // Reflect the coach's teaching emphasis in the gym's culture focus.
+  // A gym with a technical head coach gradually develops a technical culture —
+  // set at generation so the gym's personality is present from the start.
+  gym.culture.coachingFocus = coach.style.emphasis
+
+  return coach
+}
+
 // ─── generateGym ─────────────────────────────────────────────────────────────
 
 export function generateGym(
@@ -324,7 +433,7 @@ export function generateGym(
   data: GameData,
   rng: RNG,
   options?: GymGenerationOptions,
-): Gym {
+): { gym: Gym; coaches: Coach[] } {
   const bundle = data.nations[nationId]
   if (bundle === undefined) throw new Error(`Nation "${nationId}" not found in game data`)
 
@@ -451,5 +560,8 @@ export function generateGym(
   // Step 7 — Calculate quality now that equipment and zones are finalised.
   gym.quality = calculateGymQuality(gym, data)
 
-  return gym
+  // Coaches are assigned separately via assignGymHeadCoach after fighters are generated.
+  // generateGym returns an empty coaches array — the caller is responsible for populating
+  // it once the gym's fighter roster is known.
+  return { gym, coaches: [] }
 }

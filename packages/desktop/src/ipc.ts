@@ -12,7 +12,7 @@ import type Database from 'better-sqlite3'
 import type { GameConfig } from '@corner-gym/engine'
 
 import { loadGameData, generateWorld } from '@corner-gym/engine'
-import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms } from './db.js'
+import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms, saveCoaches } from './db.js'
 
 // ESM does not have __dirname — derive it from import.meta.url.
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -88,12 +88,13 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
     }
 
     emit('Generating world', 'Building gyms and world state…', startMs)
-    const { worldState, persons, gyms, calendar } = generateWorld(config, data)
+    const { worldState, persons, gyms, coaches, calendar } = generateWorld(config, data)
 
     emit('Saving to database', 'Writing save file…', startMs)
     const saveId = createSave(db, worldState, persons, config)
     saveCalendar(db, saveId, calendar)
     saveGyms(db, saveId, gyms)
+    saveCoaches(db, saveId, coaches)
 
     emit('Done', `Save created in ${Date.now() - startMs}ms`, startMs)
 

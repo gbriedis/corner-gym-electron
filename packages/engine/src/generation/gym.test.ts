@@ -20,19 +20,19 @@ function makeRng(seed = 42) {
 
 describe('generateGym — player gym', () => {
   it('player gym always uses rundown_community template', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'Test Gym', data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'Test Gym', data, makeRng())
     // rundown_community has no strengthRoom — verify the structural signature
     expect(gym.zones.strengthRoom.exists).toBe(false)
     expect(gym.isPlayerGym).toBe(true)
   })
 
   it('player gym uses the provided name', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'My Boxing Club', data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'My Boxing Club', data, makeRng())
     expect(gym.name).toBe('My Boxing Club')
   })
 
   it('forceTemplateId overrides template selection', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
+    const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
       forceTemplateId: 'elite_gym',
     })
     // elite_gym has a videoAnalysisRoom — use that as the structural fingerprint
@@ -43,7 +43,7 @@ describe('generateGym — player gym', () => {
 
 describe('generateGym — required fields', () => {
   it('generated gym has all required Gym interface fields', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng())
     expect(gym.id).toBeTruthy()
     expect(gym.name).toBeTruthy()
     expect(gym.cityId).toBe(CITY_ID)
@@ -74,7 +74,7 @@ describe('generateGym — finances', () => {
       t => t.id === 'rundown_community',
     )!
 
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng(), { startYear: START_YEAR })
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng(), { startYear: START_YEAR })
 
     // rent must fall within [min × rentModifier, max × rentModifier]
     const minRent = Math.round(template.finances.monthlyRent.min * city.rentModifier)
@@ -84,8 +84,8 @@ describe('generateGym — finances', () => {
   })
 
   it('Valmiera gym has lower rent than Rīga gym (rentModifier effect)', () => {
-    const rigaGym    = generateGym('latvia-riga',     NATION_ID, true, 'A', data, makeRng(1))
-    const valmieraGym = generateGym('latvia-valmiera', NATION_ID, true, 'B', data, makeRng(1))
+    const { gym: rigaGym }     = generateGym('latvia-riga',     NATION_ID, true, 'A', data, makeRng(1))
+    const { gym: valmieraGym } = generateGym('latvia-valmiera', NATION_ID, true, 'B', data, makeRng(1))
     // Valmiera rentModifier (0.75) < Rīga (expected >= 1.0) — rent should be lower
     expect(valmieraGym.finances.monthlyRent).toBeLessThan(rigaGym.finances.monthlyRent)
   })
@@ -93,7 +93,7 @@ describe('generateGym — finances', () => {
 
 describe('generateGym — physical space', () => {
   it('training floor capacity = floor(trainingFloor.squareMeters / 4)', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
     expect(gym.quality.maxTrainingCapacity).toBe(
       Math.floor(gym.zones.trainingFloor.squareMeters / 4),
     )
@@ -103,7 +103,7 @@ describe('generateGym — physical space', () => {
     const template = data.nations[NATION_ID]!.gymStartingStates.templates.find(
       t => t.id === 'rundown_community',
     )!
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
     // TF gets 50% of totalSquareMeters which itself is within template.squareMeters range
     const tfMin = Math.floor(template.squareMeters.min * 0.50)
     const tfMax = Math.floor(template.squareMeters.max * 0.50)
@@ -114,13 +114,13 @@ describe('generateGym — physical space', () => {
 
 describe('generateGym — equipment', () => {
   it('hasRing is false when template has no boxing_ring', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
     // rundown_community has no boxing_ring in startingEquipment
     expect(gym.quality.hasRing).toBe(false)
   })
 
   it('hasRing is true when boxing_ring exists with condition > 0', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
+    const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
       forceTemplateId: 'established_community',
     })
     // established_community includes a boxing_ring with min condition 40
@@ -132,7 +132,7 @@ describe('generateGym — equipment', () => {
     const template = data.nations[NATION_ID]!.gymStartingStates.templates.find(
       t => t.id === 'established_community',
     )!
-    const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
+    const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
       forceTemplateId: 'established_community',
     })
 
@@ -152,7 +152,7 @@ describe('generateGym — equipment', () => {
   })
 
   it('equipment has valid purchase dates pre-dating startYear', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
+    const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
       startYear: START_YEAR,
       forceTemplateId: 'established_community',
     })
@@ -171,8 +171,8 @@ describe('generateGym — determinism', () => {
   })
 
   it('different seeds produce different gyms', () => {
-    const a = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(1))
-    const b = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(2))
+    const { gym: a } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(1))
+    const { gym: b } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(2))
     expect(a.id).not.toBe(b.id)
   })
 })
@@ -183,7 +183,7 @@ describe('generateGym — name deduplication', () => {
     const names = new Set<string>()
 
     for (let i = 0; i < 10; i++) {
-      const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(i * 100), {
+      const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(i * 100), {
         usedNamesInCity,
       })
       expect(names.has(gym.name)).toBe(false)
@@ -195,7 +195,7 @@ describe('generateGym — name deduplication', () => {
 
 describe('calculateGymQuality', () => {
   it('returns 0 for a gym with no equipment and all zones at 0', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
+    const { gym } = generateGym(CITY_ID, NATION_ID, true, 'Test', data, makeRng())
     // Force all equipment conditions to 0
     const zeroGym = { ...gym, equipment: gym.equipment.map(e => ({ ...e, condition: 0 })) }
     const quality = calculateGymQuality(zeroGym, data)
@@ -204,7 +204,7 @@ describe('calculateGymQuality', () => {
   })
 
   it('overall quality is within 0-100', () => {
-    const gym = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
+    const { gym } = generateGym(CITY_ID, NATION_ID, false, null, data, makeRng(), {
       forceTemplateId: 'elite_gym',
     })
     expect(gym.quality.overall).toBeGreaterThanOrEqual(0)

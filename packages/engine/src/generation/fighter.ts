@@ -466,6 +466,7 @@ export function generateFighter(
     readiness,
     lastBoutYear: null,
     lastBoutWeek: null,
+    coachingHistory: [],
   }
 
   // ─── Step 8: Competition Record ───────────────────────────────────────────────

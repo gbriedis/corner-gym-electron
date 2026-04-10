@@ -64,6 +64,7 @@ export type {
 } from './attributeAccumulation.js'
 
 export type {
+  CoachGenerationData,
   GymNamesData,
   GymStartingTemplate,
   GymStartingStatesData,

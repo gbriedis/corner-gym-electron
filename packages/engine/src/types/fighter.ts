@@ -183,6 +183,19 @@ export interface FighterAmbitions {
   proBeltTarget: string | null   // specific belt id, e.g. 'wbc_world_lightweight'
 }
 
+export interface PastCoachRecord {
+  // History of past coaching relationships — travels with the fighter.
+  // New gym starts fresh but past coaches shaped who this fighter became.
+  coachId: string
+  gymId: string
+  startYear: number
+  startWeek: number
+  endYear: number | null      // null if still active
+  endWeek: number | null
+  peakTrustScore: number      // highest trust reached in this relationship
+  weeksWorkedTogether: number
+}
+
 export interface FighterCareerState {
   currentGymId: string | null
   gymJoinedYear: number | null
@@ -195,6 +208,7 @@ export interface FighterCareerState {
   readiness: number             // 0-100, engine assessment — never shown as number to player
   lastBoutYear: number | null
   lastBoutWeek: number | null
+  coachingHistory: PastCoachRecord[]
 }
 
 export interface PlayerKnowledge {

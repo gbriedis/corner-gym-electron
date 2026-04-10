@@ -45,6 +45,7 @@ import type {
   GymNamesData,
   StyleMatchupsData,
   StyleDevelopmentData,
+  CoachGenerationData,
 } from '../types/data/index.js'
 import type { RulesData } from '../types/competition.js'
 
@@ -93,6 +94,7 @@ export interface NationBundle {
     giftsAndFlaws: CoachVoiceGiftsFlawsData
   }
   gymStartingStates: GymStartingStatesData
+  coachGeneration: CoachGenerationData
   // gymNames is undefined when the nation has no gym-names.json — engine falls back to patterns.
   gymNames?: GymNamesData
   // boxing is undefined when the nation has no boxing/ folder — not an error.
@@ -183,6 +185,7 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
       giftsAndFlaws: loadFile<CoachVoiceGiftsFlawsData>('coach-voice/gifts-and-flaws.json'),
     },
     gymStartingStates: loadFile<GymStartingStatesData>('gym-starting-states.json'),
+    coachGeneration: loadFile<CoachGenerationData>('coach-generation.json'),
   }
 
   // Conditionally assign so exactOptionalPropertyTypes is satisfied —

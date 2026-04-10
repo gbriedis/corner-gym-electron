@@ -11,7 +11,7 @@ import { randomUUID } from 'crypto'
 import { join } from 'path'
 import { app } from 'electron'
 
-import type { WorldState, Person, GameConfig, Gym } from '@corner-gym/engine'
+import type { WorldState, Person, GameConfig, Gym, Coach } from '@corner-gym/engine'
 import type { CalendarEvent, EventStatus } from '@corner-gym/engine'
 import type { Bout, BoutResult, Card, TournamentBracket, MultiDayEvent } from '@corner-gym/engine'
 
@@ -155,6 +155,17 @@ export function openDb(): Database.Database {
       cityId TEXT NOT NULL,
       nationId TEXT NOT NULL,
       isPlayerGym INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS coaches (
+      id TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      data TEXT NOT NULL,     -- JSON serialised Coach
+      gymId TEXT NOT NULL,
+      personId TEXT NOT NULL,
+      quality INTEGER NOT NULL,
       PRIMARY KEY (id, saveId),
       FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
     );
@@ -596,4 +607,46 @@ export function getGymsByCity(db: Database.Database, saveId: string, cityId: str
     .prepare('SELECT data FROM gyms WHERE saveId = ? AND cityId = ?')
     .all(saveId, cityId) as Array<{ data: string }>
   return rows.map(r => JSON.parse(r.data) as Gym)
+}
+
+// saveCoaches persists all generated coaches in a single transaction.
+// The full Coach object is stored as a JSON blob — gymId, personId, and quality
+// are promoted to columns so we can query by gym or filter by quality without
+// deserialising the full coach record on every query.
+export function saveCoaches(db: Database.Database, saveId: string, coaches: Coach[]): void {
+  const insert = db.prepare(`
+    INSERT INTO coaches (id, saveId, data, gymId, personId, quality)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `)
+
+  db.transaction(() => {
+    for (const coach of coaches) {
+      insert.run(
+        coach.id,
+        saveId,
+        JSON.stringify(coach),
+        coach.gymId,
+        coach.personId,
+        coach.quality,
+      )
+    }
+  })()
+}
+
+// loadCoaches returns all coaches for a save, deserialising each from its JSON blob.
+export function loadCoaches(db: Database.Database, saveId: string): Coach[] {
+  const rows = db
+    .prepare('SELECT data FROM coaches WHERE saveId = ?')
+    .all(saveId) as Array<{ data: string }>
+  return rows.map(r => JSON.parse(r.data) as Coach)
+}
+
+// getCoachesByGym returns all coaches assigned to a specific gym for a given save.
+// Used when loading gym staff details or when the coaching system needs to process
+// training for a gym's fighter roster.
+export function getCoachesByGym(db: Database.Database, saveId: string, gymId: string): Coach[] {
+  const rows = db
+    .prepare('SELECT data FROM coaches WHERE saveId = ? AND gymId = ?')
+    .all(saveId, gymId) as Array<{ data: string }>
+  return rows.map(r => JSON.parse(r.data) as Coach)
 }

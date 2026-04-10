@@ -20,7 +20,7 @@
 import { createRng } from '../utils/rng.js'
 import { generatePerson } from './person.js'
 import { generateFighter } from './fighter.js'
-import { generateGym } from './gym.js'
+import { generateGym, assignGymHeadCoach } from './gym.js'
 import { generateCalendar } from './calendar.js'
 
 import type { GameData } from '../data/loader.js'
@@ -29,7 +29,8 @@ import { resolveModifiers } from '../types/gameConfig.js'
 import type { WorldState, NationState, CityState } from '../types/worldState.js'
 import type { Person } from '../types/person.js'
 import type { Fighter } from '../types/fighter.js'
-import type { Gym, GymStaffMember } from '../types/gym.js'
+import type { Gym } from '../types/gym.js'
+import type { Coach } from '../types/coach.js'
 import type { CalendarEvent } from '../types/calendar.js'
 
 // shouldBeFighter determines whether a gym member is generated as a Fighter.
@@ -60,7 +61,7 @@ function shouldBeFighter(person: Person, rng: ReturnType<typeof createRng>): boo
 export function generateWorld(
   config: GameConfig,
   data: GameData,
-): { worldState: WorldState; persons: Person[]; fighters: Fighter[]; gyms: Gym[]; calendar: CalendarEvent[] } {
+): { worldState: WorldState; persons: Person[]; fighters: Fighter[]; gyms: Gym[]; coaches: Coach[]; calendar: CalendarEvent[] } {
   // Step 1 — Initialise RNG from config.seed.
   // Seeding here ensures reproducibility: given the same config.seed,
   // every nation, city, person, and gym is generated identically.
@@ -74,6 +75,7 @@ export function generateWorld(
   const allPersons: Person[] = []
   const allFighters: Fighter[] = []
   const allGyms: Gym[] = []
+  const allCoaches: Coach[] = []
   const nations: Record<string, NationState> = {}
   const cities: Record<string, CityState> = {}
   const gymsById: Record<string, Gym> = {}
@@ -128,7 +130,10 @@ export function generateWorld(
 
         const gymName = isPlayerGym ? config.gymName : null
 
-        const gym = generateGym(
+        // generateGym returns { gym, coaches } — coaches are always empty here because
+        // fighters have not yet been assigned to this gym. Coach generation happens in
+        // step 7 below via assignGymHeadCoach, after fighters are known.
+        const { gym } = generateGym(
           city.id,
           nationId,
           isPlayerGym,
@@ -191,40 +196,22 @@ export function generateWorld(
         }
       }
 
-      // Step 7 — Assign initial head coach to each gym.
-      // Simple rule for world generation: the most experienced non-competing fighter
-      // over 28 becomes head coach. isGymMemberFilling=true marks this as informal —
-      // quality ceiling applies and wage is zero. A proper coaching system is deferred
-      // to the full staff module.
+      // Step 7 — Assign initial head coach to each gym using proper coach generation.
+      // Now that fighters are known, we can select the best candidate and derive
+      // their coaching quality from career peak and soul traits.
       for (const gym of cityGyms) {
-        const gymFighters = allFighters.filter(f => gym.fighterIds.includes(f.id))
+        const gymFighters = allFighters
+          .filter(f => gym.fighterIds.includes(f.id))
+          .map(f => {
+            const person = cityPersons.find(p => p.id === f.id)
+            return person !== undefined ? { fighter: f, person } : null
+          })
+          .filter((pair): pair is { fighter: (typeof allFighters)[0]; person: Person } => pair !== null)
 
-        // Eligible: age > 28 and NOT in 'competing' identity state.
-        // We prefer someone who has stepped back from competition — they have experience
-        // to pass on and time to invest in coaching others.
-        const eligible = gymFighters.filter(
-          f => f.age > 28 && f.fighterIdentity.state !== 'competing',
-        )
-
-        if (eligible.length === 0) continue
-
-        // Highest combined developed attributes = most technically rounded fighter.
-        const headCoach = eligible.reduce((best, f) => {
-          const totalBest = best.developedAttributes.reduce((s, a) => s + a.current, 0)
-          const totalF   = f.developedAttributes.reduce((s, a) => s + a.current, 0)
-          return totalF > totalBest ? f : best
-        })
-
-        const staffMember: GymStaffMember = {
-          personId: headCoach.id,
-          role: 'head_coach',
-          startedYear: config.startYear,
-          startedWeek: 1,
-          wageMonthly: 0,
-          isGymMemberFilling: true,
+        const coach = assignGymHeadCoach(gym, nationId, gymFighters, data, rng, config.startYear)
+        if (coach !== null) {
+          allCoaches.push(coach)
         }
-
-        gym.staffMembers.push(staffMember)
       }
 
       cities[city.id] = {
@@ -282,5 +269,5 @@ export function generateWorld(
     worldState,
   )
 
-  return { worldState, persons: allPersons, fighters: allFighters, gyms: allGyms, calendar }
+  return { worldState, persons: allPersons, fighters: allFighters, gyms: allGyms, coaches: allCoaches, calendar }
 }

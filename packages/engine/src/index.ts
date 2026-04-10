@@ -23,8 +23,13 @@ export type { FighterGenerationOptions } from './generation/fighter.js'
 
 // Gym type and generation — exported for IPC typing and save persistence
 export type { Gym, GymTier, GymZone, GymZones, GymEquipmentItem, GymStaffMember, GymFinances, GymQuality, GymCulture, GymReputation } from './types/gym.js'
-export { generateGym, calculateGymQuality } from './generation/gym.js'
-export type { GymGenerationOptions } from './generation/gym.js'
+export { generateGym, calculateGymQuality, assignGymHeadCoach } from './generation/gym.js'
+export type { GymGenerationOptions, GymFighterWithPerson } from './generation/gym.js'
+
+// Coach type and generation — exported for IPC typing and save persistence
+export type { Coach, CoachStyle, CoachFighterRelationship } from './types/coach.js'
+export { generateCoach } from './generation/coach.js'
+export type { CoachGenerationOptions } from './generation/coach.js'
 
 // Generation — exported so desktop can call generateWorld via IPC
 export { generateWorld } from './generation/world.js'
