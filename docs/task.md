@@ -1,317 +1,287 @@
 # Current Task
 
-## Task: Gym Names Data + generateGym + generateWorld Update
+## Task: Style System — Data Files + Types + Fighter Style Update
 
 ### What To Build
-One data file, one new generation function, and an update to generateWorld. After this session the world generates with real gyms populated with real people — some of whom are fighters.
+Two data files defining style matchups and style development rules. TypeScript types for both. Update Fighter generation to wire style thresholds. No fight simulation yet — data and types only. The engine will read these when the exchange simulation is built.
 
 ### Skill To Load
-`.claude/skills/engine/SKILL.md`
 `.claude/skills/new-feature/SKILL.md`
+`.claude/rules/data.md`
 
 ---
 
-## Part 1 — Gym Names Data
+## Part 1 — Data Files
 
-**`packages/engine/data/nations/latvia/gym-names.json`**
+### `packages/engine/data/universal/style-matchups.json`
 
-Realistic Latvian boxing gym names for procedural world generation. The engine picks from this pool when generating rival gyms. Names follow real Latvian gym naming patterns.
-
-Meta must explain: names are used by the engine when generating gyms during world creation. The player's gym name comes from the new game config — not from this pool. Research real Latvian boxing gym naming conventions: city/neighbourhood + "Boksa klubs", founder surnames, district names, historical references. Mix of Latvian and Russian-influenced names reflecting Latvia's demographics.
+Full file as designed. Include all 13 matchup entries plus the styleThresholds section.
 
 Structure:
 ```json
 {
   "meta": { ... },
-  "patterns": {
-    "cityPrefix": ["Rīgas", "Daugavpils", "Liepājas", "Jelgavas", "Valmieras", "Rēzeknes"],
-    "suffixes": ["Boksa klubs", "Boksas skola", "Boxing Club", "Fight Club", "BC"],
-    "standalone": ["Dinamo", "Lokomotīve", "Spartaks", "Olimps", "Čempions", "Lauvas", "Ērglis"]
+  "styleThresholds": {
+    "pressure":       { "stamina": 10, "output_volume": 10, "ring_generalship": 8 },
+    "boxer":          { "footwork": 10, "lateral_movement": 9, "ring_generalship": 10 },
+    "boxer_puncher":  { "footwork": 8, "combination_fluency": 9, "ring_generalship": 8 },
+    "brawler":        { "chin": 8, "durability": 8, "heart": 7 },
+    "counterpuncher": { "defensive_skill": 10, "counter_punching": 10, "ring_iq": 9 },
+    "swarmer":        { "stamina": 12, "output_volume": 12, "heart": 9 }
   },
-  "fullNames": [
-    "Rīgas Boksa klubs",
-    "Daugavpils Boksas skola",
-    "Dinamo Rīga BC",
-    "Spartaks Daugavpils",
-    ...minimum 40 full names total
-  ]
+  "matchups": [ ... all 13 matchups ... ]
 }
 ```
 
-The engine uses `fullNames` pool primarily. `patterns` are for procedural combination when the pool is exhausted.
+Each matchup entry must have:
+- `id`, `styles` (array of two style ids, or `["same_vs_same"]` for mirror)
+- `description`
+- `exchangeInitiationAdvantage`: `"styleA"` | `"styleB"` | `"neutral"`
+- `distanceControlAdvantage`: same
+- `decisiveAttributesA`, `decisiveAttributesB` (arrays of attribute ids)
+- `modifiers` (object of named modifier keys to float values)
+- `wildcards` (array — conditions that flip or dramatically change fight dynamics)
+- `narrativeNotes` (string — what this matchup feels like, used for dev reference)
+
+The 13 matchups:
+1. `pressure_vs_boxer`
+2. `pressure_vs_brawler`
+3. `pressure_vs_counterpuncher`
+4. `pressure_vs_swarmer`
+5. `boxer_vs_counterpuncher`
+6. `boxer_vs_brawler`
+7. `boxer_vs_swarmer`
+8. `brawler_vs_counterpuncher`
+9. `brawler_vs_swarmer`
+10. `swarmer_vs_counterpuncher`
+11. `boxer_vs_boxer`
+12. `mirror_match_generic` (same style vs same style)
+13. `undefined_vs_any` (at least one fighter has undefined style — pure attribute fight)
+
+Add `undefined_vs_any`:
+```json
+{
+  "id": "undefined_vs_any",
+  "styles": ["undefined"],
+  "description": "When a fighter has no defined style yet, the fight is purely attribute-driven. No style modifiers apply. Raw attributes and soul traits decide the outcome.",
+  "exchangeInitiationAdvantage": "neutral",
+  "distanceControlAdvantage": "neutral",
+  "decisiveAttributesA": "all_attributes_equal_weight",
+  "decisiveAttributesB": "all_attributes_equal_weight",
+  "modifiers": {},
+  "wildcards": [],
+  "narrativeNotes": "Raw fight. No tactics, no system. The better athlete on the night wins."
+}
+```
+
+Meta must explain: matchup modifiers are applied when two fighters meet in a bout. tendencyStrength on each fighter scales how much these modifiers apply — 0 means pure attribute fight, 100 means full style expression. styleEffectiveness scales modifiers down when fighter attributes don't support their declared style. The engine looks up matchup by the styles of the two fighters.
 
 ---
 
-## Part 2 — generateGym
+### `packages/engine/data/universal/style-development.json`
 
-**`packages/engine/src/generation/gym.ts`**
+How style develops over time. Full file as designed.
 
-```typescript
-// generateGym produces a complete Gym from a starting state template.
-// City modifiers from cities.json are applied to rent and affect
-// the starting financial state.
-//
-// Generation order:
-// 1. Select template based on city population type and city distribution weights
-// 2. Roll physical space — total square meters, zone conditions
-// 3. Generate starting equipment from template equipment list
-// 4. Calculate starting finances — rent modified by city rentModifier
-// 5. Generate gym name from gym-names pool
-// 6. Initialise staff as empty — populated separately when persons are assigned
-// 7. Initialise quality score from zone conditions and equipment
-// 8. Initialise culture at neutral values
-// 9. Set kids class as inactive by default
+Include:
+- `tendencyStrengthGrowth` — per training week (0.3), per amateur bout (1.5), per pro bout (2.0), maximum per year (12)
+- `coachInfluence` — shift rates by year with coach, soul trait modifiers, tendency strength resistance formula
+- `styleCompatibilityWithAttributes` — references styleThresholds in style-matchups.json, effectiveness formula
 
-export function generateGym(
-  cityId: string,
-  nationId: string,
-  isPlayerGym: boolean,
-  gymName: string | null,   // null = pick from names pool
-  data: GameData,
-  rng: RNG,
-  options?: GymGenerationOptions
-): Gym
-
-export interface GymGenerationOptions {
-  forceTemplateId?: string   // override template selection — used for player gym
-}
-```
-
-### Generation Rules
-
-**Template selection:**
-- If `isPlayerGym` → force `rundown_community`
-- Otherwise → look up city population type from cities data, weighted pick from `cityDistribution`
-
-**Physical space:**
-- Roll `totalSquareMeters` from template range
-- For each zone in template: if `exists`, roll `condition` from template range, assign square meters proportionally from total
-  - Training floor gets 50% of total square meters
-  - Strength room gets 20%
-  - Changing rooms get 15%
-  - Reception gets 10%
-  - Storage gets remaining 5% if it exists
-  - Optional zones (videoAnalysisRoom) get carved from training floor allocation
-
-**Equipment generation:**
-- For each item in template `startingEquipment`: roll count if range, roll condition from range
-- Create a `GymEquipmentItem` per unit with unique id, purchasedYear/Week set to world start year minus random 1-5 years (equipment pre-dates the player arriving)
-- Check square meter constraint — if adding equipment would exceed zone capacity, skip it
-
-**Finances:**
-- `monthlyRent` = template base rent × city `rentModifier`
-- `balance` = roll from template `startingBalance` range
-- `membershipFeeMonthly` = roll from template range
-- `loanAmount` = 0 (no starting debt except negative balance)
-- Revenue history starts empty
-
-**Gym name:**
-- If `isPlayerGym` or `gymName` provided — use that name
-- Otherwise — weighted pick from `fullNames` pool, ensure no duplicate name within same city
-
-**Quality calculation:**
-- Call `calculateGymQuality(gym)` after generation to set initial quality scores
-- `hasRing` = any equipment item with typeId `boxing_ring` and condition > 0
-- `ringCount` = count of usable boxing rings
-- `maxTrainingCapacity` = floor(trainingFloor.squareMeters / 4)
-- Zone quality = weighted average of equipment condition values for that zone's equipment
-- Overall = 50% training floor + 20% strength + 10% changing + 10% reception + 10% other
-
-**Culture initialisation:**
-```typescript
-culture: {
-  atmosphereScore: rng.nextInt(30, 60),    // neutral starting atmosphere
-  sparringIntensity: rng.nextInt(30, 60),  // neither soft nor brutal
-  memberCohesion: rng.nextInt(40, 65),
-  coachingFocus: null,                     // emerges from coach over time
-  reputationTone: null                     // emerges after sufficient history
-}
-```
-
-**Kids class:**
-```typescript
-kidsClass: {
-  active: false,
-  instructorPersonId: null,
-  monthlyFee: 0,
-  currentEnrolment: 0,
-  maxEnrolment: 0,
-  cohortHistory: []
-}
-```
-
-**Export helper:**
-```typescript
-// calculateGymQuality derives the current quality scores from zone and equipment state.
-// Called after generation and after any equipment condition change or zone update.
-// Never stores raw zone/equipment state — always recalculates from current reality.
-export function calculateGymQuality(gym: Gym, data: GameData): GymQuality
-```
+Meta must explain: style is never assigned — it emerges and solidifies. A fighter who changes gyms gradually shifts toward the new coach's emphasis. High tendencyStrength resists change. The engine reads this when processing weekly training and when a fighter changes gyms.
 
 ---
 
-## Part 3 — generateWorld Update
+## Part 2 — TypeScript Types
 
-**Update `packages/engine/src/generation/world.ts`**
-
-Current `generateWorld` generates persons and a world structure but gyms are empty placeholders. Update it to:
-
-### Step 1 — Generate gyms per city
-
-For each city in each rendered nation:
-```typescript
-// Number of gyms per city comes from game config worldSettings.gymsPerCity
-// multiplied by the city's rivalGymDensity modifier.
-// Always at least 1 gym per city (player's city always has the player gym).
-const gymCount = Math.max(1, Math.round(
-  config.worldSettings.gymsPerCity[city.population] * city.rivalGymDensity
-))
-```
-
-For the player's starting city: first gym is player gym (`isPlayerGym: true`, name from `config.gymName`). Rest are rival gyms.
-
-For all other cities: all gyms are rival gyms.
-
-### Step 2 — Distribute persons into gyms
-
-After generating all persons for a city, distribute them across that city's gyms:
+**`packages/engine/src/types/data/style.ts`**
 
 ```typescript
-// Distribution rules:
-// - Each gym has a soft capacity: gym.lockerCount
-// - Persons are assigned to gyms using weighted random — larger gyms attract more members
-// - Weight = gym.lockerCount (bigger gym = more likely to attract members)
-// - Distribution stops when lockerCount is reached for a gym
-// - Persons who don't fit in any gym are free agents (currentGymId = null on their fighter record)
-// - Free agents still exist in the city population — they just train independently or not at all
-```
+// Types for style-matchups.json and style-development.json
 
-### Step 3 — Identify fighters within gyms
+export type StyleTendencyId =
+  | 'pressure'
+  | 'boxer'
+  | 'boxer_puncher'
+  | 'brawler'
+  | 'counterpuncher'
+  | 'swarmer'
+  | 'undefined'
 
-For each person assigned to a gym, determine if they should be generated as a Fighter:
+export interface StyleThresholds {
+  // Minimum attribute values for full style expression.
+  // Below threshold: styleEffectiveness = attribute / threshold
+  [styleId: string]: Record<string, number>
+}
 
-```typescript
-// Not every gym member is a Fighter.
-// Generation rules:
-// - If person's reasonForBoxingId is 'outlet', 'fell_into_it', or 'friend_brought_me'
-//   AND soul traits include 'content' → 80% chance they are NOT a fighter (just a regular)
-// - If person's reasonForBoxingId is 'way_out', 'prove_something', or 'passion' → always a Fighter
-// - Otherwise → 60% chance they are a Fighter
-//
-// Fighters are generated using generateFighter(person, gymId, null, data, rng)
-// coachId is null at this stage — coaches are assigned in a separate pass
-```
+export interface StyleWildcard {
+  condition: string
+  effect: string
+  threshold?: number
+  threshold_ringIq?: number
+  threshold_outputVolume?: number
+  note?: string
+}
 
-Update gym's `memberIds` and `fighterIds` arrays accordingly.
+export interface StyleMatchup {
+  id: string
+  styles: string[]
+  description: string
+  exchangeInitiationAdvantage: 'styleA' | 'styleB' | 'neutral'
+  distanceControlAdvantage: 'styleA' | 'styleB' | 'neutral'
+  decisiveAttributesA: string[] | string
+  decisiveAttributesB: string[] | string
+  modifiers: Record<string, number>
+  wildcards: StyleWildcard[]
+  narrativeNotes: string
+}
 
-### Step 4 — Assign initial staff
+export interface StyleMatchupsData {
+  meta: Meta
+  styleThresholds: StyleThresholds
+  matchups: StyleMatchup[]
+}
 
-For each gym, assign a head coach from its fighter population:
-```typescript
-// Simple rule for world generation:
-// Pick the fighter in the gym with the highest combined developed attributes
-// who is NOT in 'competing' fighter identity state and is age > 28.
-// Mark them as head coach (isGymMemberFilling: true, role: 'head_coach').
-// If no eligible fighter exists, gym has no head coach at world start.
-// wageMonthly = 0 for gym member filling role.
-```
+export interface TendencyStrengthGrowth {
+  perTrainingWeek: number
+  perAmateur_bout: number
+  perPro_bout: number
+  maximumPerYear: number
+  note: string
+}
 
-### Step 5 — Update WorldState
+export interface CoachInfluenceShiftRates {
+  newCoach_year1: number
+  newCoach_year2: number
+  newCoach_year3_plus: number
+  note: string
+}
 
-WorldState currently has `gyms: Record<string, GymState>` with a lightweight GymState stub. Update this to store full Gym objects. Update the SQLite schema accordingly.
+export interface CoachInfluence {
+  description: string
+  shiftPerYear: CoachInfluenceShiftRates
+  soulTraitModifiers: Record<string, number>
+  tendencyStrengthResistance: { note: string; example: string }
+}
 
-```typescript
-// WorldState.gyms stores full Gym objects keyed by gym id.
-// Persons are stored separately in the persons SQLite table.
-// The gym record stores memberIds and fighterIds as string arrays — 
-// actual Person/Fighter records are in the persons table.
-```
-
-### Step 6 — Update return type and SQLite saving
-
-```typescript
-export function generateWorld(config: GameConfig, data: GameData): {
-  worldState: WorldState
-  persons: Person[]
-  fighters: Fighter[]
-  gyms: Gym[]
-  calendar: CalendarEvent[]
+export interface StyleDevelopmentData {
+  meta: Meta
+  tendencyStrengthGrowth: TendencyStrengthGrowth
+  coachInfluence: CoachInfluence
+  styleCompatibilityWithAttributes: {
+    description: string
+    effectivenessFormula: string
+    note: string
+  }
 }
 ```
 
-Update `packages/desktop/src/ipc.ts` `generate-and-save` handler to also save gyms to SQLite.
-
-Add gyms table to `packages/desktop/src/db.ts`:
-```sql
-CREATE TABLE IF NOT EXISTS gyms (
-  id TEXT NOT NULL,
-  saveId TEXT NOT NULL,
-  data TEXT NOT NULL,   -- JSON serialised Gym
-  cityId TEXT NOT NULL,
-  nationId TEXT NOT NULL,
-  isPlayerGym INTEGER NOT NULL DEFAULT 0,
-  PRIMARY KEY (id, saveId),
-  FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
-);
-```
-
-Export typed functions:
-```typescript
-export function saveGyms(db: Database, saveId: string, gyms: Gym[]): void
-export function loadGyms(db: Database, saveId: string): Gym[]
-export function getPlayerGym(db: Database, saveId: string): Gym | null
-export function getGymsByCity(db: Database, saveId: string, cityId: string): Gym[]
-```
+Add to `src/types/data/index.ts`.
 
 ---
 
-## Part 4 — Tests
+## Part 3 — Update Loader
 
-**`packages/engine/src/generation/gym.test.ts`**
+Add to `GameData` in `src/data/loader.ts`:
+```typescript
+styleMatchups: StyleMatchupsData
+styleDevelopment: StyleDevelopmentData
+```
 
-Tests:
-- Player gym always uses rundown_community template
-- Generated gym has all required Gym interface fields
-- `monthlyRent` is base template rent × city rentModifier
-- Training floor capacity = floor(trainingFloor.squareMeters / 4)
-- `hasRing` false when no boxing_ring in equipment
-- `hasRing` true when boxing_ring exists with condition > 0
-- Equipment count within template min/max ranges
-- Same seed → same gym (determinism)
-- Gym name not duplicated within same city
+Load from:
+- `universal/style-matchups.json`
+- `universal/style-development.json`
 
-**Update `packages/engine/src/generation/world.test.ts`**
+---
 
-Add tests:
-- World generates correct number of gyms per city based on gymsPerCity config × rivalGymDensity
-- Player city has exactly one player gym
-- All other gyms have isPlayerGym false
-- Every gym has at least one member
-- Total persons distributed = total persons generated (no person lost)
-- Free agents exist when gym capacity is exceeded
+## Part 4 — Update Fighter Generation
+
+**Update `packages/engine/src/generation/fighter.ts`**
+
+Add a `calculateStyleEffectiveness` helper:
+
+```typescript
+// calculateStyleEffectiveness returns how well a fighter's current attributes
+// support their declared style tendency.
+// Returns 0.0 to 1.0 — 1.0 means full style expression, below 1.0 means
+// the style is limited by attribute gaps.
+// The weakest threshold attribute determines overall effectiveness.
+// This is used by the exchange simulation — not stored on the fighter.
+// Exported so the fight engine can call it per round as attributes degrade.
+export function calculateStyleEffectiveness(
+  style: FighterStyle,
+  developedAttributes: DevelopedAttribute[],
+  physicalAttributes: AttributeValue[],
+  data: GameData
+): number
+```
+
+The function:
+1. Looks up `styleThresholds[style.currentTendency]` from `data.styleMatchups`
+2. For each threshold attribute — checks if it's a developed attribute or physical attribute
+3. Calculates `effectiveness = min(1.0, attributeValue / threshold)`
+4. Returns the minimum effectiveness across all threshold attributes
+5. If style is `undefined` — returns 0 (pure attribute fight, no style modifiers)
+6. Multiplies by `style.tendencyStrength / 100` — low strength reduces influence even if attributes support it
+
+Add to `fighter.test.ts`:
+- Fighter with undefined style returns 0 effectiveness
+- Fighter with all attributes above thresholds returns value > 0.9 (× tendencyStrength factor)
+- Fighter with one attribute below threshold is limited by that attribute
+- Fighter with tendencyStrength 0 returns 0 regardless of attributes
+
+---
+
+## Part 5 — Lookup Helper
+
+**`packages/engine/src/engine/styleEngine.ts`**
+
+```typescript
+// styleEngine provides lookup helpers for the fight simulation.
+// The exchange simulation calls these to get the relevant matchup
+// and calculate effective modifiers for a specific pair of fighters.
+
+// getMatchup returns the relevant StyleMatchup for two fighter styles.
+// If both styles are the same — returns mirror_match_generic.
+// If either style is undefined — returns undefined_vs_any.
+// Otherwise finds the matchup by matching both style ids regardless of order.
+export function getMatchup(
+  styleA: StyleTendencyId,
+  styleB: StyleTendencyId,
+  data: GameData
+): StyleMatchup
+
+// getEffectiveModifiers returns the matchup modifiers scaled by both fighters'
+// tendency strength and style effectiveness.
+// effectiveModifier = baseModifier × styleEffectivenessA × styleEffectivenessB
+// This is what the exchange simulation actually uses.
+export function getEffectiveModifiers(
+  matchup: StyleMatchup,
+  effectivenessA: number,
+  effectivenessB: number
+): Record<string, number>
+```
 
 ---
 
 ### Definition Of Done
-- [ ] `gym-names.json` — minimum 40 full names, patterns defined, valid JSON
-- [ ] `src/generation/gym.ts` — generateGym + calculateGymQuality
-- [ ] `src/generation/gym.test.ts` — all listed tests passing
-- [ ] `src/generation/world.ts` — gyms generated, persons distributed, fighters identified, staff assigned
-- [ ] `src/generation/world.test.ts` — new tests passing, existing tests still passing
-- [ ] `db.ts` — gyms table, saveGyms, loadGyms, getPlayerGym, getGymsByCity
-- [ ] `ipc.ts` — generate-and-save saves gyms
-- [ ] `generateWorld` return type updated
+- [ ] `universal/style-matchups.json` — 13 matchups + styleThresholds, valid JSON, meta block
+- [ ] `universal/style-development.json` — all sections, valid JSON, meta block
+- [ ] `src/types/data/style.ts` — all interfaces, added to index.ts
+- [ ] Loader updated — styleMatchups and styleDevelopment on GameData
+- [ ] `calculateStyleEffectiveness` added to fighter.ts and exported
+- [ ] Fighter tests updated — 4 new style effectiveness tests passing
+- [ ] `src/engine/styleEngine.ts` — getMatchup and getEffectiveModifiers
 - [ ] `pnpm typecheck` clean
-- [ ] `pnpm test` passing — all existing 100 tests still pass
+- [ ] `pnpm test` passing — all existing tests still pass
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` updated
+- [ ] `docs/data-registry.md` — both files marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: gym names + generateGym + world population`
+- [ ] Committed: `feat: style system — matchups, development, effectiveness`
 
 ### Notes
-- Read engine skill fully before writing any code
-- City modifiers: rentModifier on finances, rivalGymDensity on gym count, talentDensity used in person count (already in generateWorld)
-- Free agents are valid — persons who don't fit in any gym remain in the world without a gym assignment
-- Head coach assignment in world gen is simple (oldest non-competing fighter) — real coaching assignment comes with the full staff system
-- calculateGymQuality must be exported — it will be called by the engine after any equipment change
-- Comment why on every non-obvious generation decision
+- Data only in Part 1 — no fight simulation
+- styleEngine.ts is a helper module — it does not simulate anything, only looks up and calculates
+- calculateStyleEffectiveness multiplies effectiveness by tendencyStrength/100 — both matter
+- undefined style = 0 effectiveness = pure attribute fight, no modifiers
+- mirror_match_generic applies when both fighters share any style (not just boxer vs boxer)
+- Comment why on every non-obvious calculation
