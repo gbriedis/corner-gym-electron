@@ -14,6 +14,11 @@ import type { GameConfig } from '@corner-gym/engine'
 import { loadGameData, generateWorld, runBackrun } from '@corner-gym/engine'
 import type { YearEndBatch } from '@corner-gym/engine'
 import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms, saveCoaches, updateFighter, updateGym, saveBoutResult } from './db.js'
+import {
+  getDevWorldSummary, getDevFighterList, getDevFighterDetail,
+  getDevAttributeDistribution, getDevBoutLog, getDevGymFinancials, getDevGymList,
+} from './db-dev.js'
+import type { DevFighterFilters, DevBoutFilters } from './db-dev.js'
 
 // batchWriteBackrun persists one year of accumulated simulation changes to SQLite.
 // Each batch contains only the records that changed during that year — we don't
@@ -222,5 +227,57 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
   // and pages can read it without per-navigation IPC calls.
   ipcMain.handle('get-game-data', () => {
     return loadGameData()
+  })
+
+  // ─── Dev mode IPC ─────────────────────────────────────────────────────────
+  // All dev handlers require a saveId — return null gracefully if no save is loaded.
+
+  // ipc: dev-world-summary
+  // Returns aggregate stats per nation plus weight class distribution.
+  // Requires deserialising all fighter blobs — ~5k rows max, acceptable for a dev tool.
+  ipcMain.handle('dev-world-summary', (_event, saveId: string) => {
+    return getDevWorldSummary(db, saveId)
+  })
+
+  // ipc: dev-fighter-list
+  // Returns all fighters matching the given filters, sorted for the browser table.
+  ipcMain.handle('dev-fighter-list', (_event, saveId: string, filters: DevFighterFilters) => {
+    return getDevFighterList(db, saveId, filters)
+  })
+
+  // ipc: dev-fighter-detail
+  // Returns the full dev view of a single fighter — all soul traits revealed, no ocean rule.
+  ipcMain.handle('dev-fighter-detail', (_event, saveId: string, fighterId: string) => {
+    return getDevFighterDetail(db, saveId, fighterId)
+  })
+
+  // ipc: dev-attribute-distribution
+  // Returns a histogram of current values for one attribute across all fighters.
+  ipcMain.handle('dev-attribute-distribution', (
+    _event,
+    saveId: string,
+    attributeId: string,
+    nationId: string | null,
+  ) => {
+    return getDevAttributeDistribution(db, saveId, attributeId, nationId)
+  })
+
+  // ipc: dev-bout-log
+  // Returns the last N resolved bouts with summary percentages.
+  // The summary KO% / decision% are the primary simulation health check.
+  ipcMain.handle('dev-bout-log', (_event, saveId: string, filters: DevBoutFilters) => {
+    return getDevBoutLog(db, saveId, filters)
+  })
+
+  // ipc: dev-gym-financials
+  // Returns the financial history and equipment state for a single gym.
+  ipcMain.handle('dev-gym-financials', (_event, saveId: string, gymId: string) => {
+    return getDevGymFinancials(db, saveId, gymId)
+  })
+
+  // ipc: dev-gym-list
+  // Returns all gyms for a save — used to populate the gym selector dropdown.
+  ipcMain.handle('dev-gym-list', (_event, saveId: string) => {
+    return getDevGymList(db, saveId)
   })
 }

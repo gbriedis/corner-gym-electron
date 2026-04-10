@@ -11,6 +11,7 @@ type Screen =
   | 'sanctioningBody'
   | 'venue'
   | 'eventFull'
+  | 'dev'
 
 // NavigationParams carries route-style params for screens that need an entity id.
 // returnMonth/returnYear let the EventFullPage return to the correct calendar month.

@@ -201,8 +201,9 @@ corner-gym/
     │   └── src/
     │       ├── main.ts                # BrowserWindow creation, opens DB, wires IPC
     │       ├── preload.cts            # contextBridge — exposes electronAPI to renderer (CJS forced via .cts)
-    │       ├── ipc.ts                 # IPC handlers: get-upcoming-events, get-all-events
-    │       └── db.ts                  # SQLite layer — gyms table, saveGyms, loadGyms, getPlayerGym, getGymsByCity + calendar + bouts + brackets
+    │       ├── ipc.ts                 # IPC handlers — game + 7 dev-mode handlers
+    │       ├── db.ts                  # SQLite layer — gyms table, saveGyms, loadGyms, getPlayerGym, getGymsByCity + calendar + bouts + brackets
+    │       └── db-dev.ts              # Dev mode read-only queries — world summary, fighter list/detail, attribute distributions, bout log, gym financials
     │
     └── ui/                            # React renderer
         ├── package.json               # @corner-gym/ui — depends on engine + zustand
@@ -262,5 +263,6 @@ corner-gym/
                 ├── Calendar.tsx             # Boxing calendar — events grouped by month, circuit badges, venue + date
                 ├── SanctioningBodyPage.tsx  # Sanctioning body detail — rules table, titles, governed events
                 ├── VenuePage.tsx            # Venue detail — image, description, eligibility, upcoming/past events
-                └── EventFullPage.tsx        # Event full detail — venue feature, schedule, bracket placeholder, why it matters
+                ├── EventFullPage.tsx        # Event full detail — venue feature, schedule, bracket placeholder, why it matters
+                └── DevDashboard.tsx         # Dev tool — Ctrl+Shift+D or /dev; 6 sections: world overview, fighter browser, attribute distributions, bout log, gym financials, regenerate
 ```

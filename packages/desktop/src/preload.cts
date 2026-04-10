@@ -52,4 +52,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeListener('backrun-progress', listener)
     }
   },
+
+  // Dev mode IPC — diagnostic tools, not exposed during normal play.
+  devWorldSummary: (saveId: string) => ipcRenderer.invoke('dev-world-summary', saveId),
+  devFighterList: (saveId: string, filters: unknown) => ipcRenderer.invoke('dev-fighter-list', saveId, filters),
+  devFighterDetail: (saveId: string, fighterId: string) => ipcRenderer.invoke('dev-fighter-detail', saveId, fighterId),
+  devAttributeDistribution: (saveId: string, attributeId: string, nationId: string | null) =>
+    ipcRenderer.invoke('dev-attribute-distribution', saveId, attributeId, nationId),
+  devBoutLog: (saveId: string, filters: unknown) => ipcRenderer.invoke('dev-bout-log', saveId, filters),
+  devGymFinancials: (saveId: string, gymId: string) => ipcRenderer.invoke('dev-gym-financials', saveId, gymId),
+  devGymList: (saveId: string) => ipcRenderer.invoke('dev-gym-list', saveId),
 })

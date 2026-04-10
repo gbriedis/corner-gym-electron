@@ -4,7 +4,12 @@
 // IPC contract changes.
 
 import type { GameConfig, WorldState, Person, CalendarEvent, GameData } from '@corner-gym/engine'
-import type { SaveSummary, NewGameOptions, ProgressEvent, BackrunProgressEvent } from '../electron'
+import type {
+  SaveSummary, NewGameOptions, ProgressEvent, BackrunProgressEvent,
+  WorldDevSummary, FighterListItem, FighterDevDetail, AttributeDistributionResult,
+  BoutLogEntry, BoutLogSummary, GymFinancialDetail, GymListItem,
+  DevFighterFilters, DevBoutFilters,
+} from '../electron'
 
 export async function generateAndSave(config: GameConfig): Promise<string> {
   return window.electronAPI.generateAndSave(config)
@@ -48,4 +53,48 @@ export async function getAllEvents(saveId: string): Promise<CalendarEvent[]> {
 
 export async function getGameData(): Promise<GameData> {
   return window.electronAPI.getGameData()
+}
+
+export async function devWorldSummary(saveId: string): Promise<WorldDevSummary | null> {
+  return window.electronAPI.devWorldSummary(saveId)
+}
+
+export async function devFighterList(
+  saveId: string,
+  filters: DevFighterFilters,
+): Promise<{ fighters: FighterListItem[]; total: number }> {
+  return window.electronAPI.devFighterList(saveId, filters)
+}
+
+export async function devFighterDetail(
+  saveId: string,
+  fighterId: string,
+): Promise<FighterDevDetail | null> {
+  return window.electronAPI.devFighterDetail(saveId, fighterId)
+}
+
+export async function devAttributeDistribution(
+  saveId: string,
+  attributeId: string,
+  nationId: string | null,
+): Promise<AttributeDistributionResult> {
+  return window.electronAPI.devAttributeDistribution(saveId, attributeId, nationId)
+}
+
+export async function devBoutLog(
+  saveId: string,
+  filters: DevBoutFilters,
+): Promise<{ bouts: BoutLogEntry[]; summary: BoutLogSummary }> {
+  return window.electronAPI.devBoutLog(saveId, filters)
+}
+
+export async function devGymFinancials(
+  saveId: string,
+  gymId: string,
+): Promise<GymFinancialDetail | null> {
+  return window.electronAPI.devGymFinancials(saveId, gymId)
+}
+
+export async function devGymList(saveId: string): Promise<GymListItem[]> {
+  return window.electronAPI.devGymList(saveId)
 }
