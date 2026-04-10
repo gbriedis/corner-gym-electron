@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "inspect": "tsx scripts/inspect-save.ts"
+    "inspect": "tsx scripts/inspect-save.ts",
+    "generate-save": "tsx scripts/generate-test-save.ts"
   },
   "devDependencies": {
     "@types/node": "^20.19.39",

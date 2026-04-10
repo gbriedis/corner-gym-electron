@@ -362,11 +362,15 @@ if (total > 0) {
 const KEY_ATTRIBUTES = ['power', 'chin', 'ring_iq', 'heart', 'composure', 'stamina']
 
 for (const nationId of nations) {
-  const nf = allFighters.filter(f => f.nationId === nationId)
+  // Filter to competing fighters only — their attributes are what the bout simulation
+  // is calibrated against. Aspiring/unaware/retired would skew the distribution.
+  const nf = allFighters.filter(
+    f => f.nationId === nationId && f.fighterIdentity.state === 'competing',
+  )
   if (nf.length === 0) continue
 
   console.log('\n' + THIN)
-  console.log(`ATTRIBUTE DISTRIBUTIONS (${nationId} fighters)`)
+  console.log(`ATTRIBUTE DISTRIBUTIONS (${nationId} — competing fighters only, n=${nf.length})`)
   console.log(THIN)
 
   for (const attrId of KEY_ATTRIBUTES) {
@@ -387,7 +391,7 @@ for (const nationId of nations) {
     console.log(`  ${label} mean: ${String(m).padStart(4)}  median: ${String(med).padStart(4)}  min: ${mn}  max: ${mx}  stddev: ${sd}`)
   }
 
-  console.log('\n  [ring_iq and mental attrs should skew low — most fighters have little experience]')
+  console.log('\n  [TARGET: power 7-11, ring_iq 4-8, heart 3-6 for competing fighters]')
 }
 
 // ─── GYM FINANCIALS ───────────────────────────────────────────────────────────
