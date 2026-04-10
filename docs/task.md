@@ -1,9 +1,11 @@
 # Current Task
 
-## Task: Coach System — Full Type + Generation + Relationships
+## Task: Bout Resolution Engine — Statistical Resolution + Attribute Events
 
 ### What To Build
-Full Coach type replacing the stub, CoachFighterRelationship on Fighter, coach generation function, update gym generation to assign real coaches, and the Latvia coach generation parameters data file.
+The statistical bout resolution engine. This is what the backrun uses to simulate every bout. No exchange log — just result and attribute changes. Fast, deterministic, reads rules from data files.
+
+Exchange simulation (the watched fight) comes later and wraps this.
 
 ### Skill To Load
 `.claude/skills/engine/SKILL.md`
@@ -11,409 +13,393 @@ Full Coach type replacing the stub, CoachFighterRelationship on Fighter, coach g
 
 ---
 
-## Part 1 — Data File
+## Architecture
 
-### `packages/engine/data/nations/latvia/coach-generation.json`
+```
+resolveBout(input) → BoutResolutionResult
 
-```json
-{
-  "meta": {
-    "version": "1.0.0",
-    "description": "Coach generation parameters for Latvia. Defines specialist coach probability, quality ranges by experience tier, and growth rates. The engine reads this when generating coaches during world creation. Most coaches at grassroots level are former fighters — specialists are rarer and more expensive but have a higher quality ceiling in specific areas."
-  },
-  "specialistCoachProbability": 0.15,
-  "specialistQualityByExperience": {
-    "new":        { "qualityRange": [5, 9],   "potentialBonus": [2, 4] },
-    "experienced":{ "qualityRange": [9, 14],  "potentialBonus": [1, 3] },
-    "veteran":    { "qualityRange": [12, 16], "potentialBonus": [1, 2] }
-  },
-  "formerFighterCoachProbability": 0.85,
-  "qualityGrowthPerYear": 0.5,
-  "styleCertaintyGrowthPerYear": 4.0,
-  "maximumStyleCertaintyGymMember": 80,
-  "maximumStyleCertaintyHiredCoach": 95
+BoutResolutionResult {
+  winnerId: string | null
+  method: BoutMethod
+  endRound: number
+  judgeScores?: JudgeScorecard[]
+  roundDominance: number[]      // per round, -1.0 to 1.0 (positive = fighter A winning)
+  fighterAAttributeEvents: AttributeHistoryEvent[]
+  fighterBAttributeEvents: AttributeHistoryEvent[]
+  fighterADamageAccumulated: DamageAccumulated
+  fighterBDamageAccumulated: DamageAccumulated
 }
 ```
 
+`resolveBout` is the single source of truth for bout outcomes. The future exchange simulation wraps it — the fight already happened, the simulation is the storytelling layer on top.
+
 ---
 
-## Part 2 — Full Coach Type
+## Part 1 — Types
 
-**Replace stub in `packages/engine/src/types/coach.ts`**
+**`packages/engine/src/types/resolution.ts`**
 
 ```typescript
-// Coach — a Person who develops fighters.
-// Every coach was either a former fighter who transitioned into coaching,
-// or a specialist who never competed but built expertise through study and experience.
+// Types for bout resolution. These are the outputs of resolveBout —
+// consumed by the backrun engine, the SQLite layer, and eventually
+// the exchange simulation layer.
+
+export interface BoutResolutionInput {
+  boutId: string
+  fighterA: Fighter
+  fighterB: Fighter
+  coachA: Coach | null
+  coachB: Coach | null
+  circuitLevel: string
+  ageCategoryId: string
+  eventId: string
+  year: number
+  week: number
+}
+
+export interface RoundScore {
+  roundNumber: number
+  fighterAScore: number      // 10-point must — winner gets 10, loser gets 9 or less
+  fighterBScore: number
+  dominance: number          // -1.0 to 1.0. Positive = A winning round. Used for narrative.
+  knockdownsA: number
+  knockdownsB: number
+  stoppageOccurred: boolean
+  stoppageReason?: 'ko' | 'tko_referee' | 'tko_corner' | 'tko_cuts' | 'three_knockdown_rule'
+  stoppageFighterId?: string  // who was stopped
+}
+
+export interface DamageAccumulated {
+  // Damage state at end of bout — affects fighter health going forward
+  totalPunchesAbsorbed: number
+  knockdowns: number
+  chinDamage: number         // 0-100. High = chin more vulnerable in future bouts.
+  handDamage: number         // 0-100. High = reduced punch output in future bouts.
+  overallWear: number        // 0-100. General accumulated damage.
+}
+
+export interface BoutResolutionResult {
+  boutId: string
+  winnerId: string | null    // null = draw
+  loserId: string | null
+  method: 'ko' | 'tko' | 'decision' | 'split_decision' | 'majority_decision' | 'draw' | 'no_contest'
+  endRound: number
+  scheduledRounds: number
+  roundScores: RoundScore[]
+  judgeScores: JudgeScorecard[]
+  fighterADamage: DamageAccumulated
+  fighterBDamage: DamageAccumulated
+  fighterAAttributeEvents: AttributeHistoryEvent[]
+  fighterBAttributeEvents: AttributeHistoryEvent[]
+}
+
+export interface JudgeScorecard {
+  judgeIndex: number         // 1, 2, or 3
+  fighterATotal: number
+  fighterBTotal: number
+  winnerId: string | null
+}
+```
+
+Add to `src/types/index.ts`.
+
+---
+
+## Part 2 — Pre-Fight Assessment
+
+**`packages/engine/src/engine/boutAssessment.ts`**
+
+```typescript
+// boutAssessment derives everything the resolution engine needs
+// before the first round begins. Reads rules from data files —
+// nothing about bout conditions is hardcoded here.
 //
-// A coach's style is NOT their fighting style — it is how they teach.
-// A former pressure fighter may become a technical coach if their soul traits
-// drive them to study what they lacked as a fighter. The connection between
-// fighting background and coaching emphasis is a starting tendency, not a rule.
+// The rules file determines:
+// - How many rounds and how long they are
+// - Whether headgear reduces damage
+// - Whether standing eight count gives recovery time
+// - Whether three knockdown rule ends fights early
+// - Glove weight damage multiplier
 //
-// Quality grows toward qualityPotential over years of coaching experience.
-// styleCertainty grows as the coach develops a clear identity over time.
+// This is why every bout result can differ between circuit levels
+// with the same two fighters — the conditions shape the outcome.
 
-import type { CoachStyle } from './coach.js'
-export type { CoachStyle }
+export interface FighterBoutState {
+  fighter: Fighter
+  coach: Coach | null
 
-export interface CoachFighterRelationship {
-  fighterId: string
-  trustScore: number            // 0-100. Starts from trait compatibility. Grows with time and results.
-  weeksWorkedTogether: number
-  lastConflictYear: number | null
-  lastConflictWeek: number | null
-  note: string | null           // player-added observations — same ocean rule as fighter knowledge
-}
-
-export interface Coach {
-  id: string
-  personId: string              // references the Person this coach is
-  gymId: string
-  role: 'head_coach' | 'secondary_coach' | 'fitness_coach' | 'kids_coach'
-
-  // Quality — how effective they are at developing fighters
-  quality: number               // 1-20. Current coaching quality.
-  qualityPotential: number      // 1-20. The ceiling quality can reach. Former elite fighters have higher ceiling.
-  weeksCoaching: number         // total coaching experience — quality grows toward potential as this increases
-
-  // Style — how they teach (NOT their former fighting style)
-  style: CoachStyle             // emphasis, methodology, communicationStyle
-  styleCertainty: number        // 0-100. How defined their coaching identity is. Low = still finding their way.
-
-  // Background
-  formerFighter: boolean
-  careerPeakCircuitLevel: string | null   // null for specialists
-  careerPeakPrestige: number              // 0-7, from circuit level prestige
-
-  // Relationships — stored on coach, cross-referenced from Fighter
-  fighterRelationships: CoachFighterRelationship[]
-}
-```
-
-Export `Coach`, `CoachFighterRelationship`, `CoachStyle` from `src/types/index.ts`.
-
----
-
-## Part 3 — Update Fighter Type
-
-**Update `packages/engine/src/types/fighter.ts`**
-
-Add `coachingHistory` to `FighterCareerState`:
-
-```typescript
-export interface FighterCareerState {
-  // ... existing fields ...
-  coachingHistory: PastCoachRecord[]
-}
-
-export interface PastCoachRecord {
-  // History of past coaching relationships — travels with the fighter.
-  // New gym starts fresh but past coaches shaped who this fighter became.
-  coachId: string
-  gymId: string
-  startYear: number
-  startWeek: number
-  endYear: number | null      // null if still active
-  endWeek: number | null
-  peakTrustScore: number      // highest trust reached in this relationship
-  weeksWorkedTogether: number
-}
-```
-
----
-
-## Part 4 — TypeScript Type For Data File
-
-**Update `packages/engine/src/types/data/gym.ts`**
-
-Add:
-```typescript
-export interface CoachGenerationData {
-  meta: Meta
-  specialistCoachProbability: number
-  specialistQualityByExperience: {
-    new: { qualityRange: [number, number]; potentialBonus: [number, number] }
-    experienced: { qualityRange: [number, number]; potentialBonus: [number, number] }
-    veteran: { qualityRange: [number, number]; potentialBonus: [number, number] }
+  // Derived from rules + fighter state
+  effectiveDamageMultiplier: number   // reduced by glove weight and headgear
+  staminaBaseline: number             // 0-100, depletes per round
+  styleEffectiveness: number          // from calculateStyleEffectiveness
+  healthModifiers: {
+    chinModifier: number              // reduced if chin health is damaged
+    handOutputModifier: number        // reduced if hand health is damaged
+    overallDurabilityModifier: number
   }
-  formerFighterCoachProbability: number
-  qualityGrowthPerYear: number
-  styleCertaintyGrowthPerYear: number
-  maximumStyleCertaintyGymMember: number
-  maximumStyleCertaintyHiredCoach: number
 }
+
+export interface BoutConditions {
+  rules: CircuitRules               // from lbf-rules.json / eubc-rules.json / iba-rules.json
+  scheduledRounds: number
+  roundDurationMinutes: number
+  gloveDamageMultiplier: number     // derived from gloveWeightOz — heavier = less damage
+  headgearDamageMultiplier: number  // 1.0 if no headgear, 0.75 if headgear required
+  standingEightAvailable: boolean
+  threeKnockdownRule: boolean
+  matchup: StyleMatchup
+  effectiveModifiers: Record<string, number>
+}
+
+export function assessBout(
+  input: BoutResolutionInput,
+  data: GameData
+): { fighterAState: FighterBoutState; fighterBState: FighterBoutState; conditions: BoutConditions }
 ```
 
-Add to `src/types/data/index.ts`.
+### Glove weight to damage multiplier:
+```
+8oz  → 1.10  (lighter gloves, more damage — rare, some pro fights)
+10oz → 1.00  (standard, baseline)
+12oz → 0.90
+16oz → 0.80  (heavy training gloves, significant damage reduction)
+```
+
+Comment: heavier gloves distribute force across a larger surface area, reducing both cutting and concussive impact. This is why amateur bouts with 10oz gloves and headgear produce far less accumulated damage than pro bouts.
+
+### Health state modifiers:
+Read from fighter's health values (hands, chin, jaw from Person.health):
+```
+chinHealth < 50  → chinModifier = 0.7  (damaged chin takes more concussive damage)
+chinHealth < 25  → chinModifier = 0.5
+handHealth < 50  → handOutputModifier = 0.8  (sore hands reduce output volume)
+handHealth < 25  → handOutputModifier = 0.6
+```
 
 ---
 
-## Part 5 — Update Loader
+## Part 3 — Round Resolution
 
-Add to `NationBundle` in `src/data/loader.ts`:
+**`packages/engine/src/engine/roundResolution.ts`**
+
 ```typescript
-coachGeneration: CoachGenerationData
+// roundResolution calculates what happens in a single round.
+// Called per round by resolveBout until stoppage or scheduled rounds complete.
+//
+// The round produces:
+// - A dominance score (-1.0 to 1.0) reflecting who controlled the round
+// - Damage dealt to each fighter
+// - Knockdown events if any
+// - Stoppage if conditions are met
+// - Updated stamina for both fighters
+//
+// Soul traits affect in-fight behavior:
+// - brave: knockdown recovery probability +20%
+// - craven: when hurt, output drops 30%, stoppage probability increases
+// - determined: if losing on cards after round 6, output +15%
+// - fragile: after a bad round (dominance < -0.5), next round composure -20%
+// - hungry: in title fights and above, output +10%
+// - content: when ahead by 3+ rounds, output -10% (unconscious easing off)
+// - reckless: output +15% but defensive gaps +20% — high variance
+// - patient: when behind on cards, does NOT panic — maintains game plan
+
+export interface RoundInput {
+  roundNumber: number
+  fighterAState: FighterBoutState
+  fighterBState: FighterBoutState
+  conditions: BoutConditions
+  fighterAStamina: number      // current stamina at start of this round
+  fighterBStamina: number
+  fighterAKnockdowns: number   // cumulative knockdowns this bout
+  fighterBKnockdowns: number
+  fighterARoundsWon: number    // for soul trait adjustments (determined, content)
+  fighterBRoundsWon: number
+  rng: RNG
+  data: GameData
+}
+
+export interface RoundResult {
+  roundScore: RoundScore
+  fighterAStaminaEnd: number
+  fighterBStaminaEnd: number
+  fighterADamageThisRound: number
+  fighterBDamageThisRound: number
+}
+
+export function resolveRound(input: RoundInput): RoundResult
 ```
 
-Load from `nations/latvia/coach-generation.json`.
+### Round dominance calculation:
+
+```
+// Base dominance from attribute comparison weighted by matchup
+baseA = (
+  fighterA.developedAttributes.ring_generalship × 0.20 +
+  fighterA.developedAttributes.technique         × 0.15 +
+  fighterA.developedAttributes.punch_selection   × 0.15 +
+  fighterA.developedAttributes.defensive_skill   × 0.15 +
+  fighterA.physical.power                        × 0.10 +
+  fighterA.physical.hand_speed                   × 0.10 +
+  fighterA.developedAttributes.output_volume     × 0.10 +
+  fighterA.developedAttributes.ring_iq           × 0.05
+)
+
+// Apply effective matchup modifiers
+// Apply stamina modifier — below 50% stamina reduces output_volume contribution
+// Apply health modifiers
+// Apply soul trait in-fight modifiers
+// Apply style effectiveness
+
+dominance = (baseA - baseB) / maxPossibleDifference  // normalised to -1.0 to 1.0
+```
+
+### Knockdown check:
+```
+// Triggered when damage in an exchange exceeds chin threshold
+// chinThreshold = fighter.physical.chin × conditions.chinModifier × 2
+// knockdownRoll < (damageDealt - chinThreshold) / chinThreshold
+// Recovery: brave +0.2, craven -0.2, heart contributes directly
+// Three knockdown rule: if fighterKnockdowns >= 3 AND threeKnockdownRule → stoppage
+```
+
+### Stamina depletion per round:
+```
+// Base depletion: 8 points per round for 3-round amateur bout
+// Scaled by round duration: longer rounds deplete more
+// Output volume multiplier: higher output = faster depletion
+// Stamina below 50%: output_volume contribution to dominance reduced proportionally
+// Stamina below 25%: output_volume contribution halved, footwork contribution halved
+// disciplined soul trait: depletion × 0.85 (trains efficiently, wastes less energy)
+// reckless soul trait: depletion × 1.20 (burns energy with reckless output)
+```
+
+### Scoring variance for close rounds:
+```
+// abs(dominance) > 0.3 → clear round, deterministic scoring (10-9)
+// abs(dominance) <= 0.3 → close round
+//   each judge independently: roll ± 0.15 variance on dominance
+//   judge can score 10-9 for either fighter or 10-10 if truly equal
+// Judges score independently — split and majority decisions emerge naturally
+```
 
 ---
 
-## Part 6 — Coach Generation Function
+## Part 4 — Main Resolution Function
 
-**`packages/engine/src/generation/coach.ts`**
+**`packages/engine/src/engine/resolveBout.ts`**
 
 ```typescript
-// generateCoach creates a Coach from a Person.
-// Two paths:
-// 1. Former fighter — quality derived from career peak and soul traits
-// 2. Specialist — quality assigned directly from experience tier
+// resolveBout is the single source of truth for bout outcomes.
+// Used by the backrun for every historical bout.
+// Used by the live simulation as the result layer beneath the exchange narrative.
 //
-// Coaching style starts influenced by fighting background but is shaped
-// by soul traits — a humble former brawler may become a technical coach
-// because they coach what they wish they had, not what they were.
-//
-// Quality grows toward qualityPotential at 0.5 per year of coaching.
-// styleCertainty grows 4 points per year up to the maximum for their role.
+// Produces a deterministic result from the same seed — the same two fighters
+// in the same conditions always produce the same outcome.
+// This is critical for the backrun: world history must be reproducible.
 
-export interface CoachGenerationOptions {
-  formerFighter: boolean
-  careerPeakCircuitLevel?: string    // required if formerFighter = true
-  careerPeakPrestige?: number        // required if formerFighter = true
-  fightingStyleTendency?: string     // the style they used as a fighter
-  specialistExperience?: 'new' | 'experienced' | 'veteran'  // required if formerFighter = false
-  isGymMemberFilling?: boolean       // affects styleCertainty maximum
-  yearsCoaching?: number             // how long they have been coaching at world generation
-  role?: 'head_coach' | 'secondary_coach' | 'fitness_coach' | 'kids_coach'
-}
+import { assessBout } from './boutAssessment.js'
+import { resolveRound } from './roundResolution.js'
+import { calculateAttributeEvents } from './attributeEvents.js'
 
-export function generateCoach(
-  person: Person,
-  gymId: string,
+export function resolveBout(
+  input: BoutResolutionInput,
   data: GameData,
-  rng: RNG,
-  options: CoachGenerationOptions
-): Coach
+  rng: RNG
+): BoutResolutionResult
 ```
 
-### Generation Rules
-
-**Quality for former fighters:**
+### Resolution flow:
 ```
-baseQuality = (careerPeakPrestige / 7) × 10   // 1-10 from career peak
-traitBonus:
-  humble      → +2
-  patient     → +2
-  trusting    → +1
-  disciplined → +1
-traitPenalty:
-  arrogant    → -2
-  reckless    → -2
-  paranoid    → -1
-startingQuality = clamp(1, 18, base + bonuses + penalties)
-qualityPotential = clamp(startingQuality, 20, startingQuality + rng.nextInt(1, 3))
-```
-
-Comment: former fighters start with quality reflecting career knowledge. Soul traits determine how well they translate that knowledge into teaching. A national champion who is arrogant and reckless is a worse coach than a regional finalist who is humble and patient.
-
-**Quality for specialists:**
-```
-Roll qualityRange from specialistQualityByExperience[experience tier]
-qualityPotential = quality + roll potentialBonus range
-```
-
-**Quality adjustment for years coaching:**
-```
-// If yearsCoaching > 0, advance quality toward potential
-yearsToAdvance = options.yearsCoaching ?? 0
-qualityGrowth = yearsToAdvance × data.nations[nationId].coachGeneration.qualityGrowthPerYear
-quality = clamp(1, qualityPotential, quality + qualityGrowth)
-```
-
-**Coaching style — emphasis:**
-
-For former fighters, derive starting emphasis from fighting style:
-```
-'pressure' | 'swarmer'        → 'pressure'
-'boxer' | 'counterpuncher'    → 'technical'
-'boxer_puncher'               → 'balanced'
-'brawler'                     → 'physical'
-'undefined'                   → 'balanced'
-```
-
-Then apply soul trait drift:
-- `humble` AND `patient` → shift toward `technical` regardless of fighting background
-  - Comment: humble, patient coaches study what fighters need, not what they personally did
-- `reckless` → shift toward `physical` or keep `freestyle` methodology
-- `disciplined` → reinforce whatever emphasis toward more structured methodology
-
-For specialists: roll emphasis randomly weighted: technical 35%, balanced 30%, pressure 15%, physical 15%, defensive 5%
-
-**Coaching style — methodology:**
-```
-disciplined soul trait → 'disciplined'
-reckless soul trait    → 'freestyle'
-neither                → 'structured'
-```
-
-**Coaching style — communicationStyle:**
-```
-(brave OR determined) AND NOT fragile → 'demanding'
-(humble OR patient) AND NOT arrogant  → 'supportive'
-paranoid OR content                   → 'detached'
-default                               → 'supportive'
-```
-
-**styleCertainty:**
-```
-base = rng.nextInt(15, 35)
-yearsBoost = (options.yearsCoaching ?? 0) × coachGeneration.styleCertaintyGrowthPerYear
-maximum = options.isGymMemberFilling
-  ? coachGeneration.maximumStyleCertaintyGymMember
-  : coachGeneration.maximumStyleCertaintyHiredCoach
-styleCertainty = clamp(0, maximum, base + yearsBoost)
-```
-
-**Initial fighter relationships:** empty array — relationships form as coaching happens.
-
----
-
-## Part 7 — Update generateGym
-
-**Update `packages/engine/src/generation/gym.ts`**
-
-Replace the simple head coach assignment with a proper coach generation call.
-
-In the staff assignment step:
-
-```typescript
-// Find the best candidate for head coach from the gym's fighter population.
-// Candidate must be: age > 28, NOT in 'competing' identity state.
-// Quality is derived from their career — fighters who went further make better coaches.
-// If no eligible fighter exists — gym has no head coach at world start.
-
-const coachCandidate = findBestCoachCandidate(fighters, gym)
-if (coachCandidate !== null) {
-  const coach = generateCoach(
-    coachCandidate.person,
-    gym.id,
-    data,
-    rng,
-    {
-      formerFighter: true,
-      careerPeakCircuitLevel: coachCandidate.fighter.competition.amateur.titles[0]?.circuitLevel ?? 'club_card',
-      careerPeakPrestige: derivePrestige(coachCandidate.fighter),
-      fightingStyleTendency: coachCandidate.fighter.style.currentTendency,
-      isGymMemberFilling: true,
-      yearsCoaching: Math.max(0, coachCandidate.person.age - 30),
-      role: 'head_coach'
-    }
-  )
-  // Add to gym staff, update gym culture coachingFocus from coach style emphasis
-  gym.staffMembers.push({
-    personId: coachCandidate.person.id,
-    role: 'head_coach',
-    startedYear: 0,
-    startedWeek: 0,
-    wageMonthly: 0,
-    isGymMemberFilling: true
-  })
-  // Store coach separately — returned from generateGym
-}
-```
-
-Update `generateGym` return type to include coaches:
-```typescript
-export function generateGym(...): { gym: Gym; coaches: Coach[] }
-```
-
-Update `generateWorld` to collect coaches from all gym generations and return them.
-
-Update `generateWorld` return type:
-```typescript
-export function generateWorld(...): {
-  worldState: WorldState
-  persons: Person[]
-  fighters: Fighter[]
-  gyms: Gym[]
-  coaches: Coach[]
-  calendar: CalendarEvent[]
-}
+1. assessBout → fighterAState, fighterBState, conditions
+2. for each round (1 to scheduledRounds):
+   a. resolveRound → roundResult
+   b. if roundResult.roundScore.stoppageOccurred → record result, break
+   c. update stamina, knockdown counts
+   d. collect round scores
+3. if no stoppage → tally judge scorecards → winner or draw
+4. calculateAttributeEvents for both fighters based on:
+   - result (win/loss/draw)
+   - method (KO loss vs decision loss vs decision win)
+   - opposition quality (relative attribute comparison)
+   - circuit level (amateur vs pro vs title fight)
+   - soul traits of each fighter
+5. return BoutResolutionResult
 ```
 
 ---
 
-## Part 8 — SQLite
+## Part 5 — Attribute Events From Bout
 
-**Update `packages/desktop/src/db.ts`**
+**`packages/engine/src/engine/attributeEvents.ts`**
 
-Add coaches table:
-```sql
-CREATE TABLE IF NOT EXISTS coaches (
-  id TEXT NOT NULL,
-  saveId TEXT NOT NULL,
-  data TEXT NOT NULL,     -- JSON serialised Coach
-  gymId TEXT NOT NULL,
-  personId TEXT NOT NULL,
-  quality INTEGER NOT NULL,
-  PRIMARY KEY (id, saveId),
-  FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
-);
-```
-
-Export typed functions:
 ```typescript
-export function saveCoaches(db: Database, saveId: string, coaches: Coach[]): void
-export function loadCoaches(db: Database, saveId: string): Coach[]
-export function getCoachesByGym(db: Database, saveId: string, gymId: string): Coach[]
+// calculateAttributeEvents derives attribute history events from a completed bout.
+// Reads gain rules from attribute-accumulation.json.
+// Soul trait multipliers applied here — humble fighter gains more from a loss,
+// fragile fighter's composure regresses after a stoppage loss.
+//
+// Returns AttributeHistoryEvent[] for each fighter — to be applied to their
+// attributeHistory records after the bout is saved.
+
+export function calculateAttributeEvents(
+  fighter: Fighter,
+  result: 'win' | 'loss' | 'draw',
+  method: BoutMethod,
+  oppositionQuality: number,   // 0-100, relative to fighter
+  circuitLevel: string,
+  data: GameData
+): AttributeHistoryEvent[]
 ```
 
-Update `generate-and-save` IPC handler to save coaches.
+### Logic:
+1. Determine event type: `amateur_bout`, `pro_bout`, `title_fight`, or `olympic_bout`
+2. Get base gains from `data.attributeAccumulation.eventBaseGains[eventType]`
+3. Apply `resultModifiers` for win/loss/stoppage_loss
+4. Apply `oppositionQualityMultipliers` based on relative quality
+5. Apply `soulTraitMultipliers` for each relevant trait the fighter has
+6. Cap each gain at `singleEventGainCap[eventType]`
+7. Return as `AttributeHistoryEvent[]` with trigger, delta, oppositionQuality, year, week
 
 ---
 
-## Part 9 — Tests
+## Part 6 — Tests
 
-**`packages/engine/src/generation/coach.test.ts`**
+**`packages/engine/src/engine/resolveBout.test.ts`**
 
 Tests:
-- Former fighter with national championship career has quality > 8
-- Former fighter with humble + patient traits has higher quality than same career arrogant fighter
-- Former brawler with humble trait gets technical emphasis (trait overrides fighting background)
-- Former boxer gets technical emphasis by default
-- Specialist coach quality within declared range
-- Quality grows toward potential when yearsCoaching > 0
-- Quality never exceeds qualityPotential
-- styleCertainty capped at maximumStyleCertaintyGymMember for gym member filling role
-- Same seed → same coach (determinism)
-- Coach with demanding communication + supportive communication both valid outputs
+- Same seed + same fighters → same result (determinism)
+- Fighter with significantly higher attributes wins majority of bouts (run 20 times)
+- KO possible when power differential is large and chin is low
+- Amateur bout with headgear produces less damage than pro bout same fighters
+- Three knockdown rule ends bout when applicable
+- Decision result when no stoppage occurs
+- Split decision possible on close fights
+- Attribute events generated for both fighters after every bout
+- Winner receives win attribute gains, loser receives loss gains
+- Stoppage loss produces composure regression for fragile fighter
+- Stamina depletion affects later rounds — high stamina fighter performs better in rounds 6+
 
 ---
 
 ### Definition Of Done
-- [ ] `nations/latvia/coach-generation.json` — valid JSON, meta block
-- [ ] `src/types/coach.ts` — full replacement, Coach + CoachFighterRelationship
-- [ ] `src/types/fighter.ts` — PastCoachRecord + coachingHistory on FighterCareerState
-- [ ] `src/types/data/gym.ts` — CoachGenerationData added
-- [ ] Loader updated — coachGeneration on NationBundle
-- [ ] `src/generation/coach.ts` — generateCoach with all rules
-- [ ] `src/generation/coach.test.ts` — all listed tests passing
-- [ ] `src/generation/gym.ts` — returns `{ gym, coaches }`, proper coach generation
-- [ ] `src/generation/world.ts` — collects coaches, returns them in world output
-- [ ] `db.ts` — coaches table, saveCoaches, loadCoaches, getCoachesByGym
-- [ ] IPC handler saves coaches
+- [ ] `src/types/resolution.ts` — all resolution types, exported from index.ts
+- [ ] `src/engine/boutAssessment.ts` — assessBout with rules loading and health modifiers
+- [ ] `src/engine/roundResolution.ts` — resolveRound with stamina, knockdowns, scoring variance
+- [ ] `src/engine/resolveBout.ts` — full resolution flow, deterministic
+- [ ] `src/engine/attributeEvents.ts` — calculateAttributeEvents reading accumulation rules
+- [ ] `src/engine/resolveBout.test.ts` — all listed tests passing
 - [ ] `pnpm typecheck` clean
-- [ ] `pnpm test` passing — all 132 existing tests still pass
+- [ ] `pnpm test` passing — all 145 existing tests still pass
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: coach system — full type, generation, relationships`
+- [ ] Committed: `feat: bout resolution engine — statistical resolution`
 
 ### Notes
 - Read engine skill fully before writing any code
-- Coaching style ≠ fighting style — the connection is a starting tendency shaped by soul traits
-- Former humble + patient coaches drift toward technical regardless of fighting background
-- Quality grows toward potential with experience — never set quality above potential
-- generateGym now returns { gym, coaches } — update all call sites in world.ts
-- Comment why on every non-obvious quality or style derivation decision
+- resolveBout must be deterministic — same seed always produces same result
+- Rules come from data files — nothing about bout conditions hardcoded
+- Glove weight and headgear directly affect damage calculation — comment why
+- Soul traits affect in-fight behavior — document each one in roundResolution.ts
+- attributeEvents.ts reads from attribute-accumulation.json — no hardcoded gain values
+- Three knockdown rule only applies if rules.threeKnockdownRule is true — check rules file
+- Standing eight count recovery: if available, gives hurt fighter partial stamina recovery before round continues
