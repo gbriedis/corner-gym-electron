@@ -72,6 +72,18 @@ export type {
 } from './gym.js'
 
 export type {
+  StyleTendencyId,
+  StyleThresholds,
+  StyleWildcard,
+  StyleMatchup,
+  StyleMatchupsData,
+  TendencyStrengthGrowth,
+  CoachInfluenceShiftRates,
+  CoachInfluence,
+  StyleDevelopmentData,
+} from './style.js'
+
+export type {
   CircuitLevel,
   EventFormat,
   EventDay,

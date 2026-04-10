@@ -1,0 +1,319 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Style matchup table for the exchange simulation. Matchup modifiers are applied when two fighters meet in a bout. tendencyStrength on each fighter scales how much these modifiers apply — 0 means pure attribute fight, 100 means full style expression. styleEffectiveness scales modifiers down when fighter attributes do not support their declared style. The engine looks up the matchup by the styles of the two fighters."
+  },
+  "styleThresholds": {
+    "pressure":       { "stamina": 10, "output_volume": 10, "ring_generalship": 8 },
+    "boxer":          { "footwork": 10, "lateral_movement": 9, "ring_generalship": 10 },
+    "boxer_puncher":  { "footwork": 8, "combination_fluency": 9, "ring_generalship": 8 },
+    "brawler":        { "chin": 8, "durability": 8, "heart": 7 },
+    "counterpuncher": { "defensive_skill": 10, "counter_punching": 10, "ring_iq": 9 },
+    "swarmer":        { "stamina": 12, "output_volume": 12, "heart": 9 }
+  },
+  "matchups": [
+    {
+      "id": "pressure_vs_boxer",
+      "styles": ["pressure", "boxer"],
+      "description": "The pressure fighter tries to smother the boxer's range and technique. The boxer wants to use the ring, land clean, and stay out of trouble.",
+      "exchangeInitiationAdvantage": "styleA",
+      "distanceControlAdvantage": "styleB",
+      "decisiveAttributesA": ["stamina", "output_volume", "chin", "ring_generalship"],
+      "decisiveAttributesB": ["footwork", "lateral_movement", "ring_iq", "punch_selection"],
+      "modifiers": {
+        "pressureForwardProgress": 0.15,
+        "boxerDistanceManagement": 0.20,
+        "clinchRate": 0.10,
+        "knockdownRisk": 0.05
+      },
+      "wildcards": [
+        {
+          "condition": "boxer ring_iq < 8",
+          "effect": "Boxer struggles to adjust when cut off — pressure advantage increases",
+          "threshold": 8
+        },
+        {
+          "condition": "pressure stamina < 8 after round 6",
+          "effect": "Late-fight stamina fade hands the bout to the boxer",
+          "threshold": 8
+        }
+      ],
+      "narrativeNotes": "Classic tactical chess match — the pressure fighter hunts, the boxer counters and retreats. If the boxer cannot hold distance or the pressure fighter's engine never quits, this becomes brutal."
+    },
+    {
+      "id": "pressure_vs_brawler",
+      "styles": ["pressure", "brawler"],
+      "description": "Two fighters who want to be inside. The pressure fighter is systematic about it; the brawler just wants to land something big.",
+      "exchangeInitiationAdvantage": "neutral",
+      "distanceControlAdvantage": "styleA",
+      "decisiveAttributesA": ["ring_generalship", "output_volume", "combination_fluency"],
+      "decisiveAttributesB": ["power", "chin", "heart", "durability"],
+      "modifiers": {
+        "exchangeFrequency": 0.25,
+        "knockdownRisk": 0.15,
+        "clinchRate": 0.08
+      },
+      "wildcards": [
+        {
+          "condition": "brawler lands single big shot early",
+          "effect": "Fight dynamic shifts — pressure fighter becomes more cautious, volume drops",
+          "threshold_ringIq": 7
+        }
+      ],
+      "narrativeNotes": "War footing from the first bell. The pressure fighter's output discipline usually wins on points, but one clean brawler shot can end it."
+    },
+    {
+      "id": "pressure_vs_counterpuncher",
+      "styles": ["pressure", "counterpuncher"],
+      "description": "The pressure fighter walks into counters. The counterpuncher wants the pressure fighter to load up and miss.",
+      "exchangeInitiationAdvantage": "styleA",
+      "distanceControlAdvantage": "styleB",
+      "decisiveAttributesA": ["chin", "durability", "ring_generalship", "output_volume"],
+      "decisiveAttributesB": ["defensive_skill", "counter_punching", "ring_iq", "punch_selection"],
+      "modifiers": {
+        "counterLandingRate": 0.20,
+        "pressureForwardProgress": 0.10,
+        "accuracyPenaltyForPressure": 0.08
+      },
+      "wildcards": [
+        {
+          "condition": "pressure fighter chin < 7",
+          "effect": "Counter puncher's counters carry serious knockout threat",
+          "threshold": 7
+        },
+        {
+          "condition": "counterpuncher ring_iq > 11",
+          "effect": "Counterpuncher reads patterns perfectly — pressure fighter's offence becomes predictable",
+          "threshold_ringIq": 11
+        }
+      ],
+      "narrativeNotes": "High-risk, high-reward for the counterpuncher. The pressure fighter eats shots but keeps coming. The counterpuncher needs to be surgical."
+    },
+    {
+      "id": "pressure_vs_swarmer",
+      "styles": ["pressure", "swarmer"],
+      "description": "Two high-volume fighters who both want inside work. The pressure fighter is measured; the swarmer is relentless.",
+      "exchangeInitiationAdvantage": "styleB",
+      "distanceControlAdvantage": "neutral",
+      "decisiveAttributesA": ["ring_generalship", "combination_fluency", "stamina"],
+      "decisiveAttributesB": ["stamina", "output_volume", "heart", "chin"],
+      "modifiers": {
+        "exchangeFrequency": 0.30,
+        "staminaDrainRate": 0.12,
+        "clinchRate": 0.15
+      },
+      "wildcards": [
+        {
+          "condition": "swarmer stamina > 14 after round 8",
+          "effect": "Swarmer's pace overwhelms the pressure fighter in the championship rounds",
+          "threshold": 14
+        }
+      ],
+      "narrativeNotes": "Audience favourite. Relentless action — both fighters want volume. The swarmer's superior engine usually takes over late."
+    },
+    {
+      "id": "boxer_vs_counterpuncher",
+      "styles": ["boxer", "counterpuncher"],
+      "description": "Two defensive-minded fighters. The boxer moves and jabs; the counterpuncher waits. Neither wants to lead into danger.",
+      "exchangeInitiationAdvantage": "styleA",
+      "distanceControlAdvantage": "styleA",
+      "decisiveAttributesA": ["footwork", "ring_generalship", "jab", "punch_selection"],
+      "decisiveAttributesB": ["ring_iq", "defensive_skill", "counter_punching", "patience"],
+      "modifiers": {
+        "exchangeFrequency": -0.15,
+        "accuracyBonus": 0.10,
+        "ringGeneralshipContestRate": 0.20
+      },
+      "wildcards": [
+        {
+          "condition": "counterpuncher ring_iq > 10 and boxer ring_generalship < 9",
+          "effect": "Counterpuncher outthinks the boxer — neutralises the jab, forces bad leads",
+          "threshold_ringIq": 10
+        }
+      ],
+      "narrativeNotes": "Often a grinding tactical fight. Points matter enormously. The boxer who controls distance wins; the counterpuncher who forces errors wins."
+    },
+    {
+      "id": "boxer_vs_brawler",
+      "styles": ["boxer", "brawler"],
+      "description": "The boxer's nightmare scenario if the brawler closes distance. The brawler's nightmare if the boxer keeps them at range all night.",
+      "exchangeInitiationAdvantage": "styleB",
+      "distanceControlAdvantage": "styleA",
+      "decisiveAttributesA": ["footwork", "lateral_movement", "jab", "ring_generalship"],
+      "decisiveAttributesB": ["power", "chin", "durability", "heart"],
+      "modifiers": {
+        "boxerDistanceManagement": 0.25,
+        "knockdownRisk": 0.12,
+        "clinchRate": 0.12
+      },
+      "wildcards": [
+        {
+          "condition": "brawler power > 15",
+          "effect": "Single-shot threat forces boxer to abandon the jab and stay on the back foot",
+          "threshold": 15
+        },
+        {
+          "condition": "boxer footwork < 8",
+          "effect": "Boxer cannot maintain distance — fight becomes the brawler's terrain",
+          "threshold": 8
+        }
+      ],
+      "narrativeNotes": "Technical vs. raw. The boxer can outpoint a brawler for ten rounds and get stopped in the eleventh. Footwork is survival."
+    },
+    {
+      "id": "boxer_vs_swarmer",
+      "styles": ["boxer", "swarmer"],
+      "description": "The swarmer tries to make it ugly and close; the boxer tries to keep it clean and long. Usually decided by stamina and footwork.",
+      "exchangeInitiationAdvantage": "styleB",
+      "distanceControlAdvantage": "styleA",
+      "decisiveAttributesA": ["footwork", "lateral_movement", "stamina", "ring_generalship"],
+      "decisiveAttributesB": ["stamina", "output_volume", "heart", "ring_generalship"],
+      "modifiers": {
+        "boxerDistanceManagement": 0.18,
+        "swarmingPressureRate": 0.22,
+        "staminaDrainRate": 0.10
+      },
+      "wildcards": [
+        {
+          "condition": "swarmer output_volume > 13 consistently",
+          "effect": "Referee breaks lose their effect — swarmer's pace overwhelms the boxer's movement",
+          "threshold": 13
+        }
+      ],
+      "narrativeNotes": "The boxer looks good early. Late rounds decide it. A boxer who can last with a swarmer is a very good boxer."
+    },
+    {
+      "id": "brawler_vs_counterpuncher",
+      "styles": ["brawler", "counterpuncher"],
+      "description": "The brawler loads up and swings; the counterpuncher makes them pay on the way in.",
+      "exchangeInitiationAdvantage": "styleA",
+      "distanceControlAdvantage": "styleB",
+      "decisiveAttributesA": ["power", "chin", "durability", "heart"],
+      "decisiveAttributesB": ["defensive_skill", "counter_punching", "ring_iq", "footwork"],
+      "modifiers": {
+        "counterLandingRate": 0.25,
+        "brawlerAccuracyPenalty": 0.12,
+        "knockdownRisk": 0.18
+      },
+      "wildcards": [
+        {
+          "condition": "brawler lands first clean power shot",
+          "effect": "Counterpuncher's timing is disrupted — must reset or fight differently",
+          "threshold_ringIq": 8
+        },
+        {
+          "condition": "brawler chin < 6",
+          "effect": "Counterpuncher's return shots carry knockout danger on every exchange",
+          "threshold": 6
+        }
+      ],
+      "narrativeNotes": "Puncher's chance vs. precision. The counterpuncher usually wins on points or a late stoppage. The brawler needs one perfect shot."
+    },
+    {
+      "id": "brawler_vs_swarmer",
+      "styles": ["brawler", "swarmer"],
+      "description": "Both fighters want inside. The brawler throws big and wild; the swarmer throws constantly and everywhere.",
+      "exchangeInitiationAdvantage": "neutral",
+      "distanceControlAdvantage": "styleB",
+      "decisiveAttributesA": ["power", "chin", "durability", "heart"],
+      "decisiveAttributesB": ["stamina", "output_volume", "heart", "chin"],
+      "modifiers": {
+        "exchangeFrequency": 0.35,
+        "knockdownRisk": 0.20,
+        "staminaDrainRate": 0.15
+      },
+      "wildcards": [
+        {
+          "condition": "brawler power > 14 and swarmer chin < 8",
+          "effect": "Single brawler shot ends the swarm — fight changes completely",
+          "threshold": 14
+        },
+        {
+          "condition": "swarmer stamina > 13 after round 8",
+          "effect": "Brawler is drowning in volume — desperate swings, diminishing returns",
+          "threshold": 13
+        }
+      ],
+      "narrativeNotes": "Action fight but not a great fight. Power vs. work rate. Usually decided when one engine runs out or one shot lands flush."
+    },
+    {
+      "id": "swarmer_vs_counterpuncher",
+      "styles": ["swarmer", "counterpuncher"],
+      "description": "The swarmer's volume meets the counterpuncher's precision. The counterpuncher tries to stay calm inside the swarm.",
+      "exchangeInitiationAdvantage": "styleA",
+      "distanceControlAdvantage": "neutral",
+      "decisiveAttributesA": ["stamina", "output_volume", "heart", "combination_fluency"],
+      "decisiveAttributesB": ["defensive_skill", "counter_punching", "ring_iq", "composure"],
+      "modifiers": {
+        "swarmingPressureRate": 0.20,
+        "counterLandingRate": 0.15,
+        "accuracyContestRate": 0.18
+      },
+      "wildcards": [
+        {
+          "condition": "counterpuncher composure < 7 under sustained pressure",
+          "effect": "Counterpuncher unravels under the volume — starts exchanging instead of countering",
+          "threshold": 7
+        },
+        {
+          "condition": "counterpuncher ring_iq > 12",
+          "effect": "Counterpuncher reads swarm patterns — the same combination gets picked off repeatedly",
+          "threshold_ringIq": 12
+        }
+      ],
+      "narrativeNotes": "Often closer than it looks. The swarmer controls the pace; the counterpuncher controls the quality. Judges see it very differently depending on what they value."
+    },
+    {
+      "id": "boxer_vs_boxer",
+      "styles": ["boxer", "boxer"],
+      "description": "Two boxers in a ring. Distance, timing, and ring IQ decide everything. The better technician wins.",
+      "exchangeInitiationAdvantage": "neutral",
+      "distanceControlAdvantage": "neutral",
+      "decisiveAttributesA": ["footwork", "ring_generalship", "ring_iq", "jab", "punch_selection"],
+      "decisiveAttributesB": ["footwork", "ring_generalship", "ring_iq", "jab", "punch_selection"],
+      "modifiers": {
+        "exchangeFrequency": -0.10,
+        "accuracyBonus": 0.12,
+        "ringGeneralshipContestRate": 0.30
+      },
+      "wildcards": [
+        {
+          "condition": "one boxer ring_iq advantage > 3",
+          "effect": "Tactical mismatch — the smarter boxer dictates every round",
+          "threshold": 3
+        }
+      ],
+      "narrativeNotes": "Pure boxing. The crowd may not love it but it is the purest expression of the sport. Decided by who moves better and who lands cleaner."
+    },
+    {
+      "id": "mirror_match_generic",
+      "styles": ["same_vs_same"],
+      "description": "Two fighters with identical style tendencies. The matchup is even from a style perspective — attributes and soul traits decide the winner.",
+      "exchangeInitiationAdvantage": "neutral",
+      "distanceControlAdvantage": "neutral",
+      "decisiveAttributesA": "all_attributes_equal_weight",
+      "decisiveAttributesB": "all_attributes_equal_weight",
+      "modifiers": {},
+      "wildcards": [
+        {
+          "condition": "significant tendencyStrength difference",
+          "effect": "The fighter with stronger style expression has a small consistent edge",
+          "note": "Applied when one fighter tendencyStrength > other by 30+"
+        }
+      ],
+      "narrativeNotes": "Style cancels out. What is left is talent, soul, and preparation. These fights often produce the clearest read on raw ability."
+    },
+    {
+      "id": "undefined_vs_any",
+      "styles": ["undefined"],
+      "description": "When a fighter has no defined style yet, the fight is purely attribute-driven. No style modifiers apply. Raw attributes and soul traits decide the outcome.",
+      "exchangeInitiationAdvantage": "neutral",
+      "distanceControlAdvantage": "neutral",
+      "decisiveAttributesA": "all_attributes_equal_weight",
+      "decisiveAttributesB": "all_attributes_equal_weight",
+      "modifiers": {},
+      "wildcards": [],
+      "narrativeNotes": "Raw fight. No tactics, no system. The better athlete on the night wins."
+    }
+  ]
+}

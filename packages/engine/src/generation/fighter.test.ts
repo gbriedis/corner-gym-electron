@@ -2,10 +2,12 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { loadGameData } from '../data/loader.js'
 import { createRng } from '../utils/rng.js'
 import { generatePerson } from './person.js'
-import { generateFighter } from './fighter.js'
+import { generateFighter, calculateStyleEffectiveness } from './fighter.js'
 import type { GameData } from '../data/loader.js'
 import type { Person } from '../types/person.js'
 import type { Fighter } from '../types/fighter.js'
+import type { FighterStyle, DevelopedAttribute } from '../types/fighter.js'
+import type { AttributeValue } from '../types/person.js'
 
 let data: GameData
 let basePerson: Person
@@ -292,6 +294,56 @@ describe('generateFighter — existing record', () => {
     expect(fighter.competition.status).toBe('pro')
     expect(fighter.competition.pro.wins).toBe(5)
     expect(fighter.competition.pro.losses).toBe(1)
+  })
+})
+
+// ─── Style effectiveness ──────────────────────────────────────────────────────
+
+describe('calculateStyleEffectiveness', () => {
+  it('undefined style returns 0 regardless of attributes', () => {
+    const style: FighterStyle = { currentTendency: 'undefined', tendencyStrength: 80, southpaw: false }
+    const effectiveness = calculateStyleEffectiveness(style, [], [], data)
+    expect(effectiveness).toBe(0)
+  })
+
+  it('tendencyStrength 0 returns 0 regardless of attributes', () => {
+    const style: FighterStyle = { currentTendency: 'brawler', tendencyStrength: 0, southpaw: false }
+    // Brawler thresholds: chin 8, durability 8, heart 7 — all well above threshold
+    const physAttrs: AttributeValue[] = [
+      { attributeId: 'chin', current: 15, potential: 15 },
+      { attributeId: 'durability', current: 15, potential: 15 },
+      { attributeId: 'heart', current: 15, potential: 15 },
+    ]
+    const effectiveness = calculateStyleEffectiveness(style, [], physAttrs, data)
+    expect(effectiveness).toBe(0)
+  })
+
+  it('fighter with all attributes at or above thresholds returns value scaled by tendencyStrength', () => {
+    // Brawler needs chin 8, durability 8, heart 7 — all physical attributes.
+    // tendencyStrength 100 means full expression: effectiveness = 1.0 × 1.0 × 1.0 = 1.0
+    const style: FighterStyle = { currentTendency: 'brawler', tendencyStrength: 100, southpaw: false }
+    const physAttrs: AttributeValue[] = [
+      { attributeId: 'chin', current: 10, potential: 10 },
+      { attributeId: 'durability', current: 10, potential: 10 },
+      { attributeId: 'heart', current: 10, potential: 10 },
+    ]
+    const effectiveness = calculateStyleEffectiveness(style, [], physAttrs, data)
+    // All above threshold, tendencyStrength = 100/100 = 1.0, so result > 0.9
+    expect(effectiveness).toBeGreaterThan(0.9)
+  })
+
+  it('fighter with one attribute below threshold is limited by that attribute', () => {
+    // Brawler needs chin 8. If chin is 4, that attribute alone caps effectiveness at 0.5.
+    // 0.5 × tendencyStrength(100)/100 = 0.5
+    const style: FighterStyle = { currentTendency: 'brawler', tendencyStrength: 100, southpaw: false }
+    const physAttrs: AttributeValue[] = [
+      { attributeId: 'chin', current: 4, potential: 4 },    // 4/8 = 0.5 — limiting attribute
+      { attributeId: 'durability', current: 15, potential: 15 },
+      { attributeId: 'heart', current: 15, potential: 15 },
+    ]
+    const effectiveness = calculateStyleEffectiveness(style, [], physAttrs, data)
+    // Minimum effectiveness is chin: 4/8 = 0.5. Times tendencyStrength 1.0 = 0.5
+    expect(effectiveness).toBeCloseTo(0.5, 5)
   })
 })
 

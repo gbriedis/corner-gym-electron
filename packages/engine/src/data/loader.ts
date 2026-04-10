@@ -43,6 +43,8 @@ import type {
   GymStartingStatesData,
   GymEquipmentTypesData,
   GymNamesData,
+  StyleMatchupsData,
+  StyleDevelopmentData,
 } from '../types/data/index.js'
 import type { RulesData } from '../types/competition.js'
 
@@ -230,6 +232,8 @@ export interface GameData {
   rewards: RewardsData
   attributeAccumulation: AttributeAccumulationData
   gymEquipmentTypes: GymEquipmentTypesData
+  styleMatchups: StyleMatchupsData
+  styleDevelopment: StyleDevelopmentData
   nations: Record<string, NationBundle>
   international: InternationalData
 }
@@ -248,6 +252,8 @@ export function loadGameData(): GameData {
     rewards: load<RewardsData>('universal/rewards.json'),
     attributeAccumulation: load<AttributeAccumulationData>('universal/attribute-accumulation.json'),
     gymEquipmentTypes: load<GymEquipmentTypesData>('universal/gym-equipment-types.json'),
+    styleMatchups: load<StyleMatchupsData>('universal/style-matchups.json'),
+    styleDevelopment: load<StyleDevelopmentData>('universal/style-development.json'),
     nations: loadNationsFromDir(join(DATA_ROOT, 'nations')),
     international: {
       boxing: {

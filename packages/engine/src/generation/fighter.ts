@@ -15,7 +15,7 @@
 // 8. Initialise competition record (empty for new fighters, populated for statistically generated ones)
 // 9. Initialise player knowledge (depth 0, nothing revealed)
 
-import type { Person } from '../types/person.js'
+import type { Person, AttributeValue } from '../types/person.js'
 import type {
   Fighter,
   FighterIdentity,
@@ -108,6 +108,52 @@ function assignWeightClass(
   }
 
   return 'heavyweight'
+}
+
+// calculateStyleEffectiveness returns how well a fighter's current attributes
+// support their declared style tendency.
+// Returns 0.0 to 1.0 — 1.0 means full style expression, below 1.0 means
+// the style is limited by attribute gaps.
+// The weakest threshold attribute determines overall effectiveness.
+// This is used by the exchange simulation — not stored on the fighter.
+// Exported so the fight engine can call it per round as attributes degrade.
+export function calculateStyleEffectiveness(
+  style: FighterStyle,
+  developedAttributes: DevelopedAttribute[],
+  physicalAttributes: AttributeValue[],
+  data: GameData,
+): number {
+  // Undefined style means the fighter has no system — pure attribute fight,
+  // no style modifiers should be applied at all.
+  if (style.currentTendency === 'undefined') return 0
+
+  // A fighter who knows their style but hasn't internalised it yet contributes
+  // little style pressure. tendencyStrength is the multiplier for how much style
+  // expression actually shows up in a bout.
+  if (style.tendencyStrength === 0) return 0
+
+  const thresholds = data.styleMatchups.styleThresholds[style.currentTendency]
+  if (thresholds === undefined) return 0
+
+  // For each threshold attribute, find the value from whichever pool holds it
+  // (physical attributes live on Person; developed attributes are trained skills).
+  // The weakest link determines overall effectiveness — a "boxer" with no footwork
+  // is not boxing, regardless of how good their ring_generalship is.
+  let minimumEffectiveness = 1.0
+  for (const [attributeId, threshold] of Object.entries(thresholds)) {
+    const physVal = physicalAttributes.find(a => a.attributeId === attributeId)?.current
+    const devVal = developedAttributes.find(d => d.attributeId === attributeId)?.current
+    const value = physVal ?? devVal ?? 0
+
+    const effectiveness = Math.min(1.0, value / threshold)
+    if (effectiveness < minimumEffectiveness) {
+      minimumEffectiveness = effectiveness
+    }
+  }
+
+  // tendencyStrength scales the final result — even perfect attributes produce reduced
+  // style influence when the fighter's style is not yet internalised.
+  return minimumEffectiveness * (style.tendencyStrength / 100)
 }
 
 // ─── Main generation function ─────────────────────────────────────────────────

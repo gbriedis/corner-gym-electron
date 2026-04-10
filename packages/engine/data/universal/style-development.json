@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Rules for how style develops over time. Style is never assigned — it emerges and solidifies through training and competition. A fighter who changes gyms gradually shifts toward the new coach's emphasis. High tendencyStrength resists change. The engine reads this when processing weekly training and when a fighter changes gyms."
+  },
+  "tendencyStrengthGrowth": {
+    "perTrainingWeek": 0.3,
+    "perAmateur_bout": 1.5,
+    "perPro_bout": 2.0,
+    "maximumPerYear": 12,
+    "note": "tendencyStrength caps at 100. Growth slows above 70 — established fighters resist drift. Bouts accelerate development because style is tested under real pressure."
+  },
+  "coachInfluence": {
+    "description": "A coach's emphasis shifts a fighter's style tendency over time. The shift is gradual — a coach cannot rewrite a fighter's style in a single training camp. High tendencyStrength makes the fighter resistant to change.",
+    "shiftPerYear": {
+      "newCoach_year1": 15,
+      "newCoach_year2": 10,
+      "newCoach_year3_plus": 5,
+      "note": "Shift is in tendency strength units toward the coach's preferred style. Year 1 is the highest because the fighter is still adapting. After year 3 the fighter's style is mostly set unless tendencyStrength is low."
+    },
+    "soulTraitModifiers": {
+      "trusting": 1.3,
+      "paranoid": 0.5,
+      "humble": 1.2,
+      "arrogant": 0.6,
+      "disciplined": 1.1,
+      "reckless": 0.9
+    },
+    "tendencyStrengthResistance": {
+      "note": "effectiveShift = baseShift × soulTraitModifier × (1 - tendencyStrength / 200). A fighter at tendencyStrength 100 receives half the normal shift. A fighter at 0 receives the full shift.",
+      "example": "trusting fighter (1.3 modifier) with tendencyStrength 60: shift = baseShift × 1.3 × (1 - 60/200) = baseShift × 1.3 × 0.7 = baseShift × 0.91"
+    }
+  },
+  "styleCompatibilityWithAttributes": {
+    "description": "A fighter's declared style is only as effective as their attributes support it. styleEffectiveness is calculated per bout using styleThresholds in style-matchups.json.",
+    "effectivenessFormula": "effectiveness = min(1.0, attributeValue / threshold) for each threshold attribute. Overall effectiveness = minimum across all threshold attributes × tendencyStrength / 100.",
+    "note": "Effectiveness is not stored on the fighter — it is calculated in the exchange simulation per round because attributes degrade during a fight. A fighter declared as a boxer who has low footwork is not boxing — they are fighting."
+  }
+}

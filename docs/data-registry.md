@@ -32,6 +32,7 @@
 | State | File |
 |-------|------|
 | [x] | `packages/engine/src/types/data/index.ts` |
+| [x] | `packages/engine/src/types/data/style.ts` |
 | [x] | `packages/engine/src/types/data/boxing.ts` |
 | [x] | `packages/engine/src/types/data/meta.ts` |
 | [x] | `packages/engine/src/types/data/soulTraits.ts` |
@@ -71,6 +72,7 @@
 | State | File |
 |-------|------|
 | [ ] | `packages/engine/src/engine/advanceWeek.ts` |
+| [x] | `packages/engine/src/engine/styleEngine.ts` |
 | [ ] | `packages/engine/src/engine/world.ts` |
 | [ ] | `packages/engine/src/engine/gym.ts` |
 | [ ] | `packages/engine/src/engine/training.ts` |
@@ -103,6 +105,8 @@
 | [x] | `packages/engine/data/universal/attribute-accumulation.json` |
 | [x] | `packages/engine/data/universal/coach-styles.json` |
 | [x] | `packages/engine/data/universal/gym-equipment-types.json` |
+| [x] | `packages/engine/data/universal/style-matchups.json` |
+| [x] | `packages/engine/data/universal/style-development.json` |
 
 ## Data — Nations: Latvia
 | State | File |

@@ -68,7 +68,9 @@ corner-gym/
     │   │   │   ├── pro-fight-offer.json       # Offer structure definition — required fields, card positions, clause types
     │   │   │   ├── attribute-accumulation.json # Gain/regression rules for all attributes — every attribute change flows through this
     │   │   │   ├── coach-styles.json          # Coach style dimensions — emphasis, methodology, communication types
-    │   │   │   └── gym-equipment-types.json   # 12 equipment types — zone, decay, cost, training benefit
+    │   │   │   ├── gym-equipment-types.json   # 12 equipment types — zone, decay, cost, training benefit
+    │   │   │   ├── style-matchups.json        # 13 style matchup entries + styleThresholds per style
+    │   │   │   └── style-development.json     # tendencyStrength growth, coach influence, compatibility formula
     │   │   ├── nations/
     │   │   │   └── latvia/
     │   │   │       ├── nation.json
@@ -121,6 +123,7 @@ corner-gym/
     │       │   ├── gameConfig.ts      # GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings
     │       │   └── data/              # TypeScript interfaces for every data file
     │       │       ├── index.ts       # Barrel — re-exports everything
+    │       │       ├── style.ts       # StyleMatchupsData, StyleDevelopmentData + all sub-interfaces
     │       │       ├── gym.ts         # GymStartingStatesData, GymEquipmentTypesData + sub-types
     │       │       ├── meta.ts
     │       │       ├── soulTraits.ts
@@ -156,7 +159,8 @@ corner-gym/
     │       │   ├── fighter.ts         # generateFighter — complete Fighter from Person + gym assignment
     │       │   └── fighter.test.ts    # 17 tests — fields, weight class, mental caps, ambitions, style, coachability, determinism
     │       └── engine/
-    │           └── advanceWeek.ts     # Week tick entry point stub
+    │           ├── advanceWeek.ts     # Week tick entry point stub
+    │           └── styleEngine.ts     # getMatchup + getEffectiveModifiers — lookup helpers for exchange simulation
     │
     ├── desktop/                       # Electron main process
     │   ├── package.json               # @corner-gym/desktop — depends on engine + better-sqlite3
