@@ -1,283 +1,251 @@
 # Current Task
 
-## Task: Dev Mode Dashboard
+## Task: CLI Inspection Tool
 
 ### What To Build
-A developer dashboard accessible via Ctrl+Shift+D or route /dev. Not visible in normal play. Shows the generated world state so we can verify the simulation is producing realistic results. This is a diagnostic tool — not a game feature.
+A standalone CLI script that reads a Corner Gym SQLite save file and prints a simulation health report to the terminal. Used to verify backrun results without needing the full Electron app running.
 
 ### Skill To Load
-`.claude/skills/public/frontend-design/SKILL.md`
 `.claude/skills/new-feature/SKILL.md`
 
 ---
 
-## Layout
+## Location
 
-Full screen overlay. Dark background. Fixed header with "DEV MODE" in amber, current save info, and a close button (Escape also closes).
+`packages/engine/scripts/inspect-save.ts`
 
-Left sidebar — navigation between sections:
-- World Overview
-- Fighter Browser
-- Attribute Distributions
-- Bout Log
-- Gym Financials
-- Regenerate
+Run with:
+```
+pnpm --filter @corner-gym/engine tsx scripts/inspect-save.ts <path-to-save.db>
+```
 
-Main content area renders the selected section.
+Or add to engine package.json scripts:
+```json
+"inspect": "tsx scripts/inspect-save.ts"
+```
 
-Keyboard shortcut: Ctrl+Shift+D toggles the panel open/closed from anywhere in the game. Only works when a save is loaded.
-
-Route: `/dev` also opens it directly.
+Then: `pnpm --filter @corner-gym/engine inspect -- saves/latest.db`
 
 ---
 
-## Section 1 — World Overview
+## Output Format
 
-Summary of what the backrun produced. At a glance health check.
+Plain text, terminal-friendly, easy to copy-paste. Uses no external dependencies beyond what already exists in the engine package.
 
-Display:
 ```
-WORLD OVERVIEW
-Generated: Latvia + USA  ·  Seed: 4829201  ·  Backrun: 2016–2026
+═══════════════════════════════════════════════════════
+  CORNER GYM — SAVE INSPECTION REPORT
+  Save: saves/latest.db
+  Generated: 2026-04-10
+═══════════════════════════════════════════════════════
 
-LATVIA                          USA
-8 cities                        20 cities
-24 gyms                         180 gyms
-312 persons                     2,847 persons
-187 fighters                    1,923 fighters
-89 competing                    901 competing
-34 retired                      412 retired
-523 bouts resolved              5,241 bouts resolved
-12 national champions           87 national champions
+WORLD SUMMARY
+─────────────
+Nations included: latvia, usa
+Backrun period: 2016 → 2026 (520 weeks)
 
+  latvia
+  ├─ Cities: 8
+  ├─ Gyms: 24
+  ├─ Persons: 312
+  ├─ Fighters: 187
+  │    competing: 89  aspiring: 34  retired: 28  unaware: 36
+  └─ Bouts resolved: 523
+
+  usa
+  ├─ Cities: 20
+  ├─ Gyms: 180
+  ├─ Persons: 2,847
+  ├─ Fighters: 1,923
+  │    competing: 901  aspiring: 412  retired: 287  unaware: 323
+  └─ Bouts resolved: 5,241
+
+─────────────────────────────────────────────────────
+BOUT RESULTS HEALTH CHECK
+─────────────────────────
+Total bouts: 5,764
+
+  By method:
+  KO/TKO        34.2%  ████████░░░░░░░░░░░░
+  Decision      58.1%  ██████████████░░░░░░
+  Split/Maj     12.4%  of all decisions
+  No Contest     0.3%
+
+  By circuit:
+  Club Card     avg end round 3.1 / 3.0 scheduled
+  Regional      avg end round 4.8 / 6.0 scheduled
+  National      avg end round 5.2 / 6.0 scheduled
+
+  [TARGET: ~30-35% stoppages for amateur level]
+
+─────────────────────────────────────────────────────
+ATTRIBUTE DISTRIBUTIONS (latvia fighters)
+─────────────────────────────────────────
+  power        mean: 7.8  median: 8  min: 2  max: 16  stddev: 2.3
+  chin         mean: 8.1  median: 8  min: 2  max: 15  stddev: 2.1
+  ring_iq      mean: 4.2  median: 4  min: 1  max: 11  stddev: 1.8
+  heart        mean: 5.1  median: 5  min: 1  max: 12  stddev: 1.9
+  composure    mean: 4.8  median: 4  min: 1  max: 11  stddev: 1.9
+  technique    mean: 6.3  median: 6  min: 1  max: 14  stddev: 2.2
+
+  [ring_iq and mental attrs should skew low — most fighters have little experience]
+
+─────────────────────────────────────────────────────
+GYM FINANCIALS HEALTH CHECK (latvia)
+─────────────────────────────────────
+  Gyms in deficit (balance < 0):     3 / 24  (12.5%)
+  Gyms struggling (balance < €500):  7 / 24  (29.2%)
+  Gyms healthy (balance > €2000):   11 / 24  (45.8%)
+
+  Most profitable:  Rīgas Boksa klubs  €8,420
+  Most struggling:  Jēkabpils BC       €-340
+
+─────────────────────────────────────────────────────
 PRO ECOSYSTEM
-Latvia: Level 1 — Emerging Scene (reached 2024)
-USA: Level 4 — Boxing Nation
+─────────────
+  latvia:  Level 1 — Emerging Scene  (reached week 2024-W34)
+  usa:     Level 4 — Boxing Nation
 
-WEIGHT CLASS DISTRIBUTION
-[horizontal bar per weight class showing fighter count]
-Flyweight ████░░░░░░ 23
-...
-Heavyweight ████████░░ 47
+─────────────────────────────────────────────────────
+TOP FIGHTERS BY RECORD (latvia, competing)
+──────────────────────────────────────────
+  1.  Māris Kalniņš        Riga       14-2   Welterweight   age 28
+  2.  Andris Ozols         Daugavpils 11-1   Lightweight    age 26
+  3.  Jānis Bērziņš        Valmiera   9-3    Middleweight   age 31
+  ...top 10
+
+─────────────────────────────────────────────────────
+TOP FIGHTERS BY RECORD (usa, competing)
+────────────────────────────────────────
+  1.  Marcus Williams      Detroit    23-2   Welterweight   age 29
+  2.  Miguel Garcia        Oxnard     19-0   Lightweight    age 24
+  ...top 10
+
+═══════════════════════════════════════════════════════
 ```
-
-All data read from SQLite via IPC. One query per nation.
 
 ---
 
-## Section 2 — Fighter Browser
+## Implementation
 
-Browse all generated fighters. Filter and inspect.
-
-**Controls:**
-- Nation filter: Latvia / USA / All
-- City filter: dropdown of cities
-- Identity state filter: all / competing / aspiring / retired / unaware
-- Weight class filter
-- Sort: by record (wins desc), by readiness, by age, by attribute total
-
-**Fighter list** — compact rows:
-```
-[Identity badge] Name              City          Record    Age  Weight Class
-[COMPETING]      Jānis Bērziņš     Valmiera      8-2       24   Lightweight
-[RETIRED]        Darius Thompson   Detroit       23-4      38   Welterweight
-```
-
-Clicking a row opens the fighter detail panel.
-
-**Fighter detail panel** (right side, 40% width):
-- Full name, age, nation, city, gym
-- Identity state + how long in current state
-- Weight class, competition status, record (W-L-KO)
-- Soul traits — ALL revealed, no ocean rule in dev mode. Show all 8 pairs with which side this fighter has.
-- Developed attributes — full table, all 22 attributes with current value and ceiling
-- Physical attributes — power, hand speed, chin etc with current value
-- Style: tendency + strength percentage
-- Coach quality if assigned
-- Last 5 bouts from bout log — opponent, result, method, round
-
----
-
-## Section 3 — Attribute Distributions
-
-Bell curve visualisation for each attribute across the full fighter population.
-
-**Controls:**
-- Nation filter
-- Attribute selector — dropdown of all 22 attributes
-- Filter by: all fighters / competing only / by weight class
-
-**Chart:**
-Histogram showing distribution of current values for selected attribute.
-X axis: 1-20
-Y axis: fighter count
-Bar chart, amber bars, clean minimal style.
-
-Below the chart:
-```
-POWER — All Latvia fighters (187)
-Mean: 8.3  ·  Median: 8  ·  Min: 2  ·  Max: 16  ·  Std Dev: 2.4
-```
-
-Show distributions for multiple attributes simultaneously if useful — maybe a 2×2 grid of the four most important: power, chin, ring_iq, heart.
-
----
-
-## Section 4 — Bout Log
-
-The last 200 bouts resolved during the backrun, most recent first.
-
-**Each row:**
-```
-[Date]        [Circuit]      Fighter A vs Fighter B          Result
-2025 W34      Regional       J. Bērziņš vs K. Ozols          W KO R2
-2025 W34      Club Card      D. Thompson vs M. Garcia         W Dec
-```
-
-**Filters:**
-- Nation
-- Circuit level
-- Method (KO/TKO/Decision/Split)
-- Year range
-
-**Summary stats below the list:**
-```
-BOUT LOG SUMMARY (Last 200 bouts)
-KO/TKO: 34%  ·  Decision: 58%  ·  Split/Majority: 21% of decisions
-Average end round: 4.2  ·  Average scheduled rounds: 6.0
-```
-
-These percentages reveal if the simulation feels like boxing. Real boxing has roughly 35-40% stoppages at amateur level, more at pro level. If we're seeing 80% KOs something is wrong with the damage calculation.
-
----
-
-## Section 5 — Gym Financials
-
-Pick a gym, see its financial history over the backrun.
-
-**Gym selector** — searchable dropdown of all gyms with city.
-
-**Display:**
-```
-RĪGAS BOKSA KLUBS  ·  Riga, Latvia  ·  Competition Gym
-
-CURRENT STATE
-Balance: €4,230  ·  Monthly rent: €680  ·  Members: 34  ·  Fighters: 18
-
-FINANCIAL HISTORY
-[Line chart — balance over 10 years, one point per month]
-
-LOW POINTS
-2019 W23: Balance dropped to €-340 (rent + staff exceeded membership income)
-2021 W14: Balance dropped to €120
-
-EQUIPMENT STATE
-boxing_ring       ████████░░  78% condition
-heavy_bag (×4)    ██████░░░░  61% condition avg
-speed_bag         ████░░░░░░  42% condition
-```
-
-Line chart: x axis = years 2016-2026, y axis = balance in euros. Simple, readable. Shows whether the financial simulation produced realistic gym economics.
-
----
-
-## Section 6 — Regenerate
-
-Simple utility section.
-
-```
-REGENERATE WORLD
-
-Current seed: 4829201
-New seed: [input field]  [Random]
-
-Include nations:
-☑ Latvia
-☑ USA
-
-[REGENERATE WITH NEW SEED]
-
-Warning: This will wipe the current save and regenerate everything.
-Backrun will run again. Takes ~10 seconds.
-```
-
-Clicking regenerate triggers the full generate-and-save flow with the new seed. Loading screen shows. Returns to dev mode when complete.
-
----
-
-## IPC Requirements
-
-New IPC endpoints needed:
+**`packages/engine/scripts/inspect-save.ts`**
 
 ```typescript
-// Returns world summary stats for all included nations
-'dev-world-summary' → WorldSummary
+import Database from 'better-sqlite3'
+import path from 'path'
 
-// Returns paginated fighter list with filters
-'dev-fighter-list' → { fighters: FighterListItem[], total: number }
+// Read save path from args
+const savePath = process.argv[2]
+if (!savePath) {
+  console.error('Usage: tsx scripts/inspect-save.ts <path-to-save.db>')
+  process.exit(1)
+}
 
-// Returns full fighter detail including all soul traits revealed
-'dev-fighter-detail' → FighterDevDetail
-
-// Returns attribute distribution for a specific attribute
-'dev-attribute-distribution' → { attribute: string; distribution: number[]; stats: DistributionStats }
-
-// Returns last N bouts with filters
-'dev-bout-log' → { bouts: BoutLogEntry[]; summary: BoutLogSummary }
-
-// Returns gym financial history
-'dev-gym-financials' → GymFinancialDetail
+const db = new Database(path.resolve(savePath), { readonly: true })
 ```
 
-All endpoints require a `saveId` parameter. Return empty/null gracefully if no save loaded.
+Query SQLite directly — no IPC, no Electron. Raw SQL queries against the tables we already have:
+- `saves` — save metadata
+- `persons` — count per nation
+- `fighters` — count, identity states, records (JSON parsed from data column)
+- `gyms` — count, finances (JSON parsed from data column)
+- `bouts` — results, methods, circuit levels
+- `coaches` — count per gym
+
+Parse `data` JSON columns for detailed stats.
+
+**Key queries:**
+
+```sql
+-- Fighter identity distribution per nation
+SELECT 
+  json_extract(data, '$.nationId') as nation,
+  json_extract(data, '$.fighterIdentity.state') as state,
+  COUNT(*) as count
+FROM fighters
+WHERE saveId = ?
+GROUP BY nation, state
+
+-- Bout method distribution
+SELECT 
+  json_extract(data, '$.method') as method,
+  COUNT(*) as count
+FROM bouts  
+WHERE saveId = ?
+GROUP BY method
+
+-- Attribute stats for a nation
+-- Parse developedAttributes array from fighter JSON
+-- Calculate mean/median/min/max per attribute
+
+-- Gym financial summary
+SELECT
+  json_extract(data, '$.nationId') as nation,
+  json_extract(data, '$.finances.balance') as balance,
+  json_extract(data, '$.name') as name
+FROM gyms
+WHERE saveId = ?
+ORDER BY balance DESC
+```
+
+For attribute distributions — load all fighters for a nation, parse their `developedAttributes` arrays in JS, calculate stats. Don't try to do this in SQL.
+
+**Output helpers:**
+
+```typescript
+function bar(value: number, max: number, width: number = 20): string {
+  const filled = Math.round((value / max) * width)
+  return '█'.repeat(filled) + '░'.repeat(width - filled)
+}
+
+function pct(value: number, total: number): string {
+  return ((value / total) * 100).toFixed(1) + '%'
+}
+
+function mean(values: number[]): number { ... }
+function median(values: number[]): number { ... }
+function stddev(values: number[]): number { ... }
+```
 
 ---
 
-## Routing
+## Add to package.json
 
-**Update `packages/ui/src/App.tsx`**
+**Update `packages/engine/package.json`**
 
-Add `/dev` route → `DevDashboard` component.
+```json
+{
+  "scripts": {
+    "inspect": "tsx scripts/inspect-save.ts"
+  }
+}
+```
 
-Add global keyboard listener for Ctrl+Shift+D — navigates to `/dev` if save is loaded, does nothing otherwise.
-
----
-
-## Design Notes
-
-This is a tool, not a game screen. Design accordingly:
-
-- Dense information is fine — this is for the developer, not a player
-- Monospace text everywhere — Inconsolata suits this perfectly
-- Amber accents for important numbers and labels
-- No animations except the loading states
-- Tables and lists over cards — data density matters here
-- The "DEV MODE" label in the header should be clearly amber and visible — this should never be confused with a game screen
+Usage after adding:
+```
+pnpm --filter @corner-gym/engine inspect saves/mygame.db
+```
 
 ---
 
 ### Definition Of Done
-- [ ] Ctrl+Shift+D opens dev dashboard from anywhere in the game
-- [ ] `/dev` route works
-- [ ] World Overview — nation stats, pro ecosystem state, weight class distribution
-- [ ] Fighter Browser — filterable list, full detail panel with all traits revealed
-- [ ] Attribute Distributions — histogram per attribute with stats
-- [ ] Bout Log — last 200 bouts with filters and summary percentages
-- [ ] Gym Financials — balance history chart, equipment state
-- [ ] Regenerate — new seed, nation selection, triggers full regenerate
-- [ ] All 6 IPC endpoints implemented in ipc.ts and db.ts
-- [ ] Dev dashboard only accessible when save is loaded
-- [ ] `pnpm dev` — dashboard opens, shows real data from backrun
+- [ ] `packages/engine/scripts/inspect-save.ts` — runs without errors
+- [ ] World summary section — nation counts accurate
+- [ ] Bout health check — percentages match dev dashboard
+- [ ] Attribute distributions — mean/median/stddev for 6 key attributes
+- [ ] Gym financials — deficit/struggling/healthy breakdown
+- [ ] Pro ecosystem levels shown
+- [ ] Top 10 fighters by record per nation
+- [ ] `pnpm --filter @corner-gym/engine inspect` runs from project root
+- [ ] Output is clean, copy-pasteable
 - [ ] `pnpm typecheck` clean
-- [ ] `docs/structure.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: dev mode dashboard`
+- [ ] Committed: `feat: cli inspection tool`
 
 ### Notes
-- Read frontend-design skill before writing any UI code
-- Dense information is correct here — this is a diagnostic tool
-- All soul traits revealed in dev mode — ocean rule does not apply
-- Bout log percentages are the most important health check — ~35% stoppages is realistic for amateur boxing
-- Financial history chart needs real data from revenueHistory on gym records
-- Regenerate must go through the full generate-and-save IPC flow — not a shortcut
-- If no save is loaded, dev dashboard shows "No save loaded — start a new game first"
+- Read only database connection — never write
+- Parse JSON data columns in JavaScript not SQL — simpler and fast enough for this
+- No external dependencies — better-sqlite3 already in the engine package
+- tsx already available for running TypeScript scripts directly
+- Save file location will vary — always resolve from process.argv[2]
+- If saveId is ambiguous (multiple saves in one db) — use the most recent save by created_at
