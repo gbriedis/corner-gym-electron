@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Mechanics governing how pro rankings work across all sanctioning bodies. Points decay forces active fighting — a fighter who stops competing loses ranking positions. The mandatory defence window means a champion must defend within 52 weeks or face being stripped. Acquisition tiers govern world generation fighter distribution — not live gameplay matchmaking. These rules are applied per body independently by the engine."
+  },
+  "rules": {
+    "rankedPositions": 15,
+    "pointsForWinAgainstRanked": {
+      "top5": 100,
+      "top10": 60,
+      "top15": 30,
+      "unranked": 10
+    },
+    "pointsForLoss": -20,
+    "pointsDecayPerWeekInactive": 1,
+    "minimumProBoutsToRank": 4,
+    "mandatoryDefenceTriggersAtRank": 1,
+    "mandatoryDefenceWindowWeeks": 52,
+    "strippedIfMandatoryIgnoredWeeks": 16
+  },
+  "titleShots": {
+    "automaticAtRank": 1,
+    "promoterCanNegotiateFromRank": 5,
+    "interimTitleAvailableWhenChampionInactive": true,
+    "inactiveChampionWeeksBeforeInterim": 26
+  },
+  "acquisitionTiers": [
+    {
+      "tier": "world",
+      "minimumReputation": 80,
+      "acquiresFromRank": { "min": 1, "max": 5 }
+    },
+    {
+      "tier": "regional",
+      "minimumReputation": 40,
+      "acquiresFromRank": { "min": 6, "max": 12 }
+    },
+    {
+      "tier": "local",
+      "minimumReputation": 5,
+      "acquiresFromRank": { "min": 13, "max": null }
+    }
+  ]
+}

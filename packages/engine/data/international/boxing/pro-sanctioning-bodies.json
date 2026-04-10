@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "The four major professional boxing sanctioning bodies and Ring Magazine. Each body operates independently — a fighter can hold multiple world titles simultaneously by winning from different bodies. Ring Magazine is not a sanctioning body and issues no titles, but their lineal designation is considered the truest measure of championship. Rankings and mandatory challengers are tracked per body independently by the engine."
+  },
+  "sanctioningBodies": [
+    {
+      "id": "wbc",
+      "label": "World Boxing Council",
+      "abbreviation": "WBC",
+      "founded": 1963,
+      "prestige": 9,
+      "description": "The largest sanctioning body in professional boxing. Known for the distinctive green belt and strict mandatory defence enforcement. The WBC operates a tiered title structure — world, silver, international, and youth — giving ranked fighters clear pathways to a world title shot.",
+      "titleTiers": ["world", "silver", "international", "youth"],
+      "rankingPositions": 15,
+      "mandatoryDefenceWeeks": 52
+    },
+    {
+      "id": "wba",
+      "label": "World Boxing Association",
+      "abbreviation": "WBA",
+      "founded": 1921,
+      "prestige": 9,
+      "description": "The oldest sanctioning body in professional boxing, formerly the National Boxing Association. The WBA operates a unique super/world title split — when a unified champion acquires the WBA belt, the prior holder may be designated WBA World while the unified champion holds WBA Super. Regional titles feed into the world ranking.",
+      "titleTiers": ["super", "world", "international", "fedebol"],
+      "rankingPositions": 15,
+      "mandatoryDefenceWeeks": 52
+    },
+    {
+      "id": "ibf",
+      "label": "International Boxing Federation",
+      "abbreviation": "IBF",
+      "founded": 1983,
+      "prestige": 8,
+      "description": "Known for its strict mandatory defence windows and transparent ranking criteria. The IBF has a reputation for being the most regulation-heavy of the four major bodies. Fighters must meet minimum bout requirements before receiving a ranking position. The IBF operates world, international, and youth title tiers.",
+      "titleTiers": ["world", "international", "youth"],
+      "rankingPositions": 15,
+      "mandatoryDefenceWeeks": 48
+    },
+    {
+      "id": "wbo",
+      "label": "World Boxing Organisation",
+      "abbreviation": "WBO",
+      "founded": 1988,
+      "prestige": 8,
+      "description": "The newest of the four major sanctioning bodies. The WBO gained full major recognition in the 2000s and is known for its championship structure that requires world title challengers to come from the mandatory position. Regional titles — intercontinental and international — serve as ranked entry points into the world title picture.",
+      "titleTiers": ["world", "intercontinental", "international", "youth"],
+      "rankingPositions": 15,
+      "mandatoryDefenceWeeks": 52
+    },
+    {
+      "id": "ring_magazine",
+      "label": "Ring Magazine",
+      "abbreviation": "Ring",
+      "founded": 1922,
+      "prestige": 10,
+      "description": "The Bible of Boxing. Ring Magazine is not a sanctioning body and issues no mandatory defences, ranking positions, or sanctioning fees. The lineal championship — passed only by defeat in the ring — is considered the most meaningful title in boxing. The fighter who holds the Ring lineal belt beat the man who beat the man. It cannot be stripped, only lost.",
+      "titleTiers": ["lineal"],
+      "rankingPositions": null,
+      "mandatoryDefenceWeeks": null
+    }
+  ]
+}

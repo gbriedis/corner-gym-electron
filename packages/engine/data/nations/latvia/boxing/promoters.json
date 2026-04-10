@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Latvian boxing promoters. Latvia has no established pro boxing promoters in 2026 — the domestic pro scene does not yet exist. Promoters are generated procedurally when the pro ecosystem reaches level 1, using the local_promoter_template from universal/promoters.json and the Latvian voice lines defined here. This file defines the communication voice used by any promoter generated within Latvia — dry, direct, understated, no fluff."
+  },
+  "nationId": "latvia",
+  "promoters": [],
+  "generatedPromoterVoiceLines": {
+    "initialOffer": [
+      "We're putting a card together. Your fighter would fit. Here are the numbers.",
+      "Heard good things about {fighterName}. We have a slot. Interested?",
+      "Simple — we need a fighter at {weightClass}, you have one. Let's talk.",
+      "Got a show in {city} next month. {fighterName} ready?"
+    ],
+    "offerDeclined": [
+      "Fine. Let me know if anything changes.",
+      "Understood.",
+      "Alright. We'll find someone else.",
+      "OK."
+    ],
+    "fightWon": [
+      "Good result. We'll be in touch for the next one.",
+      "Solid. People noticed. Let's build on it.",
+      "Expected nothing less. What's next?",
+      "Good night. Let's do it again."
+    ],
+    "fightLost": [
+      "It happens. Come back stronger.",
+      "Tough night. We move forward.",
+      "Not the result we wanted. Let's see where we go from here.",
+      "These things happen in boxing."
+    ],
+    "contractOffer": [
+      "We want to work together properly. Here's what we're proposing.",
+      "Contract offer. Nothing complicated. Have a look.",
+      "Regular work. Good terms. Here."
+    ]
+  }
+}

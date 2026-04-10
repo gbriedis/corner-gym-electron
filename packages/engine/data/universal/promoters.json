@@ -1,0 +1,324 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Named world-tier promoters, procedural templates, and generic voice pools. Named promoters are real entities in the world from game start. Nation-specific promoters live in nations/[id]/boxing/promoters.json. Procedural promoters are generated from templates when a nation's pro ecosystem advances. The tiered acquisition system during world generation distributes fighters to promoters — world tier gets first pick of top ranked fighters, local tier gets the rest. Capacity limits are enforced — a full promoter cannot sign new fighters until a slot opens."
+  },
+  "namedPromoters": [
+    {
+      "id": "matchroom",
+      "label": "Matchroom Boxing",
+      "tier": "world",
+      "baseNation": "uk",
+      "reputation": 92,
+      "capacity": 40,
+      "description": "Britain's most prominent boxing promoter. Matchroom operates globally — UK, USA, and internationally — with a media-first approach. They control major broadcast deals and are comfortable putting their fighters on the biggest stages. Known for sharp negotiation and rapid career escalation when results justify it.",
+      "preferredWeightClasses": ["heavyweight", "light_heavyweight", "middleweight", "cruiserweight", "welterweight"],
+      "venueScale": "arena",
+      "personality": {
+        "formality": "professional",
+        "directness": "high",
+        "pressureStyle": "urgency",
+        "flatteryLevel": "moderate",
+        "declineReaction": "competitive"
+      },
+      "voiceLines": {
+        "initialOffer": [
+          "We've been watching {fighterName}. Good timing, good chin, good story. Here's what we're offering.",
+          "{fighterName} is exactly the kind of fighter we want on our cards. This offer gets them in front of millions — have a look.",
+          "We're not messing around here. {fighterName} at {weightClass} — this is a real opportunity with the right company behind it.",
+          "We move fast and we deliver. Here's what Matchroom is putting on the table for {fighterName}."
+        ],
+        "offerDeclined": [
+          "Fair enough. Offer stands for another week — have a think.",
+          "Alright. When you're ready to do serious business, you know where we are.",
+          "That's disappointing. We had something good lined up. If circumstances change, reach out.",
+          "We'll find someone else for the slot. But don't wait too long — opportunities like this don't loop back around."
+        ],
+        "fightWon": [
+          "{fighterName} delivered. Exactly what we needed. We're talking to broadcasters about the next one already.",
+          "Brilliant result. The phones have been ringing since the final bell. {fighterName} is marketable.",
+          "Perfect. We build on this. I've already got something in mind for {weightClass} — give me a week.",
+          "What a performance. We knew {fighterName} had it. The numbers will reflect that in the next contract."
+        ],
+        "fightLost": [
+          "These things happen. We still believe in {fighterName}. Let's talk about a step-back and rebuild.",
+          "Tough night. We need to sit down and figure out where we go from here.",
+          "Not the result anyone wanted. But Matchroom doesn't walk away from fighters after one bad night.",
+          "We'll regroup. {fighterName} can still get back on track — but we need to be honest about the next move."
+        ],
+        "contractOffer": [
+          "We want {fighterName} properly signed up. Multi-fight deal, real backing, proper schedule. Here's the contract.",
+          "Matchroom doesn't do handshakes. Here's a formal contract — three fights, promoter option, broadcast guaranteed.",
+          "This is what a real deal looks like. {fighterName} deserves proper structure — have your people look at this.",
+          "Full contract on the table. Committed fights, committed money, committed media. That's Matchroom."
+        ]
+      },
+      "relationshipModifiers": {
+        "resultDelivered": 5,
+        "fightDeclined": -8,
+        "fighterUnderperformed": -10,
+        "exclusiveContractSigned": 15
+      }
+    },
+    {
+      "id": "top_rank",
+      "label": "Top Rank",
+      "tier": "world",
+      "baseNation": "usa",
+      "reputation": 95,
+      "capacity": 45,
+      "description": "The oldest active promotional company in boxing. Top Rank has developed more world champions than any other promoter. Patient, methodical, and deeply connected — they build fighters over years rather than rushing them. Their US broadcast relationships are unmatched and their Las Vegas roots run deep.",
+      "preferredWeightClasses": ["lightweight", "featherweight", "welterweight", "middleweight", "flyweight"],
+      "venueScale": "stadium",
+      "personality": {
+        "formality": "businesslike",
+        "directness": "very_high",
+        "pressureStyle": "experience",
+        "flatteryLevel": "low",
+        "declineReaction": "pragmatic"
+      },
+      "voiceLines": {
+        "initialOffer": [
+          "We've been doing this since before most people in boxing were born. Here's what we're offering {fighterName} — straight numbers, no games.",
+          "{fighterName} is a fighter we can work with. The offer is on the table. It's fair.",
+          "We don't waste your time. {fighterName} at {weightClass} — here's the deal. Take it or leave it.",
+          "Sixty years of building champions. We know what we're doing. Here's the offer for {fighterName}."
+        ],
+        "offerDeclined": [
+          "Alright. Your call.",
+          "We'll move on. If the next guy doesn't work out, you know how to find us.",
+          "Noted. We don't chase fighters.",
+          "Fine. Good luck to {fighterName}."
+        ],
+        "fightWon": [
+          "Good fight. {fighterName} did the job. We'll have something for the next camp.",
+          "That's what we expected. {weighClasser}. We'll build on it.",
+          "Result is the result. {fighterName} earned it. We'll talk next steps.",
+          "Solid. The schedule is already moving. We'll be in touch."
+        ],
+        "fightLost": [
+          "Losses happen. What matters is what comes next. Let's talk.",
+          "We've built champions off worse than this. We need to be strategic about the comeback.",
+          "Setback. Not the end. {fighterName} has work to do — we can still make something happen.",
+          "We've seen tougher roads. Let's figure out the right path forward."
+        ],
+        "contractOffer": [
+          "Multi-fight deal. Structured schedule. Proper promotional push. This is how we build fighters.",
+          "We're offering {fighterName} a real contract. Not one fight. A career plan.",
+          "Here's the deal. Read it. Ask your questions. This is how Top Rank works.",
+          "Standard terms plus a broadcast commitment. {fighterName} gets the exposure — we get the fights. Simple."
+        ]
+      },
+      "relationshipModifiers": {
+        "resultDelivered": 4,
+        "fightDeclined": -6,
+        "fighterUnderperformed": -8,
+        "exclusiveContractSigned": 12
+      }
+    },
+    {
+      "id": "queensberry",
+      "label": "Queensberry Promotions",
+      "tier": "world",
+      "baseNation": "uk",
+      "reputation": 88,
+      "capacity": 35,
+      "description": "Frank Warren's promotional company — one of Britain's oldest active promoters. Queensberry has a reputation for loyalty to their fighters and patient development. Heavily invested in UK heavyweight and cruiserweight, with strong European connections. More reserved in communication style than their rivals, but the backing they provide is genuine.",
+      "preferredWeightClasses": ["heavyweight", "cruiserweight", "light_heavyweight", "middleweight", "super_heavyweight"],
+      "venueScale": "arena",
+      "personality": {
+        "formality": "formal",
+        "directness": "moderate",
+        "pressureStyle": "loyalty",
+        "flatteryLevel": "low",
+        "declineReaction": "reserved"
+      },
+      "voiceLines": {
+        "initialOffer": [
+          "We've looked at {fighterName} carefully. We believe there's something here. This offer reflects that.",
+          "Queensberry looks after its fighters. Here's what we're proposing for {fighterName} — straightforward terms.",
+          "{fighterName} at {weightClass} fits what we're building. We'd like to talk properly.",
+          "We don't make offers lightly. This is a considered proposal for {fighterName}."
+        ],
+        "offerDeclined": [
+          "Understood. We wish {fighterName} well.",
+          "Right. Let us know if the situation changes.",
+          "That's your prerogative. We'll leave the door open.",
+          "Fair enough. We'll look elsewhere for that slot."
+        ],
+        "fightWon": [
+          "Good result. {fighterName} performed well. We'll discuss what's next in due course.",
+          "Well done. We'll be in touch about the next steps for {fighterName}.",
+          "Excellent performance. {fighterName} is making people take notice. Let's build on it properly.",
+          "Pleased with that. {fighterName} delivered. The plan continues."
+        ],
+        "fightLost": [
+          "Difficult night. These things happen in boxing. {fighterName} has our full support.",
+          "Not the result we hoped for. Let's regroup and work out the right next move.",
+          "Losses are part of the journey. Queensberry doesn't abandon fighters after one bad night.",
+          "We'll take stock and talk. {fighterName} has more to give."
+        ],
+        "contractOffer": [
+          "We'd like to formalise the relationship. Here's a full contract offer for {fighterName} — take your time with it.",
+          "This is a proper contract. Multi-fight, proper promotional commitment. We're serious about {fighterName}.",
+          "Queensberry wants to build something with {fighterName} over the long term. This contract reflects that.",
+          "Contract on the table. It's fair and it's serious. We look after our fighters."
+        ]
+      },
+      "relationshipModifiers": {
+        "resultDelivered": 6,
+        "fightDeclined": -5,
+        "fighterUnderperformed": -7,
+        "exclusiveContractSigned": 18
+      }
+    },
+    {
+      "id": "golden_boy",
+      "label": "Golden Boy Promotions",
+      "tier": "world",
+      "baseNation": "usa",
+      "reputation": 85,
+      "capacity": 30,
+      "description": "Oscar De La Hoya's promotional company — built on Hollywood glamour and Latin boxing culture. Golden Boy excels at marketing and spectacle. They are known for generating massive pay-per-view numbers and delivering fighters to the biggest audiences. Highest flattery level of the major promoters — they sell the dream hard, and often deliver it.",
+      "preferredWeightClasses": ["middleweight", "welterweight", "lightweight", "featherweight", "bantamweight"],
+      "venueScale": "stadium",
+      "personality": {
+        "formality": "casual",
+        "directness": "moderate",
+        "pressureStyle": "vision",
+        "flatteryLevel": "high",
+        "declineReaction": "persistent"
+      },
+      "voiceLines": {
+        "initialOffer": [
+          "{fighterName} is a star. We see it, the fans see it — now let's make it official. Here's the offer.",
+          "We've been watching {fighterName} for a while. This fighter belongs on the big stage. Here's how we get there.",
+          "Golden Boy doesn't come to the table unless we're serious. {fighterName} at {weightClass} — this is the opportunity.",
+          "We build stars. {fighterName} has everything we look for. Here's the deal — and it's a good one."
+        ],
+        "offerDeclined": [
+          "I hear you. But think about what we're offering — the platform, the exposure, the money. We'll give you a little more time.",
+          "We still believe in {fighterName}. Let's talk again next week — maybe we can make the numbers work.",
+          "Disappointing, but we're not going anywhere. The offer stays open a bit longer.",
+          "Don't close the door completely. This is Golden Boy — we can make careers happen."
+        ],
+        "fightWon": [
+          "{fighterName} is a star. What did I tell you? The phones are lighting up. Let's talk about what's next — this is big.",
+          "Incredible performance. {fighterName} is exactly who we said they were. The fans love it. Let's capitalise.",
+          "That's what Golden Boy fighters do. {fighterName} delivered on the biggest stage. We've got plans.",
+          "Phenomenal. {fighterName} just became a household name in {weightClass}. We need to move quickly."
+        ],
+        "fightLost": [
+          "Tough night. But {fighterName} is still a star — one loss doesn't change that. We're still here.",
+          "Look — everyone loses at some point. What matters is the bounce-back. Golden Boy will be right there with {fighterName}.",
+          "We're not walking away. {fighterName} has a future with us — we just need to be smart about the next one.",
+          "It's boxing. Champions lose. What {fighterName} does next is what defines the story."
+        ],
+        "contractOffer": [
+          "This is the big one. Full contract — multiple fights, pay-per-view pathway, marketing commitment. {fighterName} becomes a Golden Boy.",
+          "We're not doing one-offs. This is a full partnership deal. {fighterName} gets the whole Golden Boy machine behind them.",
+          "Multi-fight. Pay-per-view option. Full marketing push. This is what Golden Boy offers stars — and {fighterName} is a star.",
+          "Contract time. Serious money, serious exposure, serious commitment. {fighterName} deserves nothing less."
+        ]
+      },
+      "relationshipModifiers": {
+        "resultDelivered": 5,
+        "fightDeclined": -10,
+        "fighterUnderperformed": -12,
+        "exclusiveContractSigned": 14
+      }
+    }
+  ],
+  "promoterTemplates": [
+    {
+      "id": "regional_promoter_template",
+      "tier": "regional",
+      "capacity": { "min": 8, "max": 20 },
+      "reputation": { "min": 35, "max": 65 },
+      "venueScale": "small_arena",
+      "description": "Template for procedurally generated regional promoters. Generated when a nation's pro ecosystem reaches level 2. Regional promoters run sanctioned cards at small arenas, hold continental belt fights, and maintain a roster of mid-level professionals. Reputation and capacity are rolled within bounds at generation time."
+    },
+    {
+      "id": "local_promoter_template",
+      "tier": "local",
+      "capacity": { "min": 3, "max": 8 },
+      "reputation": { "min": 5, "max": 35 },
+      "venueScale": "club",
+      "description": "Template for procedurally generated local promoters. Generated when a nation's pro ecosystem reaches level 1. Local promoters run informal club cards, give early-career professionals their first fights, and operate on minimal margins. The entry point of the pro boxing ecosystem."
+    }
+  ],
+  "genericVoiceLinePools": [
+    {
+      "id": "regional_promoter_generic",
+      "description": "Voice lines used by all procedurally generated regional promoters. Businesslike, straightforward, results-focused.",
+      "voiceLines": {
+        "initialOffer": [
+          "We have a slot on our next card. {fighterName} fits the bill. Here are the numbers.",
+          "Your fighter at {weightClass} — we need someone exactly like {fighterName} for {city}. Interested?",
+          "We're building a good card for {city}. {fighterName} would be a strong addition.",
+          "Offer on the table for {fighterName}. Good venue, decent purse, fair opponent."
+        ],
+        "offerDeclined": [
+          "Understood. We'll find someone else for that slot.",
+          "Alright. Let us know if you change your mind.",
+          "Fine. We'll reach out next time.",
+          "No problem. We move on."
+        ],
+        "fightWon": [
+          "Good result. We'll be in touch about the next card.",
+          "{fighterName} did well. People noticed. Let's do it again.",
+          "Solid performance. We can work with this.",
+          "Good night. We'll be in touch."
+        ],
+        "fightLost": [
+          "Tough result. We still have slots if {fighterName} wants to get back at it.",
+          "These things happen. Let us know when {fighterName} is ready to go again.",
+          "Not what we hoped for. But we can work together going forward.",
+          "It's boxing. We move on."
+        ],
+        "contractOffer": [
+          "We'd like to formalise things. Multiple fights, regular work. Here's the offer.",
+          "Contract proposal for {fighterName}. Straightforward terms — have a look.",
+          "Regular fights on our cards. Good terms. Here's the formal offer.",
+          "We want to lock in {fighterName} for the season. Contract details inside."
+        ]
+      }
+    },
+    {
+      "id": "local_promoter_generic",
+      "description": "Voice lines used by all procedurally generated local promoters. Informal, minimal, practical — getting fights made on a tight budget.",
+      "voiceLines": {
+        "initialOffer": [
+          "Got a show coming up. Need a {weightClass}. {fighterName} available?",
+          "Small card, decent opponent, fair purse. {fighterName} interested?",
+          "We're putting on a show in {city}. One slot left. Right weight class, right timing.",
+          "Heard {fighterName} is looking for work. We've got a fight."
+        ],
+        "offerDeclined": [
+          "Fair enough.",
+          "Got it. We'll ask around.",
+          "OK. Let me know if anything changes.",
+          "Alright."
+        ],
+        "fightWon": [
+          "Good result. We'll call again.",
+          "Nice work. Be in touch.",
+          "Good night. See you next time.",
+          "Result. Talk soon."
+        ],
+        "fightLost": [
+          "Rough one. We'll have another slot when the time is right.",
+          "It happens. Call us when {fighterName} is ready.",
+          "Bad luck. These things go that way sometimes.",
+          "Move on from it. There's always another fight."
+        ],
+        "contractOffer": [
+          "Want to put something regular together. Nothing complicated. Here.",
+          "Contract offer. A few fights, same purse range. Have a look.",
+          "Regular work if you want it. Simple deal.",
+          "Formal offer for a run of fights. Read it over."
+        ]
+      }
+    }
+  ]
+}

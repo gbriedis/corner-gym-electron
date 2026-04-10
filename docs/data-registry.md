@@ -91,6 +91,8 @@
 | [x] | `packages/engine/data/universal/game-config-defaults.json` |
 | [x] | `packages/engine/data/universal/difficulties.json` |
 | [x] | `packages/engine/data/universal/rewards.json` |
+| [x] | `packages/engine/data/universal/promoters.json` |
+| [x] | `packages/engine/data/universal/pro-fight-offer.json` |
 
 ## Data — Nations: Latvia
 | State | File |
@@ -138,6 +140,8 @@
 | [x] | `packages/engine/data/nations/latvia/boxing/event-templates.json` |
 | [x] | `packages/engine/data/nations/latvia/boxing/venues.json` |
 | [x] | `packages/engine/data/nations/latvia/boxing/lbf-rules.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/pro-ecosystem.json` |
+| [x] | `packages/engine/data/nations/latvia/boxing/promoters.json` |
 
 ## Data — Boxing: International
 | State | File |
@@ -148,6 +152,9 @@
 | [x] | `packages/engine/data/international/boxing/venues.json` |
 | [x] | `packages/engine/data/international/boxing/eubc-rules.json` |
 | [x] | `packages/engine/data/international/boxing/iba-rules.json` |
+| [x] | `packages/engine/data/international/boxing/pro-sanctioning-bodies.json` |
+| [x] | `packages/engine/data/international/boxing/pro-title-belts.json` |
+| [x] | `packages/engine/data/international/boxing/pro-rankings-structure.json` |
 
 ## Desktop
 | State | File |

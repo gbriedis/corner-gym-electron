@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Latvia's pro boxing development system. Latvia has no meaningful domestic pro boxing scene in 2026 — the scene starts at level 0. Development advances when threshold conditions are met, checked weekly by the engine. The player does not control this entity directly — it responds to what the Latvian boxing world produces. Other nations have their own ecosystem files at their real-world starting level: UK, Mexico, USA start at level 4. The inbox delivers the moment each level unlocks."
+  },
+  "nationId": "latvia",
+  "currentLevel": 0,
+  "thresholds": [
+    {
+      "level": 1,
+      "label": "Emerging Scene",
+      "requirements": {
+        "activeProFighters": 3,
+        "highestCircuitReached": "european_championship"
+      },
+      "unlocks": [
+        "local_promoter_emerges",
+        "informal_pro_cards",
+        "small_venue_fights"
+      ],
+      "inboxMessage": "A local promoter has reached out. Someone is putting together small boxing cards in Riga. The pro scene in Latvia is taking its first steps."
+    },
+    {
+      "level": 2,
+      "label": "Recognised Scene",
+      "requirements": {
+        "activeProFighters": 8,
+        "highestCircuitReached": "world_championship",
+        "combinedGymReputation": 200
+      },
+      "unlocks": [
+        "wba_continental_sanctioning",
+        "wbc_international_sanctioning",
+        "latvian_pro_rankings",
+        "regional_title_fights"
+      ],
+      "inboxMessage": "Latvian boxing is getting noticed. Cards in Riga are now being sanctioned at continental level. A Latvian pro ranking exists for the first time."
+    },
+    {
+      "level": 3,
+      "label": "Established Scene",
+      "requirements": {
+        "worldRankedFighters": 2,
+        "europeanTitleHeld": true,
+        "combinedGymReputation": 500
+      },
+      "unlocks": [
+        "latvian_pro_boxing_commission",
+        "national_pro_title_belts",
+        "international_promoter_interest",
+        "latvian_boxing_on_world_news"
+      ],
+      "inboxMessage": "The Latvian Pro Boxing Commission has been formally established. National pro titles now exist. International promoters are starting to pay attention."
+    },
+    {
+      "level": 4,
+      "label": "Boxing Nation",
+      "requirements": {
+        "worldTitleContender": true,
+        "internationalCardsHosted": 3,
+        "combinedGymReputation": 1000
+      },
+      "unlocks": [
+        "full_latvian_sanctioning_body",
+        "world_title_fight_eligible",
+        "major_promoter_relationships",
+        "latvian_boxing_international_radar"
+      ],
+      "inboxMessage": "Latvia is now a recognised boxing nation. The world is watching. This is what you built."
+    }
+  ]
+}

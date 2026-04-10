@@ -63,7 +63,9 @@ corner-gym/
     │   │   │   ├── development-profiles.json  # 3 profiles — peak age, rise/plateau/decline rates
     │   │   │   ├── game-config-defaults.json  # Default settings for a new game (seed, year, nations, world settings)
     │   │   │   ├── difficulties.json          # 4 difficulty presets — multipliers on city modifiers and probabilities
-    │   │   │   └── rewards.json               # Rewards per circuit level and result — rep, followers, medals, belts
+    │   │   │   ├── rewards.json               # Rewards per circuit level and result — rep, followers, medals, belts
+    │   │   │   ├── promoters.json             # 4 named world promoters, 2 templates, 2 generic voice pools
+    │   │   │   └── pro-fight-offer.json       # Offer structure definition — required fields, card positions, clause types
     │   │   ├── nations/
     │   │   │   └── latvia/
     │   │   │       ├── nation.json
@@ -80,15 +82,20 @@ corner-gym/
     │   │   │           ├── amateur-circuit.json     # 3 domestic circuit levels
     │   │   │           ├── event-templates.json     # 3 event templates with venue pools
     │   │   │           ├── venues.json              # 16 Latvian venues — club gyms, regional halls, national arenas
-    │   │   │           └── lbf-rules.json           # LBF bout rules — 3 circuit levels × 3 age categories
+    │   │   │           ├── lbf-rules.json           # LBF bout rules — 3 circuit levels × 3 age categories
+    │   │   │           ├── pro-ecosystem.json       # Pro development levels 0–4 — requirements, unlocks, inbox messages
+    │   │   │           └── promoters.json           # Empty promoter list — Latvian voice lines for procedural generation
     │   │   └── international/
     │   │       └── boxing/
-    │   │           ├── sanctioning-bodies.json  # EUBC (continental) + IBA (international)
-    │   │           ├── circuits.json            # Baltic, European, World, Olympics circuit levels
-    │   │           ├── event-templates.json     # 4 international event templates with venue pools
-    │   │           ├── venues.json              # 13 non-Latvian venues — Baltic, European, World/Olympic
-    │   │       ├── eubc-rules.json          # EUBC rules — Baltic + European championship levels
-    │   │       └── iba-rules.json           # IBA rules — World Championship + Olympics
+    │   │           ├── sanctioning-bodies.json      # EUBC (continental) + IBA (international)
+    │   │           ├── circuits.json                # Baltic, European, World, Olympics circuit levels
+    │   │           ├── event-templates.json         # 4 international event templates with venue pools
+    │   │           ├── venues.json                  # 13 non-Latvian venues — Baltic, European, World/Olympic
+    │   │           ├── eubc-rules.json              # EUBC rules — Baltic + European championship levels
+    │   │           ├── iba-rules.json               # IBA rules — World Championship + Olympics
+    │   │           ├── pro-sanctioning-bodies.json  # WBC, WBA, IBF, WBO, Ring Magazine
+    │   │           ├── pro-title-belts.json         # 144 belts — all tiers × all bodies × 9 pro weight classes
+    │   │           └── pro-rankings-structure.json  # Ranking rules, decay, mandatory defence, acquisition tiers
     │   └── src/
     │       ├── index.ts               # Public API — exports types + generateWorld + loadGameData + advanceWeek
     │       ├── types/
