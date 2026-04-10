@@ -1,9 +1,9 @@
 # Current Task
 
-## Task: Font Swap + Naming Fix + Nav Guard + Dynamic Event Names + Rewards Schema
+## Task: Pro Boxing Infrastructure Data Files
 
 ### What To Build
-Five focused fixes. Do in order — each is independent but together they clean up significant rough edges.
+Pro boxing data files. No engine logic, no TypeScript types yet, no UI. Data only. This completes the boxing world infrastructure — amateur was built first, pro follows the same pattern.
 
 ### Skill To Load
 `.claude/skills/new-feature/SKILL.md`
@@ -11,276 +11,296 @@ Five focused fixes. Do in order — each is independent but together they clean 
 
 ---
 
-## Part 1 — Font Swap
+## Folder Structure To Create
 
-Replace Rock Bro with the new Corner Gym header font.
-
-**`packages/ui/src/index.css`**
-
-Replace the Rock Bro `@font-face` declaration:
-```css
-@font-face {
-  font-family: 'CornerGymHeader';
-  src: url('./assets/fonts/corner-gym-header.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-}
 ```
-
-**`packages/ui/src/styles/theme.css`**
-
-Update the display font variable:
-```css
---font-display: 'CornerGymHeader', serif;
+packages/engine/data/
+├── universal/
+│   ├── promoters.json                    ← world-tier promoters + templates + generic voice pools
+│   └── pro-fight-offer.json              ← offer structure and clause type definitions
+├── international/
+│   └── boxing/
+│       ├── pro-sanctioning-bodies.json   ← WBC, WBA, IBF, WBO, Ring Magazine
+│       ├── pro-title-belts.json          ← all belts per body per weight class
+│       └── pro-rankings-structure.json   ← ranking rules and mechanics
+└── nations/
+    └── latvia/
+        └── boxing/
+            └── pro-ecosystem.json        ← Latvia's pro development levels
+            └── promoters.json            ← Latvia-specific promoters (empty, emerge procedurally)
 ```
-
-Remove any remaining references to 'Rock Bro' across all files. Verify the font loads correctly in `pnpm dev` — the Corner Gym logotype in the top nav and all Rock Bro headings should now use the new font.
 
 ---
 
-## Part 2 — Kill "Club Tournament" Display Strings
+## Files To Create
 
-Audit every file in `packages/ui/src/` for the string "Club Tournament". Replace all display instances.
+### `international/boxing/pro-sanctioning-bodies.json`
 
-The correct display label for `club_card` circuit level is **"Club Show"** — not "Club Tournament", not "Club Card" as a user-facing label. "Club Card" is fine as a badge/tag. "Club Show" is the human-readable event name.
+WBC, WBA, IBF, WBO, Ring Magazine.
 
-Update:
-- Circuit level display name map — wherever circuit levels are converted to human readable strings
-- Upcoming events sidebar — event names
-- Calendar legend
-- Event detail panel
-- Any other place "Club Tournament" appears as visible text
+Fields per body: `id`, `label`, `abbreviation`, `founded`, `prestige` (1-10), `description`, `titleTiers` (array of tier ids this body awards), `rankingPositions`, `mandatoryDefenceWeeks` (null for Ring Magazine — they issue no titles).
 
-The `id` value `club_card` stays unchanged in all data and TypeScript — this is display strings only.
+Ring Magazine: prestige 10, no mandatory defence, lineal championship only. Their recognition is the most coveted in boxing even without a sanctioning structure.
+
+Meta must explain: four major sanctioning bodies each operate independently. A fighter can hold multiple world titles simultaneously by winning from different bodies. Ring Magazine is not a sanctioning body — it issues no titles but their lineal designation is considered the truest measure of championship. Rankings and mandatory challengers are tracked per body independently by the engine.
 
 ---
 
-## Part 3 — Back Navigation Guard
+### `international/boxing/pro-title-belts.json`
 
-The back arrow in the top nav must not navigate past the game screen. Once the player is in the game, they cannot accidentally navigate back to the new game or load game screens using the back arrow.
+Every belt per body per weight class. This is a large file — cover all combinations.
 
-**`packages/ui/src/components/layout/TopBar.tsx`**
+Bodies: WBC, WBA, IBF, WBO, Ring Magazine.
+Weight classes: all 10 from `universal/weight-classes.json` (excluding super_heavyweight which is amateur only).
 
-Add a guard on the back arrow click handler:
+WBC title tiers per weight class: `world`, `silver`, `international`, `youth`
+WBA title tiers per weight class: `super`, `world`, `international`, `fedebol`
+IBF title tiers per weight class: `world`, `international`, `youth`
+WBO title tiers per weight class: `world`, `intercontinental`, `international`, `youth`
+Ring Magazine: `lineal` only — one per weight class
 
-```typescript
-// Never navigate back past the game screen.
-// The game screen is the root of in-game navigation — going back further
-// would return the player to the new game or load screens, losing context.
-const canGoBack = window.history.state?.idx > 0 && !isAtGameRoot()
+Fields per belt: `id`, `sanctioningBodyId`, `tier`, `weightClassId`, `label`, `prestige` (1-10 scale — world titles 9-10, regional 5-7, international 3-5, youth 2-3, lineal 10), `description`, `currentHolderId` (null — populated during world generation), `vacated` (false), `defenceCount` (0).
 
-function isAtGameRoot(): boolean {
-  // Returns true if the current location is the root game screen.
-  // Determined by checking if there is no meaningful back history
-  // within the game routes.
-  return window.history.state?.idx <= 1
-}
-```
-
-Disable the back arrow when `!canGoBack`. Apply `opacity: 0.3`, `cursor: not-allowed`, `pointer-events: none`.
-
-Test: navigate to Calendar → Event page → Venue page. Back arrow works. Navigate back to Calendar. Back arrow works. One more back goes to Dashboard. Back arrow disables — cannot go further.
+Meta must explain: world title belts are the highest achievement in pro boxing per sanctioning body. The Ring Magazine lineal belt represents the true champion — the fighter who beat the man who beat the man. Multiple world titles can be unified — a unified champion holds belts from multiple bodies simultaneously. The engine tracks holder, defences, and mandatory challenger status per belt.
 
 ---
 
-## Part 4 — Dynamic Event Names
+### `international/boxing/pro-rankings-structure.json`
 
-### Engine: Event Name Generation
-
-**`packages/engine/src/generation/calendar.ts`**
-
-Add `generateEventName()` function:
-
-```typescript
-// generateEventName produces a unique, realistic event name.
-// Naming follows real boxing conventions: [Year] [Location/Venue] [Type]
-// For events that occur multiple times per year in the same city,
-// the venue name is used to differentiate. If still not unique,
-// a sequence number is appended.
-// The usedNames set tracks names already assigned in the current
-// generation pass to guarantee uniqueness within a calendar year.
-
-function generateEventName(
-  template: EventTemplate,
-  cityId: string,
-  venueId: string,
-  year: number,
-  nationId: string,
-  data: GameData,
-  usedNames: Set<string>
-): string
-```
-
-**Naming rules per circuit level:**
-
-`club_card`:
-- Base: `[Year] [Venue Short Name] Show`
-- Venue short name = first two words of venue name, stripped of "boksa klubs" suffix
-- Example: "2026 Rīgas Boksa Show" → too long → "2026 Imanta Show"
-- Actually: take the city label and append "Club Show": "2026 Riga Club Show"
-- If duplicate in same year: append venue name: "2026 Riga Imanta Show"
-- If still duplicate: append sequence: "2026 Riga Club Show #2"
-
-`regional_tournament`:
-- Base: `[Year] [City] Open`
-- Example: "2026 Riga Open", "2026 Daugavpils Open"
-- Duplicates unlikely for regionals — one per city per season
-
-`national_championship`:
-- Fixed: `[Year] Latvian National Championships`
-- Always unique — one per year
-
-`baltic_championship`:
-- Fixed: `[Year] Baltic Boxing Championships`
-
-`european_championship`:
-- Fixed: `[Year] European Amateur Boxing Championships`
-
-`world_championship`:
-- Fixed: `[Year] IBA World Boxing Championships`
-
-`olympics`:
-- Fixed: `[Year] Olympic Games Boxing`
-
-**Uniqueness enforcement:**
-Pass a `usedNames: Set<string>` through the generation loop. After assigning a name, add it to the set. Before assigning, check — if present, apply disambiguation logic (venue name, then sequence number).
-
-**Update `CalendarEvent` type:**
-Add `name: string` field to `CalendarEvent` in `src/types/calendar.ts`.
-
-**Update SQLite:**
-Add `name TEXT NOT NULL DEFAULT ''` column to `calendar_events` table. Use `ALTER TABLE IF NOT EXISTS` migration pattern for existing saves.
-
-**Update all places that display event names** — they should now read `event.name` not derive it from template label.
-
----
-
-## Part 5 — Rewards Schema
-
-Define what each circuit level awards structurally. No engine logic — data definition only. This schema exists so rewards are designed correctly before fighters are built.
-
-**`packages/engine/data/universal/rewards.json`**
-
-Meta must explain: rewards are awarded to fighters and gyms when they achieve results at each circuit level. Rep and follower rewards are defined here but not wired until gym and fighter systems exist. Belt and medal rewards are structurally complete. The engine reads this file when processing bout results — implementation comes with the fight engine.
+Rules governing how pro rankings work. Not the actual rankings — those live in world state and update dynamically. This defines the mechanics the engine follows.
 
 ```json
 {
-  "meta": {
-    "version": "1.0.0",
-    "description": "Rewards awarded per circuit level and result. Rep and follower values are placeholders — they will be calibrated once the gym and fighter reputation systems are built. Belt and medal definitions are final. The engine reads this when processing bout results."
+  "rules": {
+    "rankedPositions": 15,
+    "pointsForWinAgainstRanked": {
+      "top5": 100,
+      "top10": 60,
+      "top15": 30,
+      "unranked": 10
+    },
+    "pointsForLoss": -20,
+    "pointsDecayPerWeekInactive": 1,
+    "minimumProBoutsToRank": 4,
+    "mandatoryDefenceTriggersAtRank": 1,
+    "mandatoryDefenceWindowWeeks": 52,
+    "strippedIfMandatoryIgnoredWeeks": 16
   },
-  "circuitRewards": [
+  "titleShots": {
+    "automaticAtRank": 1,
+    "promoterCanNegotiateFromRank": 5,
+    "interimTitleAvailableWhenChampionInactive": true,
+    "inactiveChampionWeeksBeforeInterim": 26
+  },
+  "acquisitionTiers": [
     {
-      "circuitLevel": "club_card",
-      "results": {
-        "win": {
-          "fighterRep": 1,
-          "gymRep": 1,
-          "followers": 0,
-          "medal": null,
-          "belt": null,
-          "description": "A win at a club show. Small reputation gain. No title implications."
-        },
-        "loss": {
-          "fighterRep": 0,
-          "gymRep": 0,
-          "followers": 0,
-          "medal": null,
-          "belt": null,
-          "description": "A loss at a club show. No reputation penalty at this level — experience is the reward."
-        }
-      }
+      "tier": "world",
+      "minimumReputation": 80,
+      "acquiresFromRank": { "min": 1, "max": 5 }
     },
     {
-      "circuitLevel": "national_championship",
-      "results": {
-        "gold": {
-          "fighterRep": 25,
-          "gymRep": 15,
-          "followers": 50,
-          "medal": "gold",
-          "belt": "latvian_national_champion",
-          "description": "Latvian National Champion. The title belt per weight class. Significant domestic reputation."
-        },
-        "silver": {
-          "fighterRep": 15,
-          "gymRep": 8,
-          "followers": 20,
-          "medal": "silver",
-          "belt": null,
-          "description": "National finalist. Respected result. No belt."
-        },
-        "bronze": {
-          "fighterRep": 8,
-          "gymRep": 4,
-          "followers": 10,
-          "medal": "bronze",
-          "belt": null,
-          "description": "National semi-finalist. Solid result for a developing fighter."
-        }
-      }
+      "tier": "regional",
+      "minimumReputation": 40,
+      "acquiresFromRank": { "min": 6, "max": 12 }
     },
     {
-      "circuitLevel": "olympics",
-      "results": {
-        "gold": {
-          "fighterRep": 200,
-          "gymRep": 150,
-          "followers": 10000,
-          "medal": "gold",
-          "belt": "olympic_champion",
-          "description": "Olympic Champion. The ceiling of amateur boxing. Changes everything."
-        },
-        "silver": {
-          "fighterRep": 150,
-          "gymRep": 100,
-          "followers": 5000,
-          "medal": "silver",
-          "belt": null,
-          "description": "Olympic silver medallist. A legacy result."
-        },
-        "bronze": {
-          "fighterRep": 100,
-          "gymRep": 75,
-          "followers": 3000,
-          "medal": "bronze",
-          "belt": null,
-          "description": "Olympic bronze. Two bronze medals awarded per weight class."
-        }
-      }
+      "tier": "local",
+      "minimumReputation": 5,
+      "acquiresFromRank": { "min": 13, "max": null }
     }
   ]
 }
 ```
 
-Include all circuit levels: `club_card`, `regional_tournament`, `national_championship`, `baltic_championship`, `european_championship`, `world_championship`, `olympics`.
+`acquisitionTiers` defines which promoter tier can acquire which ranked fighters during world generation — the draft system. World promoters get first pick of top ranked fighters. Local promoters get the rest.
 
-Tournament events use `gold/silver/bronze` result keys. Club cards use `win/loss`. Rep and follower values scale logically — a national title is worth significantly more than a regional win, Olympics is the ceiling.
+Meta must explain: points decay forces active fighting — a fighter who stops competing loses ranking positions. Mandatory defence window means a champion must defend within 52 weeks or face being stripped. The acquisition tiers govern world generation fighter distribution — not live gameplay.
 
-Add `RewardsData` TypeScript type in `src/types/data/`. Add to loader. Add to `data-registry.md`.
+---
+
+### `nations/latvia/boxing/pro-ecosystem.json`
+
+Latvia's pro boxing development system. Starts at level 0.
+
+```json
+{
+  "nationId": "latvia",
+  "currentLevel": 0,
+  "thresholds": [
+    {
+      "level": 1,
+      "label": "Emerging Scene",
+      "requirements": {
+        "activeProFighters": 3,
+        "highestCircuitReached": "european_championship"
+      },
+      "unlocks": [
+        "local_promoter_emerges",
+        "informal_pro_cards",
+        "small_venue_fights"
+      ],
+      "inboxMessage": "A local promoter has reached out. Someone is putting together small boxing cards in Riga. The pro scene in Latvia is taking its first steps."
+    },
+    {
+      "level": 2,
+      "label": "Recognised Scene",
+      "requirements": {
+        "activeProFighters": 8,
+        "highestCircuitReached": "world_championship",
+        "combinedGymReputation": 200
+      },
+      "unlocks": [
+        "wba_continental_sanctioning",
+        "wbc_international_sanctioning",
+        "latvian_pro_rankings",
+        "regional_title_fights"
+      ],
+      "inboxMessage": "Latvian boxing is getting noticed. Cards in Riga are now being sanctioned at continental level. A Latvian pro ranking exists for the first time."
+    },
+    {
+      "level": 3,
+      "label": "Established Scene",
+      "requirements": {
+        "worldRankedFighters": 2,
+        "europeanTitleHeld": true,
+        "combinedGymReputation": 500
+      },
+      "unlocks": [
+        "latvian_pro_boxing_commission",
+        "national_pro_title_belts",
+        "international_promoter_interest",
+        "latvian_boxing_on_world_news"
+      ],
+      "inboxMessage": "The Latvian Pro Boxing Commission has been formally established. National pro titles now exist. International promoters are starting to pay attention."
+    },
+    {
+      "level": 4,
+      "label": "Boxing Nation",
+      "requirements": {
+        "worldTitleContender": true,
+        "internationalCardsHosted": 3,
+        "combinedGymReputation": 1000
+      },
+      "unlocks": [
+        "full_latvian_sanctioning_body",
+        "world_title_fight_eligible",
+        "major_promoter_relationships",
+        "latvian_boxing_international_radar"
+      ],
+      "inboxMessage": "Latvia is now a recognised boxing nation. The world is watching. This is what you built."
+    }
+  ]
+}
+```
+
+Meta must explain: Latvia has no meaningful domestic pro boxing scene in 2026. Development advances when threshold conditions are met — these are checked weekly by the engine. The player does not control this entity. It responds to what the Latvian boxing world produces. The inbox delivers the moment each level unlocks. Other nations have their own ecosystem files at their real-world starting level — UK, Mexico, USA start at level 4.
+
+---
+
+### `universal/promoters.json`
+
+Full file as proposed in design session. Include:
+
+- 4 named world-tier promoters: `matchroom`, `top_rank`, `queensberry`, `golden_boy`
+- 2 promoter templates: `regional_promoter_template`, `local_promoter_template`
+- 2 generic voice line pools: `regional_promoter_generic`, `local_promoter_generic`
+
+Each named promoter must have:
+- `id`, `label`, `tier`, `baseNation`, `reputation` (0-100), `capacity` (max fighters), `description`
+- `preferredWeightClasses` array
+- `venueScale`: `"club"` | `"small_arena"` | `"arena"` | `"stadium"`
+- `personality` object: `formality`, `directness`, `pressureStyle`, `flatteryLevel`, `declineReaction`
+- `voiceLines` object with keys: `initialOffer`, `offerDeclined`, `fightWon`, `fightLost`, `contractOffer` — each an array of 3+ variants
+- `relationshipModifiers`: `resultDelivered`, `fightDeclined`, `fighterUnderperformed`, `exclusiveContractSigned`
+
+Voice line variants use `{fighterName}` and `{weightClass}` as template tokens — engine substitutes real values when delivering messages.
+
+Promoter templates have `capacity` and `reputation` as ranges `{ min, max }` — the engine rolls within these when generating a promoter instance.
+
+Meta must explain: named promoters are real entities in the world from game start. Nation-specific promoters live in nations/[id]/boxing/promoters.json. Procedural promoters are generated from templates when a nation's pro ecosystem advances. The tiered acquisition system during world generation distributes fighters to promoters — world tier gets first pick of top ranked fighters, local tier gets the rest. Capacity limits are enforced — a full promoter cannot sign new fighters until a slot opens.
+
+---
+
+### `nations/latvia/boxing/promoters.json`
+
+Latvia starts with no promoters. They emerge procedurally.
+
+```json
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Latvian boxing promoters. Latvia has no established pro boxing promoters in 2026 — the domestic pro scene does not yet exist. Promoters are generated procedurally when the pro ecosystem reaches level 1, using the local_promoter_template from universal/promoters.json and the Latvian voice lines defined here. This file defines the communication voice used by any promoter generated within Latvia — dry, direct, understated, no fluff."
+  },
+  "nationId": "latvia",
+  "promoters": [],
+  "generatedPromoterVoiceLines": {
+    "initialOffer": [
+      "We're putting a card together. Your fighter would fit. Here are the numbers.",
+      "Heard good things about {fighterName}. We have a slot. Interested?",
+      "Simple — we need a fighter at {weightClass}, you have one. Let's talk.",
+      "Got a show in {city} next month. {fighterName} ready?"
+    ],
+    "offerDeclined": [
+      "Fine. Let me know if anything changes.",
+      "Understood.",
+      "Alright. We'll find someone else.",
+      "OK."
+    ],
+    "fightWon": [
+      "Good result. We'll be in touch for the next one.",
+      "Solid. People noticed. Let's build on it.",
+      "Expected nothing less. What's next?",
+      "Good night. Let's do it again."
+    ],
+    "fightLost": [
+      "It happens. Come back stronger.",
+      "Tough night. We move forward.",
+      "Not the result we wanted. Let's see where we go from here.",
+      "These things happen in boxing."
+    ],
+    "contractOffer": [
+      "We want to work together properly. Here's what we're proposing.",
+      "Contract offer. Nothing complicated. Have a look.",
+      "Regular work. Good terms. Here."
+    ]
+  }
+}
+```
+
+---
+
+### `universal/pro-fight-offer.json`
+
+Structure definition only — not actual offers. Defines what fields every offer contains and what clause types exist. Engine and UI reference this when constructing and rendering offers.
+
+Include:
+- `offerStructure` with `required` and `optional` field lists
+- `cardPositions` array: `main_event`, `co_main`, `featured`, `undercard`, `prelim` — each with label, description, `purseMultiplier`
+- `clauseTypes` array: `rematch_clause`, `exclusivity_clause`, `weight_clause`, `step_aside`, `purse_split` — each with label, description, `appliesTo`, `details`
+
+Meta must explain: this file is a structural definition not actual fight data. Actual offers are generated by the promoter system and delivered via inbox. The engine reads this when constructing offers to ensure all required fields are present. The UI reads this to know how to render any offer type correctly. Clauses are attached to specific offers — the player sees them clearly before accepting or declining.
 
 ---
 
 ### Definition Of Done
-- [ ] `corner-gym-header.otf` wired as `--font-display`, Rock Bro removed everywhere
-- [ ] "Club Tournament" display string gone from all UI — replaced with "Club Show" where needed
-- [ ] Back arrow disabled when at game root — cannot navigate to new game/load screens
-- [ ] `generateEventName()` produces unique realistic names — "2026 Riga Club Show", "2026 Latvian National Championships" etc
-- [ ] `CalendarEvent.name` field exists, populated at generation, saved to SQLite
-- [ ] All event name displays read from `event.name`
-- [ ] `rewards.json` created with all circuit levels, correct result keys
-- [ ] `RewardsData` type created and added to loader
-- [ ] `pnpm typecheck` clean
-- [ ] `pnpm test` passing
+- [ ] `international/boxing/pro-sanctioning-bodies.json` — 5 bodies including Ring Magazine
+- [ ] `international/boxing/pro-title-belts.json` — all belts for all 4 major bodies + Ring Magazine lineal, all 10 weight classes
+- [ ] `international/boxing/pro-rankings-structure.json` — ranking rules including acquisition tiers
+- [ ] `nations/latvia/boxing/pro-ecosystem.json` — 4 levels, requirements, unlocks, inbox messages
+- [ ] `universal/promoters.json` — 4 named promoters with full voice lines, 2 templates, 2 generic voice pools
+- [ ] `nations/latvia/boxing/promoters.json` — empty promoters array, Latvian voice lines defined
+- [ ] `universal/pro-fight-offer.json` — offer structure, card positions, clause types
+- [ ] All files valid JSON, all have meta blocks
 - [ ] `docs/structure.md` updated
-- [ ] `docs/data-registry.md` updated
+- [ ] `docs/data-registry.md` — all 7 files marked `[x]`
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: font swap + naming fixes + nav guard + event names + rewards schema`
+- [ ] Committed: `feat: pro boxing infrastructure data files`
 
 ### Notes
-- Font swap is Part 1 — verify it loads in dev before moving on
-- "Club Tournament" is a display string bug — do not change any id values in data or TypeScript
-- Back nav guard: the player is in the game — they cannot accidentally leave it via back arrow
-- Event names must be unique per year — usedNames Set enforced during generation
-- Rewards rep/follower values are placeholders — they will be calibrated later
-- Do not wire rewards to any system — data definition only this session
+- Data only — no TypeScript types, no engine logic, no UI this session
+- `pro-title-belts.json` is a large file — all combinations must be present, no shortcuts
+- Voice line variants must use `{fighterName}`, `{weightClass}`, `{city}` tokens — engine substitutes at delivery time
+- Latvia ecosystem `currentLevel: 0` — starts with nothing, earns everything
+- Ring Magazine has no mandatory defence, no title tiers except lineal, prestige 10
+- Acquisition tiers in rankings structure are for world generation only — not live gameplay matchmaking
+- Nation-specific promoter files follow same pattern — modders adding a new nation include their promoters in the bundle
