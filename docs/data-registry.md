@@ -20,7 +20,10 @@
 | [x] | `packages/engine/src/types/competition.ts` |
 | [x] | `packages/engine/src/types/index.ts` |
 | [ ] | `packages/engine/src/types/fighter.ts` |
-| [ ] | `packages/engine/src/types/gym.ts` |
+| [~] | `packages/engine/src/types/gym.ts` |
+| [~] | `packages/engine/src/types/coach.ts` |
+| [~] | `packages/engine/src/types/manager.ts` |
+| [~] | `packages/engine/src/types/clause.ts` |
 | [ ] | `packages/engine/src/types/location.ts` |
 | [ ] | `packages/engine/src/types/event.ts` |
 | [ ] | `packages/engine/src/types/moment.ts` |
@@ -93,6 +96,8 @@
 | [x] | `packages/engine/data/universal/rewards.json` |
 | [x] | `packages/engine/data/universal/promoters.json` |
 | [x] | `packages/engine/data/universal/pro-fight-offer.json` |
+| [x] | `packages/engine/data/universal/attribute-accumulation.json` |
+| [x] | `packages/engine/data/universal/coach-styles.json` |
 
 ## Data — Nations: Latvia
 | State | File |

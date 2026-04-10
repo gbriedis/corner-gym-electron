@@ -65,7 +65,9 @@ corner-gym/
     │   │   │   ├── difficulties.json          # 4 difficulty presets — multipliers on city modifiers and probabilities
     │   │   │   ├── rewards.json               # Rewards per circuit level and result — rep, followers, medals, belts
     │   │   │   ├── promoters.json             # 4 named world promoters, 2 templates, 2 generic voice pools
-    │   │   │   └── pro-fight-offer.json       # Offer structure definition — required fields, card positions, clause types
+    │   │   │   ├── pro-fight-offer.json       # Offer structure definition — required fields, card positions, clause types
+    │   │   │   ├── attribute-accumulation.json # Gain/regression rules for all attributes — every attribute change flows through this
+    │   │   │   └── coach-styles.json          # Coach style dimensions — emphasis, methodology, communication types
     │   │   ├── nations/
     │   │   │   └── latvia/
     │   │   │       ├── nation.json
@@ -103,7 +105,10 @@ corner-gym/
     │       │   ├── index.ts           # Barrel — re-exports all competition types
     │       │   ├── person.ts          # Person, PhysicalProfile, AttributeValue, HealthValue, GiftFlawAssignment
     │       │   ├── fighter.ts         # Fighter stub
-    │       │   ├── gym.ts             # Gym stub
+    │       │   ├── gym.ts             # Gym stub — id, name, cityId, nationId, isPlayerGym
+    │       │   ├── coach.ts           # Coach stub — CoachStyle + Coach; quality 1-20
+    │       │   ├── manager.ts         # Manager stub — id, name, reputation, nationality
+    │       │   ├── clause.ts          # Clause stub — type, details, expiresYear, expiresWeek
     │       │   ├── location.ts        # Location stub
     │       │   ├── event.ts           # GameEvent stub
     │       │   ├── bout.ts            # Bout stub

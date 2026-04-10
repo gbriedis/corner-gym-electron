@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "description": "Coach style dimensions. Every coach has an emphasis, methodology, and communication style. These interact with fighter soul traits via the compatibilityMatrix in attribute-accumulation.json to produce training gain multipliers. Coach style also shapes gym identity over time — changing head coach gradually shifts what the gym produces."
+  },
+  "emphasisTypes": [
+    { "id": "technical",   "label": "Technical",   "description": "Prioritises technique, precision, defence. Produces boxers." },
+    { "id": "pressure",    "label": "Pressure",    "description": "Prioritises output, aggression, forward movement. Produces pressure fighters." },
+    { "id": "physical",    "label": "Physical",    "description": "Prioritises conditioning, strength, durability. Produces physically dominant fighters." },
+    { "id": "defensive",   "label": "Defensive",   "description": "Prioritises avoiding shots, counter punching, ring generalship. Produces defensive specialists." },
+    { "id": "balanced",    "label": "Balanced",    "description": "No strong emphasis. Develops fighters more broadly. Lower ceiling in any one area." }
+  ],
+  "methodologyTypes": [
+    { "id": "disciplined", "label": "Disciplined", "description": "Strict, structured sessions. Same drills, same patterns, high repetition. Works well with disciplined fighters." },
+    { "id": "freestyle",   "label": "Freestyle",   "description": "Adaptive, responsive sessions. Drills change based on what the fighter needs that day. Works well with reckless fighters." },
+    { "id": "structured",  "label": "Structured",  "description": "Planned but flexible. Between disciplined and freestyle. Works with most fighters." }
+  ],
+  "communicationTypes": [
+    { "id": "demanding",   "label": "Demanding",   "description": "High expectations, direct feedback, no tolerance for excuses. Can break fragile fighters, elevates determined ones." },
+    { "id": "supportive",  "label": "Supportive",  "description": "Encouragement-led, builds confidence, focuses on positives. Essential for fragile fighters, occasionally too soft for arrogant ones." },
+    { "id": "detached",    "label": "Detached",    "description": "Professional, minimal personal engagement. Lets fighters find their own way within the structure. Works for paranoid fighters who don't want to be crowded." }
+  ]
+}

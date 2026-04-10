@@ -16,3 +16,8 @@ export type {
   CircuitRules,
   RulesData,
 } from './competition.js'
+
+export type { Gym } from './gym.js'
+export type { CoachStyle, Coach } from './coach.js'
+export type { Manager } from './manager.js'
+export type { Clause } from './clause.js'
