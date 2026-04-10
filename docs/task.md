@@ -1,480 +1,283 @@
 # Current Task
 
-## Task: advanceWeek + World Backrun
+## Task: Dev Mode Dashboard
 
 ### What To Build
-A working `advanceWeek()` function and the world backrun engine that calls it 520 times to generate 10 years of boxing history before the player arrives. After this session the game has a real world to drop the player into.
+A developer dashboard accessible via Ctrl+Shift+D or route /dev. Not visible in normal play. Shows the generated world state so we can verify the simulation is producing realistic results. This is a diagnostic tool — not a game feature.
 
 ### Skill To Load
-`.claude/skills/engine/SKILL.md`
+`.claude/skills/public/frontend-design/SKILL.md`
 `.claude/skills/new-feature/SKILL.md`
 
 ---
 
-## Architecture
+## Layout
 
-```
-backrun(worldState, persons, fighters, gyms, coaches, calendar, data, rng)
-  → calls advanceWeek() 520 times
-  → returns populated world with 10 years of history
+Full screen overlay. Dark background. Fixed header with "DEV MODE" in amber, current save info, and a close button (Escape also closes).
 
-advanceWeek(state, data, rng)
-  → weeklyTick (decay, finances, inactivity)
-  → identityTick (fighter identity state transitions)
-  → eventTick (resolve events scheduled this week)
-  → returns updated state
-```
+Left sidebar — navigation between sections:
+- World Overview
+- Fighter Browser
+- Attribute Distributions
+- Bout Log
+- Gym Financials
+- Regenerate
 
-All simulation in memory. SQLite writes happen in batches at the end of each simulated year — not every week. This keeps the backrun fast.
+Main content area renders the selected section.
 
----
+Keyboard shortcut: Ctrl+Shift+D toggles the panel open/closed from anywhere in the game. Only works when a save is loaded.
 
-## Part 1 — Weekly Tick Types
-
-**`packages/engine/src/types/advanceWeek.ts`**
-
-```typescript
-// Types for the weekly simulation tick.
-// AdvanceWeekState is the full in-memory world state during simulation.
-// Passed into advanceWeek(), mutated, returned.
-// Never stored to SQLite mid-simulation — only written in year-end batches.
-
-export interface AdvanceWeekState {
-  year: number
-  week: number                    // 1-52
-  worldState: WorldState
-  persons: Map<string, Person>
-  fighters: Map<string, Fighter>
-  gyms: Map<string, Gym>
-  coaches: Map<string, Coach>
-  calendar: CalendarEvent[]
-  // Accumulated changes since last SQLite write
-  pendingBoutResults: BoutResolutionResult[]
-  pendingAttributeEvents: Map<string, AttributeHistoryEvent[]>  // fighterId → events
-  pendingFighterUpdates: Set<string>   // fighter ids that need SQLite update
-  pendingGymUpdates: Set<string>
-}
-
-export interface AdvanceWeekResult {
-  state: AdvanceWeekState
-  eventsProcessed: number
-  boutsResolved: number
-  identityTransitions: number
-}
-
-export interface BackrunProgress {
-  year: number
-  boutsSimulated: number
-  identityTransitions: number
-  message: string
-}
-```
-
-Add to `src/types/index.ts`.
+Route: `/dev` also opens it directly.
 
 ---
 
-## Part 2 — Coach Entry Decision
+## Section 1 — World Overview
 
-**`packages/engine/src/engine/coachEntryDecision.ts`**
+Summary of what the backrun produced. At a glance health check.
 
-```typescript
-// coachEntryDecision determines whether a coach enters a fighter
-// into a specific event. Used by the backrun and eventually by
-// live play when the player delegates decisions.
-//
-// For the backrun, this is intentionally simple — the full coaching
-// AI that live play uses will build on this foundation.
-//
-// Decision factors:
-// - Fighter readiness threshold (coach quality affects threshold)
-// - Fighter competition status (unregistered fighters cannot enter)
-// - Inactivity (fighters idle too long need conditioning first)
-// - Event circuit level vs fighter development level (a coach
-//   doesn't enter a raw beginner in the national championship)
+Display:
+```
+WORLD OVERVIEW
+Generated: Latvia + USA  ·  Seed: 4829201  ·  Backrun: 2016–2026
 
-export function coachShouldEnterFighter(
-  fighter: Fighter,
-  event: CalendarEvent,
-  coach: Coach | null,
-  data: GameData
-): boolean
+LATVIA                          USA
+8 cities                        20 cities
+24 gyms                         180 gyms
+312 persons                     2,847 persons
+187 fighters                    1,923 fighters
+89 competing                    901 competing
+34 retired                      412 retired
+523 bouts resolved              5,241 bouts resolved
+12 national champions           87 national champions
+
+PRO ECOSYSTEM
+Latvia: Level 1 — Emerging Scene (reached 2024)
+USA: Level 4 — Boxing Nation
+
+WEIGHT CLASS DISTRIBUTION
+[horizontal bar per weight class showing fighter count]
+Flyweight ████░░░░░░ 23
+...
+Heavyweight ████████░░ 47
 ```
 
-### Decision rules:
-
-```
-// Unregistered fighters cannot compete in any official event
-if fighter.competition.status === 'unregistered' → false
-
-// Fighter must be in aspiring or competing identity state
-if fighter.fighterIdentity.state not in ['aspiring', 'competing'] → false
-
-// Inactivity check — fighters who haven't trained recently aren't ready
-if fighter.career.lastBoutYear !== null:
-  weeksSinceLastBout = calculateWeeksSince(fighter.career.lastBoutYear, fighter.career.lastBoutWeek, state.year, state.week)
-  if weeksSinceLastBout > 104 → false  // 2 years inactive, skip
-
-// Readiness threshold — varies by coach quality
-// Poor coach (quality 1-5): enters fighters at readiness >= 30 (desperate for experience)
-// Average coach (quality 6-10): enters fighters at readiness >= 45
-// Good coach (quality 11-15): enters fighters at readiness >= 55
-// Elite coach (quality 16-20): enters fighters at readiness >= 65
-// No coach: threshold is 35 (gym member filling role or no coach)
-const threshold = coachReadinessThreshold(coach)
-if fighter.career.readiness < threshold → false
-
-// Circuit level appropriateness
-// club_card: any fighter above threshold
-// regional_tournament: fighter must have at least 1 amateur bout
-// national_championship: fighter must have at least 3 amateur bouts
-// Beyond national: fighter must have won at regional level
-const minimumBouts = minimumBoutsForCircuit(event.circuitLevel)
-if totalAmateurBouts(fighter) < minimumBouts → false
-
-return true
-```
+All data read from SQLite via IPC. One query per nation.
 
 ---
 
-## Part 3 — Weekly Tick Functions
+## Section 2 — Fighter Browser
 
-**`packages/engine/src/engine/weeklyTick.ts`**
+Browse all generated fighters. Filter and inspect.
 
-```typescript
-// weeklyTick handles all non-event updates that happen every week:
-// equipment decay, gym finances, fighter inactivity tracking,
-// attribute regression for inactive fighters.
-//
-// These run regardless of whether there are events this week.
-// Keeps the world alive between fights.
+**Controls:**
+- Nation filter: Latvia / USA / All
+- City filter: dropdown of cities
+- Identity state filter: all / competing / aspiring / retired / unaware
+- Weight class filter
+- Sort: by record (wins desc), by readiness, by age, by attribute total
 
-export function runWeeklyTick(state: AdvanceWeekState, data: GameData, rng: RNG): void
+**Fighter list** — compact rows:
+```
+[Identity badge] Name              City          Record    Age  Weight Class
+[COMPETING]      Jānis Bērziņš     Valmiera      8-2       24   Lightweight
+[RETIRED]        Darius Thompson   Detroit       23-4      38   Welterweight
 ```
 
-### What it does:
+Clicking a row opens the fighter detail panel.
 
-**Equipment decay:**
-```typescript
-// For each gym, for each equipment item:
-// item.condition -= equipmentType.conditionDecayPerWeek
-// clamp to minimum 0
-// if condition drops below 20 — flag for maintenance (surfaces as inbox event in live play)
-// For backrun: just decay, no inbox events
-```
-
-**Gym finances:**
-```typescript
-// Weekly income = (memberCount × monthlyMembershipFee) / 4
-// Weekly outgoings = (monthlyRent + totalStaffWages) / 4
-// gym.finances.balance += income - outgoings
-// Update gym.finances.lastUpdatedYear/Week
-// Track in revenueHistory — one record per month (every 4 weeks)
-```
-
-**Fighter inactivity:**
-```typescript
-// For each fighter in competing or aspiring state:
-// If lastBoutYear is null or weeks since last bout > inactivityThreshold:
-//   apply regression rates from attribute-accumulation.json
-//   rate depends on competition.status (amateur/pro)
-// Update pendingAttributeEvents and pendingFighterUpdates
-```
-
-**Age advancement:**
-```typescript
-// Every 52 weeks: increment person.age for all persons
-// Check physical genetic regression for fighters over 32
-// Apply age regression rates from attribute-accumulation.json physicalGeneticRegression
-```
+**Fighter detail panel** (right side, 40% width):
+- Full name, age, nation, city, gym
+- Identity state + how long in current state
+- Weight class, competition status, record (W-L-KO)
+- Soul traits — ALL revealed, no ocean rule in dev mode. Show all 8 pairs with which side this fighter has.
+- Developed attributes — full table, all 22 attributes with current value and ceiling
+- Physical attributes — power, hand speed, chin etc with current value
+- Style: tendency + strength percentage
+- Coach quality if assigned
+- Last 5 bouts from bout log — opponent, result, method, round
 
 ---
 
-## Part 4 — Identity Tick
+## Section 3 — Attribute Distributions
 
-**`packages/engine/src/engine/identityTick.ts`**
+Bell curve visualisation for each attribute across the full fighter population.
 
-```typescript
-// identityTick advances fighter identity states each week.
-// Not every fighter transitions every week — probabilities are low.
-// But over 10 years small probabilities produce a realistic distribution
-// of fighters at different stages.
-//
-// Transitions:
-// unaware → curious: low probability, triggered by witnessing gym activity
-// curious → aspiring: medium probability, triggered by time + soul traits
-// aspiring → competing: requires registration + coach decision + readiness
-// competing → retired: triggered by age, health, or repeated losses
+**Controls:**
+- Nation filter
+- Attribute selector — dropdown of all 22 attributes
+- Filter by: all fighters / competing only / by weight class
 
-export function runIdentityTick(state: AdvanceWeekState, data: GameData, rng: RNG): number
-// returns count of transitions this week
+**Chart:**
+Histogram showing distribution of current values for selected attribute.
+X axis: 1-20
+Y axis: fighter count
+Bar chart, amber bars, clean minimal style.
+
+Below the chart:
+```
+POWER — All Latvia fighters (187)
+Mean: 8.3  ·  Median: 8  ·  Min: 2  ·  Max: 16  ·  Std Dev: 2.4
 ```
 
-### Transition probabilities:
-
-```typescript
-// unaware → curious
-// Base probability: 0.5% per week (about 25% chance per year)
-// Multipliers:
-//   hungry soul trait: × 2.0
-//   reason_for_boxing is way_out or prove_something: × 1.5
-//   gym has fighters with winning records: × 1.3
-//   content soul trait: × 0.3
-const unawareToCuriousProb = 0.005 × traitMultiplier × gymMultiplier
-
-// curious → aspiring
-// Base probability: 1% per week
-// Multipliers:
-//   hungry: × 2.0
-//   years training > 1: × 1.5
-//   witnessed a bout at their gym: × 1.8 (check if gym has fighters with bouts)
-//   brave: × 1.3
-//   craven: × 0.5
-const curiousToAspiringProb = 0.01 × multipliers
-
-// aspiring → competing (registration)
-// Requires: readiness >= 40, coach decides to enter them in an event
-// Not a probability — happens when coachShouldEnterFighter returns true
-// and the fighter successfully enters an event
-
-// competing → retired
-// Age >= 38: base 5% per week
-// Age >= 35 AND health heavily damaged: 3% per week
-// 3 consecutive losses: 1% per week
-// Voluntary: soul trait content + no title ambitions + age >= 32: 0.5% per week
-```
+Show distributions for multiple attributes simultaneously if useful — maybe a 2×2 grid of the four most important: power, chin, ring_iq, heart.
 
 ---
 
-## Part 5 — Event Tick
+## Section 4 — Bout Log
 
-**`packages/engine/src/engine/eventTick.ts`**
+The last 200 bouts resolved during the backrun, most recent first.
 
-```typescript
-// eventTick checks the calendar for events this week and resolves them.
-// For the backrun, all event resolution is statistical — no exchange logs.
-// Uses coachShouldEnterFighter to populate events with real fighters.
-// Uses resolveBout for all bout outcomes.
-
-export function runEventTick(state: AdvanceWeekState, data: GameData, rng: RNG): number
-// returns count of bouts resolved this week
+**Each row:**
+```
+[Date]        [Circuit]      Fighter A vs Fighter B          Result
+2025 W34      Regional       J. Bērziņš vs K. Ozols          W KO R2
+2025 W34      Club Card      D. Thompson vs M. Garcia         W Dec
 ```
 
-### Event resolution flow:
+**Filters:**
+- Nation
+- Circuit level
+- Method (KO/TKO/Decision/Split)
+- Year range
 
-**Club card:**
-```typescript
-// 1. Find all fighters in gyms within this city that pass coachShouldEnterFighter
-// 2. Group by weight class
-// 3. Match fighters in each weight class — pair by similar record/readiness
-// 4. For each matched pair: resolveBout()
-// 5. Update fighter records, apply attribute events
-// 6. Update gym reputation: +1 local rep per win, +3 per dominant win
-// 7. Mark first-time competitors as status 'amateur', update competition.status
-// 8. Register fighters with sanctioning body if not already registered
+**Summary stats below the list:**
+```
+BOUT LOG SUMMARY (Last 200 bouts)
+KO/TKO: 34%  ·  Decision: 58%  ·  Split/Majority: 21% of decisions
+Average end round: 4.2  ·  Average scheduled rounds: 6.0
 ```
 
-**Regional tournament:**
-```typescript
-// 1. Collect entrants from all cities in the region
-// 2. Group by weight class, generateBracket per weight class
-// 3. Resolve bracket round by round using resolveBout()
-// 4. Award medals to gold/silver/bronze
-// 5. Update amateur rankings for this sanctioning body
-// 6. Apply attribute events — tournament fights give more than single bouts
-```
-
-**National championship:**
-```typescript
-// Same as regional but:
-// - Entrants from all cities in the nation
-// - Only fighters who have competed at regional level
-// - Title awarded to gold medallist per weight class
-// - Significant reputation boost for gym
-// - Fighter identity check: national champion may have ambitions elevated
-```
-
-**Pro card (when ecosystem level >= 1):**
-```typescript
-// 1. Check if any Latvian promoter has generated a card this week
-// 2. Promoter AI: match fighters by ranking and record similarity
-// 3. resolveBout() for each bout
-// 4. Update pro records, rankings
-// 5. Check pro ecosystem thresholds
-```
+These percentages reveal if the simulation feels like boxing. Real boxing has roughly 35-40% stoppages at amateur level, more at pro level. If we're seeing 80% KOs something is wrong with the damage calculation.
 
 ---
 
-## Part 6 — advanceWeek Orchestrator
+## Section 5 — Gym Financials
 
-**`packages/engine/src/engine/advanceWeek.ts`**
+Pick a gym, see its financial history over the backrun.
 
-Replace the stub with full implementation:
+**Gym selector** — searchable dropdown of all gyms with city.
 
-```typescript
-// advanceWeek is the single tick of the simulation.
-// Called 520 times by the backrun to generate 10 years of history.
-// Called once per in-game week during live play.
-//
-// Order matters:
-// 1. weeklyTick — decay, finances, inactivity (always runs)
-// 2. identityTick — state transitions (always runs)
-// 3. eventTick — event resolution (only if events scheduled this week)
-//
-// For the backrun: no inbox events, no moments, no player notifications.
-// For live play: advanceWeek will eventually surface results to the inbox.
-// The flag isBackrun suppresses all player-facing outputs.
+**Display:**
+```
+RĪGAS BOKSA KLUBS  ·  Riga, Latvia  ·  Competition Gym
 
-export function advanceWeek(
-  state: AdvanceWeekState,
-  data: GameData,
-  rng: RNG,
-  isBackrun: boolean = false
-): AdvanceWeekResult
+CURRENT STATE
+Balance: €4,230  ·  Monthly rent: €680  ·  Members: 34  ·  Fighters: 18
+
+FINANCIAL HISTORY
+[Line chart — balance over 10 years, one point per month]
+
+LOW POINTS
+2019 W23: Balance dropped to €-340 (rent + staff exceeded membership income)
+2021 W14: Balance dropped to €120
+
+EQUIPMENT STATE
+boxing_ring       ████████░░  78% condition
+heavy_bag (×4)    ██████░░░░  61% condition avg
+speed_bag         ████░░░░░░  42% condition
 ```
 
-Week/year advancement:
-```typescript
-// After running all ticks:
-state.week += 1
-if state.week > 52:
-  state.week = 1
-  state.year += 1
-  // Year-end batch write to SQLite (backrun only)
-  // Age advancement for all persons
-```
+Line chart: x axis = years 2016-2026, y axis = balance in euros. Simple, readable. Shows whether the financial simulation produced realistic gym economics.
 
 ---
 
-## Part 7 — Backrun Engine
+## Section 6 — Regenerate
 
-**`packages/engine/src/generation/backrun.ts`**
+Simple utility section.
 
-```typescript
-// backrun simulates 10 years of boxing history before the player arrives.
-// Calls advanceWeek() 520 times starting from (startYear - 10).
-// All simulation in memory — SQLite writes in year-end batches.
-//
-// The same advanceWeek() used here is used during live play.
-// The only difference is isBackrun=true suppresses player-facing outputs.
-//
-// Progress callback allows the loading screen to show meaningful updates.
-// "Year 2018 — 47 bouts simulated, 12 identity transitions"
+```
+REGENERATE WORLD
 
-export async function runBackrun(
-  worldState: WorldState,
-  persons: Person[],
-  fighters: Fighter[],
-  gyms: Gym[],
-  coaches: Coach[],
-  calendar: CalendarEvent[],
-  data: GameData,
-  config: GameConfig,
-  db: Database,
-  onProgress?: (progress: BackrunProgress) => void
-): Promise<AdvanceWeekState>
+Current seed: 4829201
+New seed: [input field]  [Random]
+
+Include nations:
+☑ Latvia
+☑ USA
+
+[REGENERATE WITH NEW SEED]
+
+Warning: This will wipe the current save and regenerate everything.
+Backrun will run again. Takes ~10 seconds.
 ```
 
-### Backrun flow:
-
-```typescript
-// 1. Build AdvanceWeekState from generated world
-// 2. Set year = config.startYear - 10, week = 1
-// 3. for each of 520 weeks:
-//    a. advanceWeek(state, data, rng, isBackrun=true)
-//    b. if week === 52: batchWriteToSQLite(state, db, saveId)
-//    c. onProgress({ year, boutsSimulated, message })
-// 4. Final batch write of remaining pending changes
-// 5. Return final state
-```
-
-### Batch write:
-```typescript
-// batchWriteToSQLite writes all pending changes accumulated over the year.
-// Clears pending sets after writing.
-// Write order: persons → fighters → gyms → coaches → bouts → calendar events
-// Use SQLite transactions for each batch — all or nothing per year.
-function batchWriteToSQLite(state: AdvanceWeekState, db: Database, saveId: string): void
-```
+Clicking regenerate triggers the full generate-and-save flow with the new seed. Loading screen shows. Returns to dev mode when complete.
 
 ---
 
-## Part 8 — Wire Into IPC
+## IPC Requirements
 
-**Update `packages/desktop/src/ipc.ts`**
-
-Update `generate-and-save` handler to run backrun after world generation:
+New IPC endpoints needed:
 
 ```typescript
-// generate-and-save flow:
-// 1. loadGameData()
-// 2. generateWorld(config, data) → worldState, persons, fighters, gyms, coaches, calendar
-// 3. Save initial world to SQLite
-// 4. runBackrun(..., onProgress: send progress to renderer via IPC)
-// 5. Save final backrun state to SQLite
-// 6. Return saveId to renderer
+// Returns world summary stats for all included nations
+'dev-world-summary' → WorldSummary
 
-// Progress IPC: emit 'backrun-progress' event with BackrunProgress data
-// Loading screen listens for this and updates the progress bar
+// Returns paginated fighter list with filters
+'dev-fighter-list' → { fighters: FighterListItem[], total: number }
+
+// Returns full fighter detail including all soul traits revealed
+'dev-fighter-detail' → FighterDevDetail
+
+// Returns attribute distribution for a specific attribute
+'dev-attribute-distribution' → { attribute: string; distribution: number[]; stats: DistributionStats }
+
+// Returns last N bouts with filters
+'dev-bout-log' → { bouts: BoutLogEntry[]; summary: BoutLogSummary }
+
+// Returns gym financial history
+'dev-gym-financials' → GymFinancialDetail
 ```
 
-**Update `packages/ui/src/screens/Loading.tsx`**
-
-Listen for `backrun-progress` IPC events. Display:
-```
-Generating world history...
-Year 2018 · 47 bouts simulated
-████████████░░░░░░░░  60%
-```
-
-Show year, bouts simulated this year, overall progress percentage.
+All endpoints require a `saveId` parameter. Return empty/null gracefully if no save loaded.
 
 ---
 
-## Part 9 — Tests
+## Routing
 
-**`packages/engine/src/engine/advanceWeek.test.ts`**
+**Update `packages/ui/src/App.tsx`**
 
-Tests:
-- Week advances correctly — week 52 rolls to week 1 of next year
-- Equipment condition decays each week
-- Gym finances update each week — balance reflects income minus outgoings
-- Fighter in inactive state past threshold shows attribute regression events
-- Identity transition: unaware fighter can become curious over time
-- Club card event resolves bouts between matched fighters
-- Fighter records update after bout resolution
-- coachShouldEnterFighter returns false for unregistered fighter
-- coachShouldEnterFighter returns false for fighter below readiness threshold
-- coachShouldEnterFighter returns true for ready competing fighter
-- Backrun produces fighters with non-zero bout records after 520 weeks
-- Backrun is deterministic — same seed produces same history
+Add `/dev` route → `DevDashboard` component.
+
+Add global keyboard listener for Ctrl+Shift+D — navigates to `/dev` if save is loaded, does nothing otherwise.
+
+---
+
+## Design Notes
+
+This is a tool, not a game screen. Design accordingly:
+
+- Dense information is fine — this is for the developer, not a player
+- Monospace text everywhere — Inconsolata suits this perfectly
+- Amber accents for important numbers and labels
+- No animations except the loading states
+- Tables and lists over cards — data density matters here
+- The "DEV MODE" label in the header should be clearly amber and visible — this should never be confused with a game screen
 
 ---
 
 ### Definition Of Done
-- [ ] `src/types/advanceWeek.ts` — all types, exported
-- [ ] `src/engine/coachEntryDecision.ts` — coachShouldEnterFighter with all rules
-- [ ] `src/engine/weeklyTick.ts` — decay, finances, inactivity, age
-- [ ] `src/engine/identityTick.ts` — all four transitions
-- [ ] `src/engine/eventTick.ts` — club card, regional, national, pro card
-- [ ] `src/engine/advanceWeek.ts` — full implementation replacing stub
-- [ ] `src/generation/backrun.ts` — 520 weeks, batch writes, progress callback
-- [ ] IPC updated — backrun runs after world generation, progress events emitted
-- [ ] Loading screen updated — shows backrun progress with year and bout count
-- [ ] `src/engine/advanceWeek.test.ts` — all listed tests passing
+- [ ] Ctrl+Shift+D opens dev dashboard from anywhere in the game
+- [ ] `/dev` route works
+- [ ] World Overview — nation stats, pro ecosystem state, weight class distribution
+- [ ] Fighter Browser — filterable list, full detail panel with all traits revealed
+- [ ] Attribute Distributions — histogram per attribute with stats
+- [ ] Bout Log — last 200 bouts with filters and summary percentages
+- [ ] Gym Financials — balance history chart, equipment state
+- [ ] Regenerate — new seed, nation selection, triggers full regenerate
+- [ ] All 6 IPC endpoints implemented in ipc.ts and db.ts
+- [ ] Dev dashboard only accessible when save is loaded
+- [ ] `pnpm dev` — dashboard opens, shows real data from backrun
 - [ ] `pnpm typecheck` clean
-- [ ] `pnpm test` passing — all 165 existing tests still pass
 - [ ] `docs/structure.md` updated
 - [ ] `bash .claude/hooks/stop.sh` passes
-- [ ] Committed: `feat: advanceWeek + world backrun`
+- [ ] Committed: `feat: dev mode dashboard`
 
 ### Notes
-- Read engine skill fully before writing any code
-- isBackrun=true suppresses all player-facing outputs — no inbox, no moments
-- All simulation in memory — never hit SQLite during the weekly tick loop
-- Batch writes in year-end transactions — all or nothing per year
-- coachShouldEnterFighter is intentionally simple — this is the backrun version
-- Week 52 → year rollover must also advance all person ages
-- Progress callback must be called after each year with accurate bout count
-- resolveBout is already deterministic — backrun determinism comes from consistent RNG usage
-- The same advanceWeek used in backrun is used in live play — isBackrun flag is the only difference
+- Read frontend-design skill before writing any UI code
+- Dense information is correct here — this is a diagnostic tool
+- All soul traits revealed in dev mode — ocean rule does not apply
+- Bout log percentages are the most important health check — ~35% stoppages is realistic for amateur boxing
+- Financial history chart needs real data from revenueHistory on gym records
+- Regenerate must go through the full generate-and-save IPC flow — not a shortcut
+- If no save is loaded, dev dashboard shows "No save loaded — start a new game first"
