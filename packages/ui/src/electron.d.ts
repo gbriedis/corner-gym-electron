@@ -82,6 +82,9 @@ export interface NationDevSummary {
   gymCount: number
   fighterCount: number
   competingCount: number
+  aspiringCount: number
+  curiousCount: number
+  unawareCount: number
   retiredCount: number
   boutCount: number
 }

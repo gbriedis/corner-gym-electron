@@ -16,6 +16,9 @@ export interface NationDevSummary {
   gymCount: number
   fighterCount: number
   competingCount: number
+  aspiringCount: number
+  curiousCount: number
+  unawareCount: number
   retiredCount: number
   boutCount: number
 }
@@ -272,14 +275,20 @@ export function getDevWorldSummary(
 
   const nationSummaries: NationDevSummary[] = renderedNations.map(nationId => {
     const nf = allFighters.filter(f => f.nationId === nationId)
+    // boutTotals sums wins+losses per fighter — each bout appears in both fighters' records,
+    // so divide by 2 to get actual bout count.
+    const rawBoutTotal = boutTotals.get(nationId) ?? 0
     return {
       nationId,
       personCount: personCounts.get(nationId) ?? 0,
       gymCount: gymCounts.get(nationId) ?? 0,
       fighterCount: nf.length,
       competingCount: nf.filter(f => f.fighterIdentity.state === 'competing').length,
+      aspiringCount: nf.filter(f => f.fighterIdentity.state === 'aspiring').length,
+      curiousCount: nf.filter(f => f.fighterIdentity.state === 'curious').length,
+      unawareCount: nf.filter(f => f.fighterIdentity.state === 'unaware').length,
       retiredCount: nf.filter(f => f.fighterIdentity.state === 'retired').length,
-      boutCount: boutTotals.get(nationId) ?? 0,
+      boutCount: Math.round(rawBoutTotal / 2),
     }
   })
 
@@ -505,6 +514,9 @@ export function getDevAttributeDistribution(
   for (const row of rows) {
     const parsed = JSON.parse(row.data) as unknown
     if (!isFighter(parsed)) continue
+    // Only competing fighters — their attributes are what the bout simulation is
+    // calibrated against. Aspiring/unaware/retired would skew the distribution.
+    if (parsed.fighterIdentity.state !== 'competing') continue
 
     const attr = parsed.developedAttributes.find(a => a.attributeId === attributeId)
     if (attr !== undefined) {

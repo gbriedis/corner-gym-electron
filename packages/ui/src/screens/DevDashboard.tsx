@@ -253,11 +253,19 @@ function WorldOverview({ saveId }: { saveId: string }): JSX.Element {
               <div style={S.value}>{n.fighterCount.toLocaleString()}</div>
             </div>
             <div style={S.statBlock}>
-              <div style={S.label}>COMPETING / RETIRED</div>
-              <div style={S.value}>{n.competingCount} / {n.retiredCount}</div>
+              <div style={S.label}>COMPETING</div>
+              <div style={S.value}>{n.competingCount}</div>
             </div>
             <div style={S.statBlock}>
-              <div style={S.label}>BOUTS (amateur + pro)</div>
+              <div style={S.label}>ASPIRING / CURIOUS / UNAWARE</div>
+              <div style={S.value}>{n.aspiringCount} / {n.curiousCount} / {n.unawareCount}</div>
+            </div>
+            <div style={S.statBlock}>
+              <div style={S.label}>RETIRED</div>
+              <div style={S.value}>{n.retiredCount}</div>
+            </div>
+            <div style={S.statBlock}>
+              <div style={S.label}>BOUTS RESOLVED</div>
               <div style={S.value}>{n.boutCount.toLocaleString()}</div>
             </div>
           </div>
@@ -606,7 +614,7 @@ function AttributeDistributions({ saveId }: { saveId: string }): JSX.Element {
 
   return (
     <div>
-      <p style={S.sectionTitle}>ATTRIBUTE DISTRIBUTIONS</p>
+      <p style={S.sectionTitle}>ATTRIBUTE DISTRIBUTIONS — COMPETING FIGHTERS ONLY</p>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
         <select style={S.select} value={nationFilter} onChange={e => setNationFilter(e.target.value)}>
@@ -715,11 +723,11 @@ function BoutLog({ saveId }: { saveId: string }): JSX.Element {
               <span style={{ fontSize: '14px', color: 'var(--color-text-primary)' }}>{summary.avgScheduledRounds}</span>
             </div>
           </div>
-          {/* Health indicator */}
+          {/* Health indicator — target range is 25–40% per simulation calibration */}
           <p style={{ ...S.muted, fontSize: '10px', marginTop: '6px', borderTop: 'var(--border-subtle)', paddingTop: '6px' }}>
-            {koTkoPct >= 30 && koTkoPct <= 50
-              ? '✓ KO rate in healthy range (30–50%)'
-              : koTkoPct < 30
+            {koTkoPct >= 25 && koTkoPct <= 40
+              ? '✓ KO rate in healthy range (25–40%)'
+              : koTkoPct < 25
               ? '⚠ KO rate low — check damage calculation'
               : '⚠ KO rate high — check damage accumulation'}
           </p>
