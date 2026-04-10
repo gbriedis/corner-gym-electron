@@ -99,8 +99,8 @@
       "city": "usa-las-vegas",
       "country": "usa",
       "capacity": 17000,
-      "description": "The premier boxing venue in America. More world title fights have been staged here than at any other single venue in history. When something matters in professional boxing, it is usually happening at the MGM Grand. Amateur boxing at this level is the rare national championship event that warrants the Strip.",
-      "eligibleFor": ["national_championship", "golden_gloves"]
+      "description": "The spiritual home of world championship boxing. More world title fights have been staged here than at any other single venue in history — Floyd Mayweather Jr. vs Manny Pacquiao, Mike Tyson, Evander Holyfield, Oscar De La Hoya. When something matters in professional boxing it is usually happening at the MGM Grand. Amateur boxing at this level is the rare national championship event that warrants the Strip.",
+      "eligibleFor": ["national_championship", "golden_gloves", "world_championship"]
     },
     {
       "id": "madison_square_garden",
@@ -108,17 +108,18 @@
       "city": "usa-new-york",
       "country": "usa",
       "capacity": 20789,
-      "description": "The World's Most Famous Arena. Madison Square Garden has hosted championship boxing since 1879. Joe Louis, Sugar Ray Robinson, Willie Pep, Rocky Marciano, Muhammad Ali — they all fought here. The Golden Gloves New York finals have been held at MSG for decades. There is no building in American boxing with more history.",
-      "eligibleFor": ["national_championship", "golden_gloves"]
+      "description": "The most storied boxing arena in history. Madison Square Garden has hosted championship boxing since 1879 — Joe Louis, Sugar Ray Robinson, Willie Pep, Rocky Marciano, Muhammad Ali, Joe Frazier. The Golden Gloves New York finals have been held at MSG for decades. There is no building in American boxing with more history. The Mecca of Boxing.",
+      "eligibleFor": ["national_championship", "golden_gloves", "world_championship", "olympics"]
     },
     {
-      "id": "crypto_arena_los_angeles",
+      "id": "crypto_com_arena",
       "name": "Crypto.com Arena",
+      "formerName": "Staples Center",
       "city": "usa-los-angeles",
       "country": "usa",
-      "capacity": 20000,
-      "description": "The Staples Center by any other name. Los Angeles's major multipurpose arena has hosted Oscar De La Hoya title fights, Manny Pacquiao appearances, and numerous world championship events. The National Championship and Golden Gloves West Coast finals are staged here when the tournament rotates to Los Angeles.",
-      "eligibleFor": ["national_championship", "golden_gloves"]
+      "capacity": 19395,
+      "description": "Los Angeles's premier sports and entertainment arena, seating up to 19,395. Has hosted Oscar De La Hoya title fights, Manny Pacquiao appearances, and numerous world championship events. Scheduled to host boxing finals at the 2028 Summer Olympics. The National Championship and Golden Gloves West Coast finals are staged here when the tournament rotates to Los Angeles.",
+      "eligibleFor": ["national_championship", "golden_gloves", "world_championship", "olympics"]
     },
     {
       "id": "spectrum_center_philadelphia",
