@@ -4,7 +4,7 @@
 
 // Types — exported so desktop can use them for IPC typing
 export type { Person } from './types/person.js'
-export type { WorldState, GymState, CityState, NationState } from './types/worldState.js'
+export type { WorldState, CityState, NationState } from './types/worldState.js'
 export type { GameConfig, DifficultyModifiers, LeagueSettings, WorldSettings } from './types/gameConfig.js'
 export { resolveModifiers } from './types/gameConfig.js'
 export type { CalendarEvent, CalendarData, EventStatus } from './types/calendar.js'
@@ -20,6 +20,11 @@ export type {
 export type { Fighter } from './types/fighter.js'
 export { generateFighter } from './generation/fighter.js'
 export type { FighterGenerationOptions } from './generation/fighter.js'
+
+// Gym type and generation — exported for IPC typing and save persistence
+export type { Gym, GymTier, GymZone, GymZones, GymEquipmentItem, GymStaffMember, GymFinances, GymQuality, GymCulture, GymReputation } from './types/gym.js'
+export { generateGym, calculateGymQuality } from './generation/gym.js'
+export type { GymGenerationOptions } from './generation/gym.js'
 
 // Generation — exported so desktop can call generateWorld via IPC
 export { generateWorld } from './generation/world.js'

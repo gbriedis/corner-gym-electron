@@ -1,15 +1,7 @@
 // WorldState is the complete generated world. It is serialised to SQLite after generation
 // and deserialised when loading a save. All simulation functions receive WorldState.
 
-export interface GymState {
-  id: string
-  name: string
-  cityId: string
-  nationId: string
-  isPlayerGym: boolean
-  reputation: number  // 0-100
-  personIds: string[] // references persons in the save
-}
+import type { Gym } from './gym.js'
 
 export interface CityState {
   cityId: string
@@ -34,7 +26,9 @@ export interface WorldState {
   playerNationId: string
   nations: Record<string, NationState>
   cities: Record<string, CityState>
-  gyms: Record<string, GymState>
+  // Full Gym objects keyed by gym id — memberIds and fighterIds are arrays of person/fighter ids.
+  // Actual Person and Fighter records live in the SQLite persons table.
+  gyms: Record<string, Gym>
   // persons stored separately in SQLite persons table — not embedded here
   // rotationIndices tracks the current host-city rotation position for each
   // event template that uses hostCityRotation (keyed by templateId).

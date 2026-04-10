@@ -62,6 +62,7 @@
 |-------|------|
 | [x] | `packages/engine/src/generation/person.ts` |
 | [x] | `packages/engine/src/generation/world.ts` |
+| [x] | `packages/engine/src/generation/gym.ts` |
 | [x] | `packages/engine/src/generation/calendar.ts` |
 | [x] | `packages/engine/src/generation/bracket.ts` |
 | [x] | `packages/engine/src/generation/fighter.ts` |
@@ -124,6 +125,7 @@
 | State | File |
 |-------|------|
 | [x] | `packages/engine/data/nations/latvia/gym-starting-states.json` |
+| [x] | `packages/engine/data/nations/latvia/gym-names.json` |
 | [ ] | `packages/engine/data/gym/staff-roles/definitions.json` |
 
 ## Data — Moments
@@ -171,7 +173,7 @@
 | [x] | `packages/desktop/src/main.ts` |
 | [x] | `packages/desktop/src/preload.cts` |
 | [x] | `packages/desktop/src/ipc.ts` |
-| [x] | `packages/desktop/src/db.ts` — bouts, cards, tournament_brackets, multi_day_events tables + typed functions |
+| [x] | `packages/desktop/src/db.ts` — gyms, bouts, cards, tournament_brackets, multi_day_events tables + typed functions |
 
 ## UI — Assets & Styles
 | State | File |

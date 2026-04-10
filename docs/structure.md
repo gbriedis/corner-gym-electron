@@ -77,6 +77,7 @@ corner-gym/
     │   │   │       ├── economic-statuses.json
     │   │   │       ├── reasons-for-boxing.json
     │   │   │       ├── gym-starting-states.json  # 4 templates + city distribution for gym generation
+    │   │   │       ├── gym-names.json            # 50 full names + patterns for procedural rival gym naming
     │   │   │       ├── coach-voice/
     │   │   │       │   ├── attributes.json
     │   │   │       │   ├── physical-stats.json
@@ -144,8 +145,10 @@ corner-gym/
     │       ├── generation/
     │       │   ├── person.ts          # generatePerson — full Person from data + seed
     │       │   ├── person.test.ts     # 37 tests
-    │       │   ├── world.ts           # generateWorld — WorldState + Person[] + CalendarEvent[]
-    │       │   ├── world.test.ts      # 16 tests
+    │       │   ├── world.ts           # generateWorld — WorldState + Person[] + Fighter[] + Gym[] + CalendarEvent[]
+    │       │   ├── world.test.ts      # 27 tests — determinism, persons, gyms, fighters, distribution, free agents
+    │       │   ├── gym.ts             # generateGym + calculateGymQuality — full Gym from template + city data
+    │       │   ├── gym.test.ts        # 17 tests — player gym, finances, equipment, quality, determinism, deduplication
     │       │   ├── calendar.ts        # generateCalendar — CalendarEvent[] from templates + world state
     │       │   ├── calendar.test.ts   # 12 tests — November constraint, Olympic gating, collision, determinism
     │       │   ├── bracket.ts         # generateBracket — empty TournamentBracket from entrant list + days structure
@@ -163,7 +166,7 @@ corner-gym/
     │       ├── main.ts                # BrowserWindow creation, opens DB, wires IPC
     │       ├── preload.cts            # contextBridge — exposes electronAPI to renderer (CJS forced via .cts)
     │       ├── ipc.ts                 # IPC handlers: get-upcoming-events, get-all-events
-    │       └── db.ts                  # SQLite layer — + calendar_events table, saveCalendar, loadCalendar, getUpcomingEvents, updateEventStatus
+    │       └── db.ts                  # SQLite layer — gyms table, saveGyms, loadGyms, getPlayerGym, getGymsByCity + calendar + bouts + brackets
     │
     └── ui/                            # React renderer
         ├── package.json               # @corner-gym/ui — depends on engine + zustand

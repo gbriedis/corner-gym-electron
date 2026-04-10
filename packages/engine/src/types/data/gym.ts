@@ -1,5 +1,15 @@
 import type { Meta } from './meta.js'
 
+export interface GymNamesData {
+  meta: Meta
+  patterns: {
+    cityPrefix: string[]
+    suffixes: string[]
+    standalone: string[]
+  }
+  fullNames: string[]
+}
+
 export interface GymStartingTemplate {
   id: string
   label: string

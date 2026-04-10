@@ -11,7 +11,7 @@ import { randomUUID } from 'crypto'
 import { join } from 'path'
 import { app } from 'electron'
 
-import type { WorldState, Person, GameConfig } from '@corner-gym/engine'
+import type { WorldState, Person, GameConfig, Gym } from '@corner-gym/engine'
 import type { CalendarEvent, EventStatus } from '@corner-gym/engine'
 import type { Bout, BoutResult, Card, TournamentBracket, MultiDayEvent } from '@corner-gym/engine'
 
@@ -147,6 +147,17 @@ export function openDb(): Database.Database {
       PRIMARY KEY (eventId, saveId),
       FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS gyms (
+      id TEXT NOT NULL,
+      saveId TEXT NOT NULL,
+      data TEXT NOT NULL,
+      cityId TEXT NOT NULL,
+      nationId TEXT NOT NULL,
+      isPlayerGym INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (id, saveId),
+      FOREIGN KEY (saveId) REFERENCES saves(id) ON DELETE CASCADE
+    );
   `)
 
   // Schema migrations — each ALTER TABLE is wrapped in try/catch so the operation
@@ -219,9 +230,9 @@ export function createSave(
     insertWorldState.run(saveId, JSON.stringify(stateWithSaveId))
 
     for (const person of persons) {
-      // gymId: find which gym this person belongs to by scanning gym personIds
+      // gymId: find which gym this person belongs to by scanning gym memberIds
       const gymEntry = Object.entries(stateWithSaveId.gyms).find(([, gym]) =>
-        gym.personIds.includes(person.id),
+        gym.memberIds.includes(person.id),
       )
       const gymId = gymEntry !== undefined ? gymEntry[0] : null
 
@@ -535,4 +546,54 @@ export function saveMultiDayEvent(
     INSERT OR REPLACE INTO multi_day_events (eventId, saveId, days)
     VALUES (?, ?, ?)
   `).run(event.eventId, saveId, JSON.stringify(event.days))
+}
+
+// saveGyms persists all generated gyms in a single transaction.
+// The full Gym object is stored as a JSON blob — cityId, nationId, and isPlayerGym
+// are promoted to columns so we can query by city or find the player gym without
+// deserialising every gym in the save.
+export function saveGyms(db: Database.Database, saveId: string, gyms: Gym[]): void {
+  const insert = db.prepare(`
+    INSERT INTO gyms (id, saveId, data, cityId, nationId, isPlayerGym)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `)
+
+  db.transaction(() => {
+    for (const gym of gyms) {
+      insert.run(
+        gym.id,
+        saveId,
+        JSON.stringify(gym),
+        gym.cityId,
+        gym.nationId,
+        gym.isPlayerGym ? 1 : 0,
+      )
+    }
+  })()
+}
+
+// loadGyms returns all gyms for a save, deserialising each from its JSON blob.
+export function loadGyms(db: Database.Database, saveId: string): Gym[] {
+  const rows = db
+    .prepare('SELECT data FROM gyms WHERE saveId = ?')
+    .all(saveId) as Array<{ data: string }>
+  return rows.map(r => JSON.parse(r.data) as Gym)
+}
+
+// getPlayerGym returns the single gym marked isPlayerGym for a given save.
+// Returns null if no player gym is found — should not happen in a valid save.
+export function getPlayerGym(db: Database.Database, saveId: string): Gym | null {
+  const row = db
+    .prepare('SELECT data FROM gyms WHERE saveId = ? AND isPlayerGym = 1')
+    .get(saveId) as { data: string } | undefined
+  return row !== undefined ? (JSON.parse(row.data) as Gym) : null
+}
+
+// getGymsByCity returns all gyms in a specific city for a given save.
+// Used when the simulation needs to interact with rival gyms in a particular location.
+export function getGymsByCity(db: Database.Database, saveId: string, cityId: string): Gym[] {
+  const rows = db
+    .prepare('SELECT data FROM gyms WHERE saveId = ? AND cityId = ?')
+    .all(saveId, cityId) as Array<{ data: string }>
+  return rows.map(r => JSON.parse(r.data) as Gym)
 }

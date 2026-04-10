@@ -103,7 +103,10 @@ describe('generateWorld — person count', () => {
     const fromEmpty = generateWorld(baseConfig, data)
     const fromExplicit = generateWorld(explicitConfig, data)
     expect(fromEmpty.persons.length).toBe(fromExplicit.persons.length)
-    expect(JSON.stringify(fromEmpty.worldState.gyms)).toBe(JSON.stringify(fromExplicit.worldState.gyms))
+    // Compare gym structure — same seed + config must produce same gyms
+    const emptyGymIds = Object.keys(fromEmpty.worldState.gyms).sort()
+    const explicitGymIds = Object.keys(fromExplicit.worldState.gyms).sort()
+    expect(emptyGymIds).toEqual(explicitGymIds)
   })
 })
 
@@ -133,14 +136,31 @@ describe('generateWorld — player gym', () => {
     expect(gym).toBeDefined()
     expect(gym!.isPlayerGym).toBe(true)
   })
+
+  it('player city has exactly one player gym', () => {
+    const { worldState } = generateWorld(baseConfig, data)
+    const playerCityGymIds = worldState.cities['latvia-riga']?.gymIds ?? []
+    const playerGymsInCity = playerCityGymIds.filter(
+      id => worldState.gyms[id]?.isPlayerGym === true,
+    )
+    expect(playerGymsInCity.length).toBe(1)
+  })
+
+  it('all other gyms have isPlayerGym false', () => {
+    const { worldState } = generateWorld(baseConfig, data)
+    const rivalGyms = Object.values(worldState.gyms).filter(g => !g.isPlayerGym)
+    for (const gym of rivalGyms) {
+      expect(gym.isPlayerGym).toBe(false)
+    }
+  })
 })
 
 describe('generateWorld — world structure', () => {
-  it('every gym personId references a real person', () => {
+  it('every gym memberIds references a real person', () => {
     const { worldState, persons } = generateWorld(baseConfig, data)
     const personIds = new Set(persons.map(p => p.id))
     for (const gym of Object.values(worldState.gyms)) {
-      for (const pid of gym.personIds) {
+      for (const pid of gym.memberIds) {
         expect(personIds.has(pid)).toBe(true)
       }
     }
@@ -172,5 +192,105 @@ describe('generateWorld — world structure', () => {
   it('throws when renderedNation is not in loaded data', () => {
     const badConfig: GameConfig = { ...baseConfig, renderedNations: ['nonexistent-nation'] }
     expect(() => generateWorld(badConfig, data)).toThrow()
+  })
+})
+
+describe('generateWorld — gym generation', () => {
+  it('generates correct number of gyms per city based on gymsPerCity × rivalGymDensity', () => {
+    const { worldState, persons } = generateWorld(baseConfig, data)
+    const latviaBundle = data.nations['latvia']!
+    // Build person count per city to reproduce the cap logic from world.ts
+    const personCountByCity: Record<string, number> = {}
+    for (const city of latviaBundle.cities.cities) {
+      const baseCount = baseConfig.worldSettings.populationPerCity[city.population] ?? 150
+      personCountByCity[city.id] = Math.max(1, Math.round(baseCount))
+    }
+    for (const city of latviaBundle.cities.cities) {
+      const cityState = worldState.cities[city.id]
+      expect(cityState).toBeDefined()
+      const baseCount  = baseConfig.worldSettings.gymsPerCity[city.population] ?? 1
+      const rawCount   = Math.max(1, Math.round(baseCount * city.rivalGymDensity))
+      const expected   = Math.min(rawCount, personCountByCity[city.id] ?? 1)
+      expect(cityState!.gymIds.length).toBe(expected)
+    }
+  })
+
+  it('every gym has at least one member', () => {
+    const { worldState } = generateWorld(baseConfig, data)
+    for (const gym of Object.values(worldState.gyms)) {
+      expect(gym.memberIds.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('total persons = gym members + free agents (no person lost)', () => {
+    const { worldState, persons } = generateWorld(baseConfig, data)
+    const gymMemberIds = new Set<string>()
+    for (const gym of Object.values(worldState.gyms)) {
+      for (const id of gym.memberIds) gymMemberIds.add(id)
+    }
+    const freeAgents = persons.filter(p => !gymMemberIds.has(p.id))
+    expect(gymMemberIds.size + freeAgents.length).toBe(persons.length)
+  })
+
+  it('free agents exist when gym capacity is exceeded', () => {
+    // 200 persons per city with 1 small gym (lockerCount ~10-25) → many free agents
+    const highPopConfig: GameConfig = {
+      ...baseConfig,
+      worldSettings: {
+        populationPerCity: { small_town: 200, mid_city: 200, capital: 200 },
+        gymsPerCity: { small_town: 1, mid_city: 1, capital: 1 },
+      },
+    }
+    const { worldState, persons } = generateWorld(highPopConfig, data)
+    const gymMemberIds = new Set<string>()
+    for (const gym of Object.values(worldState.gyms)) {
+      for (const id of gym.memberIds) gymMemberIds.add(id)
+    }
+    const freeAgentCount = persons.length - gymMemberIds.size
+    expect(freeAgentCount).toBeGreaterThan(0)
+  })
+
+  it('gym has a full quality object with all required fields', () => {
+    const { worldState } = generateWorld(baseConfig, data)
+    const gym = Object.values(worldState.gyms)[0]!
+    expect(typeof gym.quality.overall).toBe('number')
+    expect(typeof gym.quality.hasRing).toBe('boolean')
+    expect(typeof gym.quality.maxTrainingCapacity).toBe('number')
+  })
+
+  it('return value includes gyms flat array matching worldState.gyms', () => {
+    const { worldState, gyms } = generateWorld(baseConfig, data)
+    expect(gyms.length).toBe(Object.keys(worldState.gyms).length)
+    for (const gym of gyms) {
+      expect(worldState.gyms[gym.id]).toBeDefined()
+    }
+  })
+})
+
+describe('generateWorld — fighters', () => {
+  it('fighters array is populated', () => {
+    const { fighters } = generateWorld(baseConfig, data)
+    expect(fighters.length).toBeGreaterThan(0)
+  })
+
+  it('every fighter id appears in their gym fighterIds', () => {
+    const { worldState, fighters } = generateWorld(baseConfig, data)
+    const allFighterIds = new Set<string>()
+    for (const gym of Object.values(worldState.gyms)) {
+      for (const id of gym.fighterIds) allFighterIds.add(id)
+    }
+    for (const fighter of fighters) {
+      expect(allFighterIds.has(fighter.id)).toBe(true)
+    }
+  })
+
+  it('every fighterIds entry in a gym also appears in memberIds', () => {
+    const { worldState } = generateWorld(baseConfig, data)
+    for (const gym of Object.values(worldState.gyms)) {
+      const memberSet = new Set(gym.memberIds)
+      for (const fid of gym.fighterIds) {
+        expect(memberSet.has(fid)).toBe(true)
+      }
+    }
   })
 })

@@ -42,6 +42,7 @@ import type {
   AttributeAccumulationData,
   GymStartingStatesData,
   GymEquipmentTypesData,
+  GymNamesData,
 } from '../types/data/index.js'
 import type { RulesData } from '../types/competition.js'
 
@@ -90,6 +91,8 @@ export interface NationBundle {
     giftsAndFlaws: CoachVoiceGiftsFlawsData
   }
   gymStartingStates: GymStartingStatesData
+  // gymNames is undefined when the nation has no gym-names.json — engine falls back to patterns.
+  gymNames?: GymNamesData
   // boxing is undefined when the nation has no boxing/ folder — not an error.
   boxing?: NationBoxingData
 }
@@ -181,7 +184,15 @@ function loadNationBundle(nationsDir: string, folderName: string): NationBundle 
   }
 
   // Conditionally assign so exactOptionalPropertyTypes is satisfied —
-  // the field must be absent (not undefined) when boxing data does not exist.
+  // the field must be absent (not undefined) when the file does not exist.
+
+  // gym-names.json is optional — nations can be added without a name pool.
+  // Engine falls back to pattern-based generation when absent.
+  const gymNamesPath = join(base, 'gym-names.json')
+  if (existsSync(gymNamesPath)) {
+    bundle.gymNames = loadFile<GymNamesData>('gym-names.json')
+  }
+
   if (boxing !== undefined) {
     bundle.boxing = boxing
   }
