@@ -13,7 +13,7 @@ import type { GameConfig } from '@corner-gym/engine'
 
 import { loadGameData, generateWorld, runBackrun } from '@corner-gym/engine'
 import type { YearEndBatch } from '@corner-gym/engine'
-import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms, saveCoaches, updateFighter, updateGym, saveBoutResult } from './db.js'
+import { createSave, loadSave, listSaves, deleteSave, saveCalendar, getUpcomingEvents, loadCalendar, saveGyms, saveCoaches, insertFighter, updateFighter, updateGym, saveBoutResult } from './db.js'
 import {
   getDevWorldSummary, getDevFighterList, getDevFighterDetail,
   getDevAttributeDistribution, getDevBoutLog, getDevGymFinancials, getDevGymList,
@@ -30,7 +30,18 @@ function batchWriteBackrun(db: Database.Database, batch: YearEndBatch): void {
       saveBoutResult(db, batch.saveId, boutResult)
     }
 
+    // Insert pipeline fighters first — annualTick seeds new young fighters each year.
+    // These have never been INSERTed, so updateFighter (UPDATE) would silently drop them.
+    for (const fighterId of batch.pendingNewFighterIds) {
+      const fighter = batch.fighters.get(fighterId)
+      if (fighter !== undefined) {
+        insertFighter(db, batch.saveId, fighter)
+      }
+    }
+
     for (const fighterId of batch.pendingFighterUpdates) {
+      // Skip fighters that were just inserted — they already have current data.
+      if (batch.pendingNewFighterIds.has(fighterId)) continue
       const fighter = batch.fighters.get(fighterId)
       if (fighter !== undefined) {
         updateFighter(db, batch.saveId, fighter)
@@ -148,7 +159,9 @@ export function setupIpc(db: Database.Database, win: BrowserWindow): void {
     const { worldState, persons, fighters, gyms, coaches, calendar } = generateWorld(config, data)
 
     emit('Saving to database', 'Writing save file…', startMs)
-    const saveId = createSave(db, worldState, persons, config)
+    // generateWorld returns persons: [] — all entities are fighters. Pass fighters
+    // so the persons table is populated before the backrun begins.
+    const saveId = createSave(db, worldState, fighters, config)
     saveCalendar(db, saveId, calendar)
     saveGyms(db, saveId, gyms)
     saveCoaches(db, saveId, coaches)

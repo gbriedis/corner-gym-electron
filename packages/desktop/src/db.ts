@@ -652,6 +652,16 @@ export function getCoachesByGym(db: Database.Database, saveId: string, gymId: st
   return rows.map(r => JSON.parse(r.data) as Coach)
 }
 
+// insertFighter INSERTs a brand-new Fighter into the persons table.
+// Used for pipeline fighters seeded by annualTick — they never existed before
+// this backrun year so UPDATE would silently no-op.
+export function insertFighter(db: Database.Database, saveId: string, fighter: Fighter): void {
+  db.prepare(`
+    INSERT OR IGNORE INTO persons (id, saveId, data, cityId, gymId, nationId, age)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(fighter.id, saveId, JSON.stringify(fighter), fighter.cityId, fighter.career.currentGymId, fighter.nationId, fighter.age)
+}
+
 // updateFighter writes a changed Fighter back to the persons table.
 // Called at year-end during the backrun to persist only the fighters that
 // were modified — not the full roster on every write.
