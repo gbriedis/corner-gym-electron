@@ -10,6 +10,7 @@ export type CircuitLevel =
   | 'club_card'              // was club_tournament
   | 'regional_tournament'    // was regional_open
   | 'national_championship'
+  | 'golden_gloves'          // USA-specific prestige amateur tournament
   | 'baltic_championship'
   | 'european_championship'
   | 'world_championship'

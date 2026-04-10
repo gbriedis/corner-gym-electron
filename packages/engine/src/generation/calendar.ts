@@ -95,15 +95,15 @@ function buildVenueMap(data: GameData): Map<string, Venue> {
 }
 
 // pickVenue selects a venue from the template's venuePool filtered by circuit level
-// and city. If a city filter is provided, only venues in that city are eligible.
-// Throws a descriptive error if no venue is found — a missing venue is a data bug.
+// and city. Returns null if no eligible venue exists — callers skip the event rather
+// than crashing. A missing venue is a data gap but should not abort world generation.
 function pickVenue(
   template: EventTemplate,
   circuitLevel: CircuitLevel,
   cityShort: string | null,
   venueMap: Map<string, Venue>,
   rng: RNG,
-): Venue {
+): Venue | null {
   const pool = template.venuePool ?? []
   const eligible = pool
     .map(id => venueMap.get(id))
@@ -115,11 +115,7 @@ function pickVenue(
     })
 
   if (eligible.length === 0) {
-    const cityHint = cityShort !== null ? ` in city "${cityShort}"` : ''
-    throw new Error(
-      `No eligible venue found for template "${template.id}" (${circuitLevel})${cityHint}. ` +
-      `Check venuePool ids and eligibleFor fields in venues.json.`,
-    )
+    return null
   }
 
   return rng.pick(eligible)
@@ -353,6 +349,7 @@ function generateDomesticEvents(
         if (MAJOR_LEVELS.has(circuitLevel)) occupiedMajorWeeks.add(weekKey)
 
         const venue = pickVenue(template, circuitLevel, hostCityShort, venueMap, rng)
+        if (venue === null) continue
         const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
         const name = generateEventName(template, hostCityId, venue.id, year, nationId, data, venueMap, usedNames)
 
@@ -417,6 +414,7 @@ function generateDomesticEvents(
 
           const cityShort = cityShortId(entry.cityId)
           const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
+          if (venue === null) continue
           const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
           const name = generateEventName(template, entry.cityId, venue.id, year, nationId, data, venueMap, usedNames)
 
@@ -492,6 +490,7 @@ function generateDomesticEvents(
 
             const cityShort = cityShortId(entry.cityId)
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
+            if (venue === null) continue
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
             const name = generateEventName(template, entry.cityId, venue.id, year, nationId, data, venueMap, usedNames)
 
@@ -525,6 +524,7 @@ function generateDomesticEvents(
 
             const cityShort = cityShortId(entry.cityId)
             const venue = pickVenue(template, circuitLevel, cityShort, venueMap, rng)
+            if (venue === null) continue
             const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
             const name = generateEventName(template, entry.cityId, venue.id, year, nationId, data, venueMap, usedNames)
 
@@ -617,6 +617,7 @@ function generateInternationalEvents(
         if (occupiedMajorWeeks.has(altKey)) continue
         occupiedMajorWeeks.add(altKey)
         const venue = pickVenue(template, circuitLevel, null, venueMap, rng)
+        if (venue === null) continue
         const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
         const name = generateEventName(template, venue.city, venue.id, year, nationId, data, venueMap, usedNames)
         events.push({
@@ -643,6 +644,7 @@ function generateInternationalEvents(
       if (MAJOR_LEVELS.has(circuitLevel)) occupiedMajorWeeks.add(weekKey)
 
       const venue = pickVenue(template, circuitLevel, null, venueMap, rng)
+      if (venue === null) continue
       const weightClasses = pickWeightClasses(template, allWeightClasses, rng)
       const name = generateEventName(template, venue.city, venue.id, year, nationId, data, venueMap, usedNames)
 

@@ -112,7 +112,7 @@
       "eligibleFor": ["national_championship", "golden_gloves", "world_championship", "olympics"]
     },
     {
-      "id": "crypto_com_arena",
+      "id": "crypto_arena_los_angeles",
       "name": "Crypto.com Arena",
       "formerName": "Staples Center",
       "city": "usa-los-angeles",
@@ -137,7 +137,7 @@
       "country": "usa",
       "capacity": 20000,
       "description": "Detroit's main multipurpose arena. When a major boxing event comes to the Motor City — and they do come, because this is still a boxing city — this is where it happens. National Championship host when the tournament comes to Detroit.",
-      "eligibleFor": ["regional_tournament", "national_championship"]
+      "eligibleFor": ["regional_tournament", "national_championship", "golden_gloves"]
     }
   ]
 }
